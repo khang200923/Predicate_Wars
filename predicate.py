@@ -6,7 +6,6 @@ def _checkSubSeq(subseq: Sequence, seq: Sequence) -> bool: #From https://stackov
     """
     Return if the subsequence is in the sequence.
     """
-    #TODO: Test this method
     i, n, m = -1, len(seq), len(subseq)
     if len(subseq) == 0: return True
     try:
@@ -21,7 +20,6 @@ def _subSeqIndex(subseq: Sequence, seq: Sequence) -> int: #From https://stackove
     """
     Return starting index of the subsequence in the sequence.
     """
-    #TODO: Test this method
     i, n, m = -1, len(seq), len(subseq)
     try:
         while True:
@@ -31,26 +29,24 @@ def _subSeqIndex(subseq: Sequence, seq: Sequence) -> int: #From https://stackove
     except ValueError:
         return -1
 
-def _checkSeqForm(seq: Sequence, start: Sequence, end: Sequence, mid=()) -> bool:
+def _checkSeqForm(seq: Sequence, start: Sequence, end: Sequence, mid: Sequence=()) -> bool:
     """
     Check the sequence if it is the form of [start..., ?, mid..., ?, end...].
     """
-    #TODO: Test this method
-    if not seq[:len(start)] == start: return False
-    if not seq[-len(end):] == end: return False
-    if _checkSubSeq(mid, seq) == -1: return False
+    if not (seq[:len(start)] == start): return False
+    if not (seq[-len(end):] == end): return False
+    if not _checkSubSeq(mid, seq[len(start):-len(end)]): return False
     return True
 
 def _seqFormOptionalsIndex(seq: Sequence, start: Sequence, end: Sequence, mid=()) -> Tuple[Tuple] | None:
     """
     Return indexes of optional sequences in the sequence of the seq form.
     """
-    #TODO: Test this method
     if _checkSeqForm(seq, start, end, mid):
         if len(mid) == 0:
-            return ((len(start), len(seq) - len(end)))
+            return ((len(start), len(seq) - len(end)),)
         else:
-            return ((len(start), _subSeqIndex(mid, start)), (_subSeqIndex(mid, start) + len(mid), len(seq) - len(end)))
+            return ((len(start), _subSeqIndex(mid, seq[len(start):-len(end)]) + len(start)), (_subSeqIndex(mid, seq[len(start):-len(end)]) + len(mid) + len(start), len(seq) - len(end)))
     return None
 
 
