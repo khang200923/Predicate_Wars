@@ -135,10 +135,10 @@ A *proof* has a symbol point of the total symbol points of the *symbols* of all 
 A *statement* is a *WFF* if a statement is a predicate, a predicate function wrapped by brackets, or one of these ordered set of symbols:
 
 (here **A** and **B** are *WFF*s, every *variable/predicate* symbols referenced can be all replaced from a single *variable/predicate* *symbol* to another *variable/predicate* *symbol/function*)
-- (∀(x)**A**)
-- (∃(x)**A**)
-- (¬**A**)
-- (**A**∧**B**)
-- (**A**∨**B**)
-- (**A**→**B**)
-- (x=y)
+- Forall syntax: (∀(x)**A**)
+- Exists syntax: (∃(x)**A**)
+- Not syntax: (¬**A**)
+- And syntax: (**A**∧**B**)
+- Or syntax: (**A**∨**B**)
+- Imply syntax: (**A**→**B**)
+- Equal syntax: (x=y)
