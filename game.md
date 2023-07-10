@@ -89,20 +89,22 @@ If one of these action function is proven to be true, then the effect is applied
 A *statement* is an ordered list of *symbols*, which consists of:
 - Variables: lowercase letters ('x', 'y', 'z', ...) (symbol point each: 1)
 - Predicates: uppercase letters ('P', 'Q', 'R', ...) (symbol point each: 1)
+- Truth value (predicate): 'tT', 'tF'
 - Quantifiers: '∀', '∃' (symbol point each: 2)
 - Connectives: '¬', '∧', '∨', '→' (symbol point each: 1)
 - Brackets: '(', ')' (symbol point each: 0)
 - Equality: '='
 - Comma: ',' (symbol point each: 0)
 - Underline: '_' (symbol point each: 0)
-- Number (variable): 0, 1, 2, 3, 4, ...
+- Number (variable, cannot be function name): 0, 1, 2, 3, 4, ...
 - Distinct variables (variable): ('x_0', 'x_1', ..., 'y_0', 'y_1', ...)
-- Functions (variable): lowercase character or \[gameFunctionName...\] + '(' + variable + repeated(',' + distinct variables) + ')'
-- Predicate functions (predicate): uppercase character or \[PREDICATEGAMEFUNCTIONNAME...\] + '(' + variable + repeated(',' + distinct variables) + ')'
-- Game function names (variable): '\[randPlayer\]', '\[randCard\]', '\[chosenPlayer\]', '\[chosenCard\]', '\[playerOfChosenCard\]' (symbol point each: 4)
-- Predicate game function names (predicate): '\[PLAYER\]', '\[CARD\]', '\[HEALTHLOWER\]', '\[HEALTHHIGHER\]', '\[POWERLOWER\]', '\[POWERHIGHER\]', '\[PROVPOWERLOWER\]', '\[PROVPOWERHIGHER\]', '\[SYMBOLPOINTLOWER\]', '\[SYMBOLPOINTHIGHER\]'
+- Distinct predicates (predicate): ('P_0', 'P_1', ..., 'Q_0', 'Q_1', ...)
+- Functions (variable, cannot be function name): lowercase character or distinct variable or \[gameFunctionName...\] + '(' + optional( + variable + repeated(',' + different variables)) + ')'
+- Predicate functions (predicate): uppercase character or distinct predicate or \[PREDICATEGAMEFUNCTIONNAME...\] + '(' + optional( variable + repeated(',' + different variables)) + ')'
+- Game function names: '\[randPlayer\]', '\[randCard\]', '\[chosenPlayer\]', '\[chosenCard\]', '\[playerOfChosenCard\]' (symbol point each: 4)
+- Predicate game function names: '\[PLAYER\]', '\[CARD\]', '\[HEALTHLOWER\]', '\[HEALTHHIGHER\]', '\[POWERLOWER\]', '\[POWERHIGHER\]', '\[PROVPOWERLOWER\]', '\[PROVPOWERHIGHER\]', '\[SYMBOLPOINTLOWER\]', '\[SYMBOLPOINTHIGHER\]'
 (symbol point each: 4)
-- Predicate action function names (predicate): '\[CLAIM\]', '\[ATK\]', '\[HEAL\]', '\[ADDPOWER\]', '\[SUBPOWER\]' (symbol point each: 4) '\[ADDRULE\]', '\[DELETERULE\]' (symbol point each: 10) '\[ADDSUBPROOF\]' (symbol point each: 15)
+- Predicate action function names: '\[CLAIM\]', '\[ATK\]', '\[HEAL\]', '\[ADDPOWER\]', '\[SUBPOWER\]' (symbol point each: 4) '\[ADDRULE\]', '\[DELETERULE\]' (symbol point each: 10) '\[ADDSUBPROOF\]' (symbol point each: 15)
 ### *Proof*
 A *proof* is an ordered list of *statements* and *proof tags* associated with them and a set of proofs. A *proof* is *proper* iff all *subproofs* are *proper*, and:
 - *Proof tags* associated with all *statements* in it are all \[Axiom\] or,
@@ -130,12 +132,11 @@ A *proof* X is *inferred* from another *proof* Y having a *subproof* Z that has 
 
 A *proof* has a symbol point of the total symbol points of the *symbols* of all the \[Lemma\]-tagged statements in the *proof* (excluding the *subproofs*)
 ### *WFF* (*Well-formed formula*)
-A *statement* is a *WFF* if a statement is one of these ordered set of symbols:
+A *statement* is a *WFF* if a statement is a predicate, a predicate function wrapped by brackets, or one of these ordered set of symbols:
 
 (here **A** and **B** are *WFF*s, every *variable/predicate* symbols referenced can be all replaced from a single *variable/predicate* *symbol* to another *variable/predicate* *symbol/function*)
-- A predicate
-- (∀(x)(**A**))
-- (∃(x)(**A**))
+- (∀(x)**A**)
+- (∃(x)**A**)
 - (¬**A**)
 - (**A**∧**B**)
 - (**A**∨**B**)
