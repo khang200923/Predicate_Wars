@@ -41,7 +41,8 @@ def _checkSeqForm(seq: Sequence, start: Sequence, end: Sequence, mid: Sequence=(
 
 def _seqFormOptionalsIndexes(seq: Sequence, start: Sequence, end: Sequence, mid=()) -> Tuple[Tuple] | None:
     """
-    Return indexes of optional sequences in the sequence of the seq form.
+    Return indexes of optional subsequences in the sequence of the seq form.
+    ((subseq1start, subseq2end), ((subseq2end, subseq1start),...)?)
     """
     if _checkSeqForm(seq, start, end, mid):
         if len(mid) == 0:
@@ -68,7 +69,7 @@ symbolsType = (
     ('distPred', r'[A_Z]_[0-9]+'),
     ('truth', r't[TF]'),
     ('quanti', r'forall|exists'),
-    ('connect', r'not | and | or | imply '),
+    ('connect', r'not\s|\sand\s|\sor\s|\simply\s'),
     ('var', r'[a-z]'),
     ('pred', r'[A-Z]'),
     ('equal', r'='),
@@ -77,6 +78,9 @@ symbolsType = (
     ('number', r'[0-9]+'),
     ('space', r'\s'),
 )
+
+varSymbols = ('distVar', 'var')
+predSymbols = ('distPred', 'pred')
 
 def symbolTypeCalc(symbol: str) -> str | None: return next((name for name, cond in symbolsType if re.match('^{}$'.format(cond), symbol)), None)
 
@@ -119,8 +123,38 @@ class Statement:
                 raise ValueError("Invalid string")
         return Statement(tuple(tokens))
 
+    def __getitem__(self, key):
+        return self.statement[key]
+
+    def __len__(self):
+        return len(self.statement)
+
+    def __eq__(self, statement: 'Statement') -> bool:
+        """
+        Check if two statements are functionally equivalent
+        """
+        #TODO: Test this method
+        assert isinstance(statement, Statement), 'must compare with a valid instance of class "Statement"'
+        maps = {}
+        for sym1, sym2 in zip(self, statement):
+            if len(sym1) != len(sym2): return False
+            if (sym1[0] in varSymbols and sym2[0] in varSymbols) or \
+            (sym1[0] in predSymbols and sym2[0] in predSymbols):
+                if sym1 in maps:
+                    if maps[sym1] != sym2: return False
+                    else: continue
+                else:
+                    maps[sym1] = sym2
+                    continue
+            elif sym1 != sym2: return False
+        return True
+
     def wellformed(self) -> bool:
         """
         Check whether the given token sequence is well formed.
         """
         #TODO: Implement this method
+        if len(self.statement) == 0: return False
+        if len(self.statement) == 1:
+            return self.statement[0][0] in ('distPred', 'truth', 'pred')
+        ...

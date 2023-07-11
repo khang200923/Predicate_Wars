@@ -38,3 +38,36 @@ test('_seqFormOptionalsIndexes 2', pd._seqFormOptionalsIndexes((4,7,4,2,7,'er',4
 test('_seqFormOptionalsIndexes 3', pd._seqFormOptionalsIndexes((4,7,4,2,7,4,'er',3,9,9,9), (4,7,4), (9,9,9), (7,'er')) == None,
     pd._seqFormOptionalsIndexes((4,7,4,2,7,4,'er',3,9,9,9), (4,7,4), (9,9,9), (7,'er'))
 )
+
+statements = tuple(pd.Statement.lex(x) for x in (
+    """
+    (forall(x)(
+        P(x) imply
+        (exists(y)(
+            Q(x) or P(y)
+        ))
+    ))
+    """,
+    """
+    (forall(y)(
+        P(y) imply
+        (exists(x)(
+            R(y) or P(x)
+        ))
+    ))
+    """,
+    """
+    (forall(x)(
+        P(y) imply
+        (exists(x)(
+            Q(y) or P(x)
+        ))
+    ))
+    """,
+))
+
+test('Statement.__eq__ 1', statements[0] == statements[0], False)
+
+test('Statement.__eq__ 2', statements[0] == statements[1], False)
+
+test('Statement.__eq__ 3', not statements[0] == statements[2], True)
