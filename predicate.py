@@ -16,18 +16,19 @@ def _checkSubSeq(subseq: Sequence, seq: Sequence) -> bool: #From https://stackov
     except ValueError:
         return False
 
-def _subSeqIndex(subseq: Sequence, seq: Sequence) -> int: #From https://stackoverflow.com/questions/425604/best-way-to-determine-if-a-sequence-is-in-another-sequence
+def _subSeqIndexes(subseq: Sequence, seq: Sequence) -> Tuple[int]: #From https://stackoverflow.com/questions/425604/best-way-to-determine-if-a-sequence-is-in-another-sequence
     """
-    Return starting index of the subsequence in the sequence.
+    Return starting indexes of the subsequence in the sequence.
     """
     i, n, m = -1, len(seq), len(subseq)
+    matches = []
     try:
         while True:
             i = seq.index(subseq[0], i + 1, n - m + 1)
             if subseq == seq[i:i + m]:
-               return i
+               matches.append(i)
     except ValueError:
-        return -1
+        return tuple(matches)
 
 def _checkSeqForm(seq: Sequence, start: Sequence, end: Sequence, mid: Sequence=()) -> bool:
     """
@@ -38,7 +39,7 @@ def _checkSeqForm(seq: Sequence, start: Sequence, end: Sequence, mid: Sequence=(
     if not _checkSubSeq(mid, seq[len(start):-len(end)]): return False
     return True
 
-def _seqFormOptionalsIndex(seq: Sequence, start: Sequence, end: Sequence, mid=()) -> Tuple[Tuple] | None:
+def _seqFormOptionalsIndexes(seq: Sequence, start: Sequence, end: Sequence, mid=()) -> Tuple[Tuple] | None:
     """
     Return indexes of optional sequences in the sequence of the seq form.
     """
@@ -46,7 +47,9 @@ def _seqFormOptionalsIndex(seq: Sequence, start: Sequence, end: Sequence, mid=()
         if len(mid) == 0:
             return ((len(start), len(seq) - len(end)),)
         else:
-            return ((len(start), _subSeqIndex(mid, seq[len(start):-len(end)]) + len(start)), (_subSeqIndex(mid, seq[len(start):-len(end)]) + len(mid) + len(start), len(seq) - len(end)))
+            return ((len(start), len(seq) - len(end)),
+                tuple((index + len(start), index + len(start) + len(mid)) for index in _subSeqIndexes(mid, seq[len(start):-len(end)]))
+            )
     return None
 
 
