@@ -139,7 +139,6 @@ class Statement:
         """
         Check if two statements are functionally equivalent
         """
-        #TODO: Test this method
         assert isinstance(statement, Statement), 'must compare with a valid instance of class "Statement"'
         maps = deepcopy(startingMaps)
         for sym1, sym2 in zip(self, statement):
@@ -159,7 +158,6 @@ class Statement:
         return self.eq(statement, maps)[0]
 
     def form(self, start: Tuple[Tuple, ...], end: Tuple[Tuple, ...], mid: Tuple[Tuple, ...]=(), startingMaps: dict[Tuple, Tuple]={}) -> bool:
-        #TODO: Test this method
 
         #Check form first
         if not _checkSeqForm(self, start, end, mid, startEndMatch=lambda x, y: Statement(x) == Statement(y)): return False
@@ -191,15 +189,34 @@ class Statement:
         #All filters passed - great!
         return True
 
+    def wellformedobj(self) -> bool:
+        """
+        Check whether the object is well-formed.
+        """
+
+        if len(self) == 0: return False
+        if len(self) == 1:
+            return self.statement[0][0] in ('distVar', 'var', 'number')
+        if len(self) > 2:
+            if self[1] == ('bracket', '(') and self[-1] == ('bracket', ')') and \
+            self[0][0] in ('gameFuncName', 'distVar', 'var'):
+                paramsLeft = self[2:-1]
+                while len(paramsLeft) > 0:
+                    paramEndIndex = next((index for index in range(len(paramsLeft) + 1) if Statement(paramsLeft[:index]).wellformedobj() and not (index < len(paramsLeft) and not paramsLeft[index] == ('comma',))), None)
+                    if paramEndIndex == None: return Statement(paramsLeft).wellformedobj()
+                    paramsLeft = paramsLeft[paramEndIndex+1:]
+                return True
+        return False
+
+
     def wellformed(self) -> bool:
         """
-        Check whether the given token sequence is well-formed.
+        Check whether the statement is well-formed.
         """
-        #TODO: Validate more objects in equal operator
-        #TODO: Test this method
-        if len(self.statement) == 0: return False
-        if len(self.statement) == 1:
-            return self.statement[0][0] in ('distPred', 'truth', 'pred')
+
+        if len(self) == 0: return False
+        if len(self) == 1:
+            return self[0][0] in ('distPred', 'truth', 'pred')
 
         #For All syntax
         if self.form(
@@ -285,9 +302,13 @@ class Statement:
                 return True
 
         #Function syntax
-        if self[0] == ('bracket', '(') and self[2] == ('bracket', '(') and self[-2:] == (('bracket', ')'), ('bracket', ')')) and \
-        self[1][0] in ('predGFuncName', 'predAFuncName', 'distPred', 'pred') and \
-        all(comma  == ('comma',) for comma in self[4:-2:2]) and \
-        all(var[0] in ('distVar', 'var', 'number') for var in self[3:-2:2]): return True
+        if self[1] == ('bracket', '(') and self[-1] == ('bracket', ')') and \
+        self[0][0] in ('predGFuncName', 'predAFuncName', 'distPred', 'pred'):
+            paramsLeft = self[2:-1]
+            while len(paramsLeft) > 0:
+                paramEndIndex = next((index for index in range(len(paramsLeft) + 1) if Statement(paramsLeft[:index]).wellformedobj() and not (index < len(paramsLeft) and not paramsLeft[index] == ('comma',))), None)
+                if paramEndIndex == None: return Statement(paramsLeft).wellformedobj()
+                paramsLeft = paramsLeft[paramEndIndex+1:]
+            return True
 
         return False

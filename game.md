@@ -118,8 +118,8 @@ A *proof* X is *inferred* from another *proof* Y having a *subproof* Z that has 
 - Modus tollens: If **p1** is (**A** → **B**) and **p2** is (¬**B**), then **c** is (¬**A**)
 - Universal instantiation: If **p1** is (∀(x)**A**) then **c** is **A**{x ↦ a}
 - Universal generalization: If **p1** is **A**(d) then **c** is (∀(d)**A**(d))
-- Existential instantiation: If **p1** is (∃(x)(P(x))) then **c** is (P(d))
-- Existential generalization: If **p1** is (P(x)) then **c** is (∃(x)(P(x)))
+- Existential instantiation: If **p1** is (∃(x)P(x)) then **c** is P(d)
+- Existential generalization: If **p1** is P(x) then **c** is (∃(x)P(x))
 - Conjunction: If **p1** is **A** and **p2** is **B** then **c** is (**A** ∧ **B**)
 - Simplification: If **p1** is (**A** ∧ **B**) then **c** is **A** or **B**
 - Addition: If **p1** is **A**, then **c** is (**A** ∨ **B**) for any **B**

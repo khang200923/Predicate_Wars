@@ -42,32 +42,42 @@ test('_seqFormOptionalsIndexes 3', pd._seqFormOptionalsIndexes((4,7,4,2,7,4,'er'
 statements = tuple(pd.Statement.lex(x) for x in (
     """
     (forall(x)(
-        (P(x)) imply
+        P(x) imply
         (exists(y)(
-            (Q(x)) or (P(y))
+            Q(x) or P(y)
         ))
     ))
     """,
     """
     (forall(y)(
-        (P(y)) imply
+        P(y) imply
         (exists(x)(
-            (R(y)) or (P(x))
+            R(y) or P(x)
         ))
     ))
     """,
     """
     (forall(x)(
-        (P(y)) imply
+        P(y) imply
         (exists(x)(
-            (Q(y)) or (P(x))
+            Q(y) or P(x)
         ))
     ))
     """,
+    """
+    (forall(x)(
+        forall(y)(
+            ((x = y) imply ( (P(x) and P(y)) or (
+                (not P(x)) and (not P(y))
+            ) )) and P( f(x,y,a,b,c) )
+        )
+    ))
+    """
 ))
 
 test('Statement.__eq__ 1', statements[0] == statements[0], False)
-
 test('Statement.__eq__ 2', statements[0] == statements[1], False)
-
 test('Statement.__eq__ 3', not statements[0] == statements[2], True)
+
+for index, state in enumerate(statements):
+    test('Statement.wellformed {}'.format(index + 1), statements[index].wellformed(), False)
