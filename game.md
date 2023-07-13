@@ -1,4 +1,5 @@
 (semi-completed)
+<!-- TODO: Redefine functions -->
 ## Requirements:
 - 2-16 **players**
 - 256 **blank cards** that when [edited](#card-editing-rules) should have:
