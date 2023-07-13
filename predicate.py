@@ -195,6 +195,7 @@ class Statement:
         """
         Check whether the given token sequence is well-formed.
         """
+        #TODO: Validate more objects in equal operator
         #TODO: Test this method
         if len(self.statement) == 0: return False
         if len(self.statement) == 1:
@@ -285,7 +286,7 @@ class Statement:
 
         #Function syntax
         if self[0] == ('bracket', '(') and self[2] == ('bracket', '(') and self[-2:] == (('bracket', ')'), ('bracket', ')')) and \
-        self[1][0] in ('gameFuncName', 'predGFuncName', 'predAFuncName', 'distVar', 'var', 'distPred', 'pred') and \
+        self[1][0] in ('predGFuncName', 'predAFuncName', 'distPred', 'pred') and \
         all(comma  == ('comma',) for comma in self[4:-2:2]) and \
         all(var[0] in ('distVar', 'var', 'number') for var in self[3:-2:2]): return True
 

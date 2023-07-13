@@ -42,25 +42,25 @@ test('_seqFormOptionalsIndexes 3', pd._seqFormOptionalsIndexes((4,7,4,2,7,4,'er'
 statements = tuple(pd.Statement.lex(x) for x in (
     """
     (forall(x)(
-        P(x) imply
+        (P(x)) imply
         (exists(y)(
-            Q(x) or P(y)
+            (Q(x)) or (P(y))
         ))
     ))
     """,
     """
     (forall(y)(
-        P(y) imply
+        (P(y)) imply
         (exists(x)(
-            R(y) or P(x)
+            (R(y)) or (P(x))
         ))
     ))
     """,
     """
     (forall(x)(
-        P(y) imply
+        (P(y)) imply
         (exists(x)(
-            Q(y) or P(x)
+            (Q(y)) or (P(x))
         ))
     ))
     """,
