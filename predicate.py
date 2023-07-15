@@ -7,7 +7,6 @@ def _mappableDict(dct: dict) -> bool:
     """
     Returns if dict values don't overlap.
     """
-    #TODO: Test this method
     return len(set(dct.values())) == len(dct.values())
 
 def _checkSubSeq(subseq: Sequence, seq: Sequence) -> bool: #From https://stackoverflow.com/questions/425604/best-way-to-determine-if-a-sequence-is-in-another-sequence
@@ -146,6 +145,7 @@ class Statement:
         """
         Check if two statements are functionally equivalent
         """
+        #TODO: Check if map is mappable to be equivalent
         assert isinstance(statement, Statement), 'must compare with a valid instance of class "Statement"'
         maps = deepcopy(startingMaps)
         for sym1, sym2 in zip(self, statement):
@@ -165,7 +165,6 @@ class Statement:
         """
         Returns vars and preds in the statement.
         """
-        #TODO: Test this method
         syms = set()
         for sym in self:
             if sym[0] in varSymbols or sym[0] in predSymbols:
@@ -331,16 +330,16 @@ class Statement:
 
         return False
 
-    def substitute(self, map: dict[Tuple, Tuple], obj: bool = False) -> 'Statement':
+    def substitute(self, startingMap: dict[Tuple, Tuple], obj: bool = False) -> 'Statement | None':
         """
         Maps each symbol in statement with a map, and return the resulting statement.
         When the result is not well-formed, return None
-        Overlapping returns None (means replacing a symbol with another symbol that is already in the original statement, or replacing two different symbols with the same symbol)
+        Overlapping also returns None
         """
-        #TODO: Test this method
+        map = {sym: sym for sym in self.syms()}
+        map.update(startingMap)
         if not _mappableDict(map): return None
         symsOrig = self.syms()
-        if any(symTo in symsOrig for symTo in map.values()): return None
         res = Statement(tuple(map.get(symbol, symbol) for symbol in self))
         if obj:
             if not res.wellformedobj(): return None
