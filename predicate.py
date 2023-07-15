@@ -145,7 +145,6 @@ class Statement:
         """
         Check if two statements are functionally equivalent
         """
-        #TODO: Check if map is mappable to be equivalent
         assert isinstance(statement, Statement), 'must compare with a valid instance of class "Statement"'
         maps = deepcopy(startingMaps)
         for sym1, sym2 in zip(self, statement):
@@ -159,7 +158,7 @@ class Statement:
                     maps[sym1] = sym2
                     continue
             elif sym1 != sym2: return (False, maps)
-        return (True, maps)
+        return (_mappableDict(maps), maps)
 
     def syms(self) -> Set[Tuple]:
         """

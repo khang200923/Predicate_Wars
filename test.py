@@ -48,7 +48,7 @@ statements = tuple(pd.Statement.lex(x) for x in (
             Q(x) or P(y)
         ))
     ))
-    """,
+    """, #0
     """
     (forall(y)(
         P(y) imply
@@ -56,7 +56,7 @@ statements = tuple(pd.Statement.lex(x) for x in (
             R(y) or P(x)
         ))
     ))
-    """,
+    """, #1
     """
     (forall(x)(
         P(y) imply
@@ -64,7 +64,15 @@ statements = tuple(pd.Statement.lex(x) for x in (
             Q(y) or P(x)
         ))
     ))
-    """,
+    """, #2
+    """
+    (forall(x)(
+        P(y) imply
+        (exists(x)(
+            P(y) or P(x)
+        ))
+    ))
+    """, #3
     """
     (forall(x)(
         forall(y)(
@@ -73,12 +81,13 @@ statements = tuple(pd.Statement.lex(x) for x in (
             ) )) and P( f(x,y,a,b,c) )
         )
     ))
-    """
+    """, #4
 ))
 
 test('Statement.__eq__ 1', statements[0] == statements[0], False)
 test('Statement.__eq__ 2', statements[0] == statements[1], False)
 test('Statement.__eq__ 3', not statements[0] == statements[2], True)
+test('Statement.__eq__ 4', not statements[0] == statements[3], True)
 
 for index, state in enumerate(statements):
     test('Statement.wellformed {}'.format(index + 1), statements[index].wellformed(), False)
