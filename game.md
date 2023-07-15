@@ -11,9 +11,9 @@
 - **Deck** with 100 blank cards by default
 - Player **stats**:
     - **Health** (default: total players * 50) (public)
-    - **Power** (default: 130) (public)
+    - **Power** (default: 100) (public)
     - **Owned cards** (default: 2 blank cards) (only game function type count used in the effect and RPS tag is public)
-    - **Proving power per round** (default: 20) (public)
+    - **Proving potency** (default: 25) (public)
 
 ## Rules:
 ### Initial gameplay:
@@ -38,7 +38,7 @@ Each player in a cycle of players, moving clockwise, starting from the latest pl
 - If yes, then the claiming player's power is removed by the card's power cost.
 After that, each player that has [edited](#card-editing-rules) a card this round and the created card is still in their hand, takes half of the card's power cost, ceil-wise.
 #### Phase IV: Playing
-Each player has proving power (public) which can only be used for this round, determined by 'proving power per round'
+Each player has proving power (public) which can only be used for this round, determined by their proving potency
 
 Go in cycles of remained players, moving clockwise, starting from the latest player, ends when there is only 1 remaining:
 - The player remains if they still have cards left, or not choosing to not remain
@@ -50,8 +50,9 @@ Go in cycles of remained players, moving clockwise, starting from the latest pla
 - The player can then [prove](#proving-rules) a predicate game function applied to a player is true or false in the scope of a played card by the [proving system](#predicate-logic-and-the-proving-system), only if they have enough proving power to do it, then the proving power is subtracted by the number of lines used in the proof.
 - If a player loses all health (to 0), they lose the game and cannot participate in the game in any way.
 #### Phase V: Final
-- Top [half of the number of players, floor-wise] remaining players receive 2 more proving power per round. Except the last remaining player, who receives 5 more proving power per round.
-- The last player in the game wins.
+- If there is only one player left, the player in the game wins.
+- Top [half of the number of players, floor-wise] remaining players receive 2 more proving potency. Except the last remaining player, who receives 5 more proving potency.
+- Each player, if desired, buys a *subproof* to use in their proofs, which costs the whole symbol point of the *proof* to the proving potency.
 ### Card editing rules:
 When a player edits a card, they add/change tag, power cost (smaller or equal to their current power) and effect (written in [predicate logic](#predicate-logic-and-the-proving-system) syntax). They must add/change their identifier onto the card.
 ### Proving rules:
@@ -105,7 +106,7 @@ A *statement* is an ordered list of *symbols*, which consists of:
 - Game function names: '\[randPlayer\]', '\[randCard\]', '\[chosenPlayer\]', '\[chosenCard\]', '\[playerOfChosenCard\]' (symbol point each: 4)
 - Predicate game function names: '\[PLAYER\]', '\[CARD\]', '\[HEALTHLOWER\]', '\[HEALTHHIGHER\]', '\[POWERLOWER\]', '\[POWERHIGHER\]', '\[PROVPOWERLOWER\]', '\[PROVPOWERHIGHER\]', '\[SYMBOLPOINTLOWER\]', '\[SYMBOLPOINTHIGHER\]'
 (symbol point each: 4)
-- Predicate action function names: '\[CLAIM\]', '\[ATK\]', '\[HEAL\]', '\[ADDPOWER\]', '\[SUBPOWER\]' (symbol point each: 4) '\[ADDRULE\]', '\[DELETERULE\]' (symbol point each: 10) '\[ADDSUBPROOF\]' (symbol point each: 15)
+- Predicate action function names: '\[CLAIM\]', '\[ATK\]', '\[HEAL\]', '\[ADDPOWER\]', '\[SUBPOWER\]' (symbol point each: 4) '\[ADDRULE\]', '\[DELETERULE\]' (symbol point each: 12)
 ### *Proof*
 A *proof* is an ordered list of *statements* and *proof tags* associated with them and a set of proofs. A *proof* is *proper* iff all *subproofs* are *proper*, and:
 - *Proof tags* associated with all *statements* in it are all \[Axiom\] or,
