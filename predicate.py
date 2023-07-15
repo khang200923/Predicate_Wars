@@ -1,7 +1,8 @@
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from enum import Enum
 import re
-from typing import Callable, Sequence, Set, Tuple
+from typing import Callable, List, Sequence, Set, Tuple
 
 def _mappableDict(dct: dict) -> bool:
     """
@@ -49,7 +50,7 @@ def _checkSeqForm(seq: Sequence, start: Sequence, end: Sequence, mid: Sequence=(
 def _seqFormOptionalsIndexes(seq: Sequence, start: Sequence, end: Sequence, mid: Sequence = (), midcond: Callable[[int], bool] = lambda x: True, startEndMatch = lambda x, y: x == y) -> Tuple[Tuple, ...] | None:
     """
     Return indexes of optional subsequences in the sequence of the seq form.
-    ((subseq1start, subseq2end), ((subseq2end, subseq1start),...)?)
+    ((subseq1start, subseq2end), ((subseq1end, subseq2start),...)?)
     Conditional function of mid filter is fed starting index to each mid
     """
     if _checkSeqForm(seq, start, end, mid, startEndMatch):
@@ -198,12 +199,42 @@ class Statement:
                 if self[minIndex[0] : minIndex[1]] == mid:
                     return True
             return False
-        else:
-            if not Statement(self[startEndIndexes[0]:startEndIndexes[1]]).wellformed():
-                return False
+        if not Statement(self[startEndIndexes[0]:startEndIndexes[1]]).wellformed():
+            return False
 
         #All filters passed - great!
         return True
+
+    def formulasInForm(self, start: Tuple[Tuple, ...], end: Tuple[Tuple, ...], mid: Tuple[Tuple, ...]=(), startingMaps: dict[Tuple, Tuple]={}) -> Tuple['Statement', ...] | None:
+
+        #Check form first
+        if not _checkSeqForm(self, start, end, mid, startEndMatch=lambda x, y: Statement(x) == Statement(y)): return False
+
+        #Prepare maps
+        maps = deepcopy(startingMaps)
+        startEndIndexes = _seqFormOptionalsIndexes(self, start, end, mid, startEndMatch=lambda x, y: Statement(x) == Statement(y))[0]
+        check = Statement(self[:startEndIndexes[0]]).eq(Statement(start), startingMaps=maps)
+        if not check[0]: return None
+        maps = check[1]
+        check = Statement(self[startEndIndexes[1]:]).eq(Statement(end), startingMaps=maps)
+        if not check[0]: return None
+        maps = check[1]
+
+        #Check for special case mid
+        if mid:
+            minIndexes = _seqFormOptionalsIndexes(self, start, end, mid, midcond=lambda index: \
+                        Statement(self[startEndIndexes[0]:index]).wellformed() and \
+                        Statement(self[index+len(mid):startEndIndexes[1]]).wellformed() \
+            , startEndMatch=lambda x, y: Statement(x) == Statement(y))[1]
+            for minIndex in minIndexes:
+                if self[minIndex[0] : minIndex[1]] == mid:
+                    return tuple( ( self[startEndIndexes[0]:minIndex[0]], self[minIndex[1]:startEndIndexes[1]] ) for minIndex in minIndexes)
+            return None
+        else:
+            if not Statement(self[startEndIndexes[0]:startEndIndexes[1]]).wellformed():
+                return None
+
+        return ( (self[startEndIndexes[0]:startEndIndexes[1]],) ,)
 
     def wellformedobj(self) -> bool:
         """
@@ -338,10 +369,48 @@ class Statement:
         map = {sym: sym for sym in self.syms()}
         map.update(startingMap)
         if not _mappableDict(map): return None
-        symsOrig = self.syms()
         res = Statement(tuple(map.get(symbol, symbol) for symbol in self))
         if obj:
             if not res.wellformedobj(): return None
         else:
             if not res.wellformed(): return None
         return res
+
+class StateTag(Enum):
+    AXIOM = 0
+    LEMMA = 1
+
+class BaseInferType(Enum):
+    ImpliInst = 12
+    ExpliInst = 11
+    ModPonens = 0
+    ModTollens = 1
+    UniversalInst = 2
+    UniversalGenr = 3
+    ExistentialInst = 4
+    ExistentialGenr = 5
+    Conjunc = 6
+    Simplific = 7
+    Addition = 8
+    UnivModPonens = 9
+    ExistModPonens = 10
+    Truth = 13
+    Falsehood = 14
+
+class InferType(BaseInferType): pass
+
+@dataclass
+class ProofBase:
+    """
+    Contains a list of Statements, with no subproof, and a list of inference.
+    """
+    statements: List[Statement] = field(default_factory=list)
+    stateTags: List[StateTag] = field(default_factory=list)
+
+    def infer(self, inferType: BaseInferType, premise1Index: int, premise2Index: int, premise1VarInd: int = 0, premise2VarInd: int = 1):
+        """
+        Infers the proof and returns the result.
+        """
+        #TODO: Implement this method
+        #TODO: Test this method
+        #TODO: Try to avoid creating a spaghetti code...
