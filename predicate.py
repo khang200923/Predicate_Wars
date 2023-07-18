@@ -241,7 +241,6 @@ class Statement:
         """
         Returns all optional formulas in statement if it fits with the statement form.
         """
-        #TODO: Test this method
 
         #Check form first
         if not _checkSeqForm(self, start, end, mid, startEndMatch=lambda x, y: Statement(x) == Statement(y)): return None
@@ -436,6 +435,7 @@ premiseUsesOfInferType = { #(p1, p2, z1, z2, z3)
     InferType.ImpliInst: (True, True, False, False, False),
     InferType.ExpliInst: (True, True, False, False, False),
     InferType.ModPonens: (True, True, False, False, False),
+    InferType.ModTollens: (True, True, False, False, False),
 }
 
 class InferenceError(Exception): pass
@@ -539,5 +539,45 @@ class ProofBase:
                         notB + \
                         Statement( (('bracket', ')'), ('bracket', ')')) )
                     )
-
+            case InferType.ModPonens:
+                A = premise2
+                try: Bb = premise1.formulasInForm(
+                    (
+                        ('bracket', '('),
+                    ),
+                    (
+                        ('bracket', ')'),
+                    ),
+                    (
+                        ('connect', 'imply'),
+                    ),
+                )[0]
+                except TypeError: Bb = None
+                if Bb and tuple(Bb[0]) == tuple(A): conclusions.append(Bb[1])
+            case InferType.ModTollens: #TODO: Test this case
+                try: B = premise2.formulasInForm(
+                    (
+                        ('bracket', '('),
+                        ('connect', 'not'),
+                    ),
+                    (
+                        ('bracket', ')'),
+                    ),
+                )[0][0]
+                except TypeError: B = None
+                if B:
+                    try: Aa = premise1.formulasInForm(
+                        (
+                            ('bracket', '('),
+                        ),
+                        (
+                            ('bracket', ')'),
+                        ),
+                        (
+                            ('connect', 'imply'),
+                        ),
+                    )[0]
+                    except TypeError: Aa = None
+                    if Aa and tuple(Aa[1]) == tuple(B):
+                        conclusions.append(Statement.lex('(not ') + Aa[0] + Statement.lex(')'))
         return tuple(conclusions)

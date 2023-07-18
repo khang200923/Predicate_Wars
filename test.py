@@ -155,3 +155,39 @@ states = [pd.Statement.lex(state) for state in states]
 proof = pd.ProofBase(states, [pd.StateTag.AXIOM for _ in states])
 res = proof.inferConclusions(pd.InferType.ExpliInst, 0, 1)
 test('ProofBase.inferConclusions ExpliInst 2', res == (), tuple(str(ree) for ree in res))
+
+states = ('((A and B) imply Q)', '(A and B)')
+states = [pd.Statement.lex(state) for state in states]
+proof = pd.ProofBase(states, [pd.StateTag.AXIOM for _ in states])
+res = proof.inferConclusions(pd.InferType.ModPonens, 0, 1)
+test('ProofBase.inferConclusions ModPonens 1', res == (pd.Statement.lex('Q'),), tuple(str(ree) for ree in res))
+
+states = ('((A and B) and R)', '(A and B)')
+states = [pd.Statement.lex(state) for state in states]
+proof = pd.ProofBase(states, [pd.StateTag.AXIOM for _ in states])
+res = proof.inferConclusions(pd.InferType.ModPonens, 0, 1)
+test('ProofBase.inferConclusions ModPonens 2', res == (), tuple(str(ree) for ree in res))
+
+states = ('((A and B) imply R)', '(A and Q)')
+states = [pd.Statement.lex(state) for state in states]
+proof = pd.ProofBase(states, [pd.StateTag.AXIOM for _ in states])
+res = proof.inferConclusions(pd.InferType.ModPonens, 0, 1)
+test('ProofBase.inferConclusions ModPonens 3', res == (), tuple(str(ree) for ree in res))
+
+states = ('((A and B) imply Q)', '(not Q)')
+states = [pd.Statement.lex(state) for state in states]
+proof = pd.ProofBase(states, [pd.StateTag.AXIOM for _ in states])
+res = proof.inferConclusions(pd.InferType.ModTollens, 0, 1)
+test('ProofBase.inferConclusions ModTollens 1', res == (pd.Statement.lex('(not (A and B))'),), tuple(str(ree) for ree in res))
+
+states = ('((A and B) imply Q)', '(not (Q and A))')
+states = [pd.Statement.lex(state) for state in states]
+proof = pd.ProofBase(states, [pd.StateTag.AXIOM for _ in states])
+res = proof.inferConclusions(pd.InferType.ModTollens, 0, 1)
+test('ProofBase.inferConclusions ModTollens 2', res == (), tuple(str(ree) for ree in res))
+
+states = ('((A and B) imply R)', '(not Q)')
+states = [pd.Statement.lex(state) for state in states]
+proof = pd.ProofBase(states, [pd.StateTag.AXIOM for _ in states])
+res = proof.inferConclusions(pd.InferType.ModTollens, 0, 1)
+test('ProofBase.inferConclusions ModTollens 3', res == (), tuple(str(ree) for ree in res))
