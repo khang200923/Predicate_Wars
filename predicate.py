@@ -2,7 +2,7 @@ from copy import deepcopy
 from dataclasses import dataclass, field
 from enum import Enum
 import re
-from typing import Callable, List, Sequence, Set, Tuple
+from typing import Any, Callable, List, Sequence, Set, Tuple
 
 def _mappableDict(dct: dict) -> bool:
     """
@@ -174,7 +174,14 @@ class Statement:
     def __eq__(self, statement: 'Statement', maps = {}) -> bool:
         return self.eq(statement, maps)[0]
 
-    def form(self, start: Tuple[Tuple, ...], end: Tuple[Tuple, ...], mid: Tuple[Tuple, ...]=(), startingMaps: dict[Tuple, Tuple]={}) -> bool:
+    def __add__(self, statement: 'Statement') -> 'Statement':
+        assert isinstance(statement, Statement), 'must add with a valid instance of class "Statement"'
+        return Statement(self.statement + statement.statement)
+
+    def form(self, start: Tuple[Tuple, ...]=(), end: Tuple[Tuple, ...]=(), mid: Tuple[Tuple, ...]=(), startingMaps: dict[Tuple, Tuple]={}) -> bool:
+        """
+        Checks if the statement form fits the statement.
+        """
 
         #Check form first
         if not _checkSeqForm(self, start, end, mid, startEndMatch=lambda x, y: Statement(x) == Statement(y)): return False
@@ -205,10 +212,14 @@ class Statement:
         #All filters passed - great!
         return True
 
-    def formulasInForm(self, start: Tuple[Tuple, ...], end: Tuple[Tuple, ...], mid: Tuple[Tuple, ...]=(), startingMaps: dict[Tuple, Tuple]={}) -> Tuple['Statement', ...] | None:
+    def formulasInForm(self, start: Tuple[Tuple, ...]=(), end: Tuple[Tuple, ...]=(), mid: Tuple[Tuple, ...]=(), startingMaps: dict[Tuple, Tuple]={}) -> Tuple[Tuple['Statement', ...], ...] | None:
+        """
+        Returns all optional formulas in statement if it fits with the statement form.
+        """
+        #TODO: Test this method
 
         #Check form first
-        if not _checkSeqForm(self, start, end, mid, startEndMatch=lambda x, y: Statement(x) == Statement(y)): return False
+        if not _checkSeqForm(self, start, end, mid, startEndMatch=lambda x, y: Statement(x) == Statement(y)): return None
 
         #Prepare maps
         maps = deepcopy(startingMaps)
@@ -228,13 +239,12 @@ class Statement:
             , startEndMatch=lambda x, y: Statement(x) == Statement(y))[1]
             for minIndex in minIndexes:
                 if self[minIndex[0] : minIndex[1]] == mid:
-                    return tuple( ( self[startEndIndexes[0]:minIndex[0]], self[minIndex[1]:startEndIndexes[1]] ) for minIndex in minIndexes)
+                    return tuple( ( Statement(self[startEndIndexes[0]:minIndex[0]]), Statement(self[minIndex[1]:startEndIndexes[1]]) ) for minIndex in minIndexes)
             return None
         else:
             if not Statement(self[startEndIndexes[0]:startEndIndexes[1]]).wellformed():
                 return None
-
-        return ( (self[startEndIndexes[0]:startEndIndexes[1]],) ,)
+        return ( ( Statement(self[startEndIndexes[0]:startEndIndexes[1]],) ,) ,)
 
     def wellformedobj(self) -> bool:
         """
@@ -380,7 +390,7 @@ class StateTag(Enum):
     AXIOM = 0
     LEMMA = 1
 
-class BaseInferType(Enum):
+class InferType(Enum):
     ImpliInst = 12
     ExpliInst = 11
     ModPonens = 0
@@ -397,7 +407,13 @@ class BaseInferType(Enum):
     Truth = 13
     Falsehood = 14
 
-class InferType(BaseInferType): pass
+premiseUsesOfInferType = { #(p1, p2, z1, z2, z3)
+    InferType.ImpliInst: (True, True, False, False, False),
+    InferType.ExpliInst: (True, True, False, False, False),
+    InferType.ModPonens: (True, True, False, False, False),
+}
+
+class InferenceError(Exception): pass
 
 @dataclass
 class ProofBase:
@@ -406,11 +422,85 @@ class ProofBase:
     """
     statements: List[Statement] = field(default_factory=list)
     stateTags: List[StateTag] = field(default_factory=list)
+    inferences: List[Tuple[InferType, int, int, Tuple[Tuple[int, int], Tuple[int, int]], Tuple[Tuple[int, int], Tuple[int, int]]]] = field(default_factory=list)
 
-    def infer(self, inferType: BaseInferType, premise1Index: int, premise2Index: int, premise1VarInd: int = 0, premise2VarInd: int = 1):
+    def __getitem__(self, index: int) -> dict[str, Any]:
+        try:
+            return {'state': self.statements[index], 'tag': self.stateTags[index], 'infer': self.inferences[index]}
+        except IndexError:
+            return {'state': self.statements[index], 'tag': self.stateTags[index], 'infer': None}
+
+    def inferConclusions(self, inferType: InferType, premise1Index: int, premise2Index: int) -> Tuple[Statement]:
         """
-        Infers the proof and returns the result.
+        Infers the proof and yields conclusions.
         """
-        #TODO: Implement this method
-        #TODO: Test this method
+        #TODO: Implement this method (the hardest part yet)
+        #TODO: Test this method (oh no)
         #TODO: Try to avoid creating a spaghetti code...
+        premiseUses = premiseUsesOfInferType[inferType]
+        if premiseUses[0]:
+            premise1: Statement = self[premise1Index]['state']
+            if not premise1.wellformed(): raise InferenceError('Premise 1 is ill-formed')
+        if premiseUses[1]:
+            premise2: Statement = self[premise2Index]['state']
+            if not premise2.wellformed(): raise InferenceError('Premise 2 is ill-formed')
+
+        conclusions = []
+
+        match inferType:
+            case InferType.ImpliInst: #TODO: Test this case
+                A = premise1
+                try: notA = premise1.formulasInForm(
+                    (
+                        ('bracket', '('),
+                        ('connect', 'not'),
+                    ),
+                    (
+                        ('bracket', ')'),
+                    ),
+                )[0][0]
+                except TypeError: notA = None
+                B = premise2
+                try: notB = premise2.formulasInForm(
+                    (
+                        ('bracket', '('),
+                        ('connect', 'not'),
+                    ),
+                    (
+                        ('bracket', ')'),
+                    ),
+                )[0][0]
+                except TypeError: notB = None
+                if notA:
+                    if notB:
+                        conclusions.append(
+                            Statement( (('bracket', '('),) ) + \
+                            notA + \
+                            Statement( (('connect', 'imply'),) ) + \
+                            notB + \
+                            Statement( (('bracket', ')'),) )
+                        )
+                    conclusions.append(
+                        Statement( (('bracket', '('),) ) + \
+                        notA + \
+                        Statement( (('connect', 'imply'),) ) + \
+                        B + \
+                        Statement( (('bracket', ')'),) )
+                    )
+                if notB:
+                    conclusions.append(
+                        Statement( (('bracket', '('),) ) + \
+                        A + \
+                        Statement( (('connect', 'imply'),) ) + \
+                        notB + \
+                        Statement( (('bracket', ')'),) )
+                    )
+                conclusions.append(
+                    Statement( (('bracket', '('),) ) + \
+                    A + \
+                    Statement( (('connect', 'imply'),) ) + \
+                    B + \
+                    Statement( (('bracket', ')'),) )
+                )
+
+        return conclusions

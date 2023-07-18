@@ -115,7 +115,7 @@ A *proof* is an ordered list of *statements* and *proof tags* associated with th
 A *proof* X is *inferred* from another *proof* Y having a *subproof* Z that has only one statement tagged \[Axiom\] iff it adds a new *statement* **c** and a *proof tag* \[Lemma\] associated with it, and one of these conditions is true:
 
 (here **p1** is a statement from Y, **p2** is another statement from Y; **z1** is a statement tagged \[Axiom\] from Z, **z2**, **z3** are statements tagged \[Lemma\] from Z; **A**, **B** are WFFs; and **A**{x ↦ a} is a result formula of substituting every term a for each free occurrence of x in A; and 'd' is a  variable that does not appear in Y or **A**; and **A**(x) is a WFF that takes one variable that does not occur in **A**; every variable/predicate symbols referenced can be all replaced from a single variable/predicate symbol to another variable/predicate symbol)
-- Implication instantiation: If **p1** is **A** and **p2** is **B**, or **p1** is (¬**A**), then **c** is (**A** → **B**)
+- Implication instantiation: If (**p1** is **A** or (¬**A**), and **p2** is **B**), or (**p1** is (¬**A**) and **p2** is (¬**B**)), then **c** is (**A** → **B**)
 - Explication instantiation: If **p1** is **A** and **p2** is (¬**B**), then **c** is (¬(**A** → **B**))
 - Modus ponens: If **p1** is (**A** → **B**) and **p2** is **A**, then **c** is **B**
 - Modus tollens: If **p1** is (**A** → **B**) and **p2** is (¬**B**), then **c** is (¬**A**)
