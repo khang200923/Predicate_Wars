@@ -82,6 +82,11 @@ statements = tuple(pd.Statement.lex(x) for x in (
         )
     ))
     """, #4
+    """
+    (forall(f)(
+        P(f) imply R(g,f)
+    ))
+    """, #5
 ))
 
 test('Statement.__eq__ 1', statements[0] == statements[0], False)
@@ -92,6 +97,25 @@ test('Statement.__eq__ 4', not statements[0] == statements[3], True)
 for index, state in enumerate(statements):
     test('Statement.wellformed {}'.format(index + 1), statements[index].wellformed(), False)
 
+res = statements[4].formulasInForm(
+    tuple(pd.Statement.lex('(forall(x)')),
+    tuple(pd.Statement.lex(')'))
+)
+test('Statement.formulasInForm 1', res == (( pd.Statement.lex("""
+    (forall(y)(
+            ((x = y) imply ( (P(x) and P(y)) or (
+                (not P(x)) and (not P(y))
+            ) )) and P( f(x,y,a,b,c) )
+        ))
+"""), ),), res)
+
+res = statements[5].formulasInForm(
+    tuple(pd.Statement.lex('(forall(f)(')),
+    tuple(pd.Statement.lex('))')),
+    tuple(pd.Statement.lex(' imply ')),
+)
+test('Statement.formulasInForm 2', res == (( pd.Statement.lex("P(f)"), pd.Statement.lex("R(a,x)") ),), res)
+
 res = statements[0].substitute({
     ('var', '24'): ('var', '25'),
     ('var', '25'): ('var', '24'),
@@ -100,3 +124,34 @@ res = statements[0].substitute({
 test('Statement.substitute 1', res == statements[0], res)
 test('Statement.substitute 2', res == statements[1], res)
 test('Statement.substitute 3', res != statements[2], res)
+
+
+states = ('P', '(Q imply R)')
+states = [pd.Statement.lex(state) for state in states]
+proof = pd.ProofBase(states, [pd.StateTag.AXIOM for _ in states])
+res = proof.inferConclusions(pd.InferType.ImpliInst, 0, 1)
+test('ProofBase.inferConclusions ImpliInst 1', res == (pd.Statement.lex('(P imply (Q imply R))'),), res)
+
+states = ('(not P)', '(Q imply R)')
+states = [pd.Statement.lex(state) for state in states]
+proof = pd.ProofBase(states, [pd.StateTag.AXIOM for _ in states])
+res = proof.inferConclusions(pd.InferType.ImpliInst, 0, 1)
+test('ProofBase.inferConclusions ImpliInst 2', res == (pd.Statement.lex('(P imply (Q imply R))'), pd.Statement.lex('((not P) imply (Q imply R))')), res)
+
+states = ('(not P)', '(not (Q and P))')
+states = [pd.Statement.lex(state) for state in states]
+proof = pd.ProofBase(states, [pd.StateTag.AXIOM for _ in states])
+res = proof.inferConclusions(pd.InferType.ImpliInst, 0, 1)
+test('ProofBase.inferConclusions ImpliInst 3', res == (pd.Statement.lex('(P imply (Q and P))'), pd.Statement.lex('(P imply (not (Q and P)))'), pd.Statement.lex('((not P) imply (not (Q and P)))')), res)
+
+states = ('(not P)', '(not (Q and P))')
+states = [pd.Statement.lex(state) for state in states]
+proof = pd.ProofBase(states, [pd.StateTag.AXIOM for _ in states])
+res = proof.inferConclusions(pd.InferType.ExpliInst, 0, 1)
+test('ProofBase.inferConclusions ExpliInst 1', res == (pd.Statement.lex('(not ((not P) imply (Q and P)))'),), tuple(str(ree) for ree in res))
+
+states = ('(not P)', '(Q and P)')
+states = [pd.Statement.lex(state) for state in states]
+proof = pd.ProofBase(states, [pd.StateTag.AXIOM for _ in states])
+res = proof.inferConclusions(pd.InferType.ExpliInst, 0, 1)
+test('ProofBase.inferConclusions ExpliInst 2', res == (), tuple(str(ree) for ree in res))

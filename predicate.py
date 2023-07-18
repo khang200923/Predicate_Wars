@@ -64,16 +64,16 @@ def _seqFormOptionalsIndexes(seq: Sequence, start: Sequence, end: Sequence, mid:
 
 
 #Export constants and functions
-gameFuncNames = [x.replace("[", "\[").replace("]", "\]") for x in ['[randPlayer]', '[randCard]', '[chosenPlayer]', '[chosenCard]', '[playerOfChosenCard]']]
-predGFuncNames = [x.replace("[", "\[").replace("]", "\]") for x in ['[PLAYER]', '[CARD]', '[HEALTHLOWER]', '[HEALTHHIGHER]', '[POWERLOWER]', '[POWERHIGHER]', '[PROVPOWERLOWER]', '[PROVPOWERHIGHER]', '[SYMBOLPOINTLOWER]', '[SYMBOLPOINTHIGHER]']]
-predAFuncNames = [x.replace("[", "\[").replace("]", "\]") for x in ['[CLAIM]', '[ATK]', '[HEAL]', '[ADDPOWER]', '[SUBPOWER]', '[ADDRULE]', '[DELETERULE]', '[ADDSUBPROOF]']]
+gameFuncNames = ['[randPlayer]', '[randCard]', '[chosenPlayer]', '[chosenCard]', '[playerOfChosenCard]']
+predGFuncNames = ['[PLAYER]', '[CARD]', '[HEALTHLOWER]', '[HEALTHHIGHER]', '[POWERLOWER]', '[POWERHIGHER]', '[PROVPOWERLOWER]', '[PROVPOWERHIGHER]', '[SYMBOLPOINTLOWER]', '[SYMBOLPOINTHIGHER]']
+predAFuncNames = ['[CLAIM]', '[ATK]', '[HEAL]', '[ADDPOWER]', '[SUBPOWER]', '[ADDRULE]', '[DELETERULE]', '[ADDSUBPROOF]']
 
 varDetector = r'([a-z](_[0-9]+)?)|([0-9]+)'
 
 symbolsType = (
-    ('gameFuncName', '|'.join(gameFuncNames)),
-    ('predGFuncName', '|'.join(predGFuncNames)),
-    ('predAFuncName', '|'.join(predAFuncNames)),
+    ('gameFuncName', '|'.join([x.replace("[", "\[").replace("]", "\]") for x in gameFuncNames])),
+    ('predGFuncName', '|'.join([x.replace("[", "\[").replace("]", "\]") for x in predGFuncNames])),
+    ('predAFuncName', '|'.join([x.replace("[", "\[").replace("]", "\]") for x in predAFuncNames])),
     ('distVar', r'[a-z]_[0-9]+'),
     ('distPred', r'[A_Z]_[0-9]+'),
     ('truth', r't[TF]'),
@@ -135,6 +135,31 @@ class Statement:
             else:
                 raise ValueError("Invalid string")
         return Statement(tuple(tokens))
+
+    def __str__(self) -> str:
+        res = ''
+        for symType, *symVal in self:
+            if symType == None:
+                pass
+            elif symType == 'var':
+                res += chr(int(symVal[0]) - 1 + ord('a'))
+            elif symType == 'pred':
+                res += chr(int(symVal[0]) - 1 + ord('A'))
+            elif symType == 'distVar':
+                res += chr(int(symVal[0]) - 1 + ord('a')) + '_' + symVal[1]
+            elif symType == 'distPred':
+                res += chr(int(symVal[0]) - 1 + ord('A')) + '_' + symVal[1]
+            elif symType == 'connect':
+                if 'not' in symVal[0]:
+                    res += 'not '
+                else: res += ' {} '.format(symVal[0])
+            elif symType in ['gameFuncName', 'predGFuncName', 'predAFuncName', 'truth', 'quanti', 'bracket', 'number']:
+                res += symVal[0]
+            elif symType == 'equal':
+                res += '='
+            elif symType == 'comma':
+                res += ','
+        return res
 
     def __getitem__(self, key):
         return self.statement[key]
@@ -448,7 +473,7 @@ class ProofBase:
         conclusions = []
 
         match inferType:
-            case InferType.ImpliInst: #TODO: Test this case
+            case InferType.ImpliInst:
                 A = premise1
                 try: notA = premise1.formulasInForm(
                     (
@@ -487,14 +512,6 @@ class ProofBase:
                         B + \
                         Statement( (('bracket', ')'),) )
                     )
-                if notB:
-                    conclusions.append(
-                        Statement( (('bracket', '('),) ) + \
-                        A + \
-                        Statement( (('connect', 'imply'),) ) + \
-                        notB + \
-                        Statement( (('bracket', ')'),) )
-                    )
                 conclusions.append(
                     Statement( (('bracket', '('),) ) + \
                     A + \
@@ -502,5 +519,25 @@ class ProofBase:
                     B + \
                     Statement( (('bracket', ')'),) )
                 )
+            case InferType.ExpliInst:
+                A = premise1
+                try: notB = premise2.formulasInForm(
+                    (
+                        ('bracket', '('),
+                        ('connect', 'not'),
+                    ),
+                    (
+                        ('bracket', ')'),
+                    ),
+                )[0][0]
+                except TypeError: notB = None
+                if notB:
+                    conclusions.append(
+                        Statement( (('bracket', '('), ('connect', 'not'), ('bracket', '(')) ) + \
+                        A + \
+                        Statement( (('connect', 'imply'),) ) + \
+                        notB + \
+                        Statement( (('bracket', ')'), ('bracket', ')')) )
+                    )
 
-        return conclusions
+        return tuple(conclusions)
