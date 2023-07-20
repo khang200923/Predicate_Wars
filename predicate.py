@@ -451,6 +451,13 @@ class ProofBase:
     stateTags: List[StateTag] = field(default_factory=list)
     inferences: List[Tuple[InferType, int, int, Tuple[Tuple[int, int], Tuple[int, int]], Tuple[Tuple[int, int], Tuple[int, int]]]] = field(default_factory=list)
 
+    def convert(strAxioms: Tuple[str]) -> 'ProofBase':
+        """
+        Convert from strings of axioms to proof.
+        """
+        states = [Statement.lex(state) for state in strAxioms]
+        return ProofBase(states, [StateTag.AXIOM for _ in states])
+
     def __getitem__(self, index: int) -> dict[str, Any]:
         try:
             return {'state': self.statements[index], 'tag': self.stateTags[index], 'infer': self.inferences[index]}

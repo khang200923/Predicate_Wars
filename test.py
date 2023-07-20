@@ -126,68 +126,46 @@ test('Statement.substitute 2', res == statements[1], res)
 test('Statement.substitute 3', res != statements[2], res)
 
 
-states = ('P', '(Q imply R)')
-states = [pd.Statement.lex(state) for state in states]
-proof = pd.ProofBase(states, [pd.StateTag.AXIOM for _ in states])
+proof = pd.ProofBase.convert(('P', '(Q imply R)'))
 res = proof.inferConclusions(pd.InferType.ImpliInst, 0, 1)
 test('ProofBase.inferConclusions ImpliInst 1', res == (pd.Statement.lex('(P imply (Q imply R))'),), res)
 
-states = ('(not P)', '(Q imply R)')
-states = [pd.Statement.lex(state) for state in states]
-proof = pd.ProofBase(states, [pd.StateTag.AXIOM for _ in states])
+proof = pd.ProofBase.convert(('(not P)', '(Q imply R)'))
 res = proof.inferConclusions(pd.InferType.ImpliInst, 0, 1)
 test('ProofBase.inferConclusions ImpliInst 2', res == (pd.Statement.lex('(P imply (Q imply R))'), pd.Statement.lex('((not P) imply (Q imply R))')), res)
 
-states = ('(not P)', '(not (Q and P))')
-states = [pd.Statement.lex(state) for state in states]
-proof = pd.ProofBase(states, [pd.StateTag.AXIOM for _ in states])
+proof = pd.ProofBase.convert(('(not P)', '(not (Q and P))'))
 res = proof.inferConclusions(pd.InferType.ImpliInst, 0, 1)
 test('ProofBase.inferConclusions ImpliInst 3', res == (pd.Statement.lex('(P imply (Q and P))'), pd.Statement.lex('(P imply (not (Q and P)))'), pd.Statement.lex('((not P) imply (not (Q and P)))')), res)
 
-states = ('(not P)', '(not (Q and P))')
-states = [pd.Statement.lex(state) for state in states]
-proof = pd.ProofBase(states, [pd.StateTag.AXIOM for _ in states])
+proof = pd.ProofBase.convert(('(not P)', '(not (Q and P))'))
 res = proof.inferConclusions(pd.InferType.ExpliInst, 0, 1)
 test('ProofBase.inferConclusions ExpliInst 1', res == (pd.Statement.lex('(not ((not P) imply (Q and P)))'),), tuple(str(ree) for ree in res))
 
-states = ('(not P)', '(Q and P)')
-states = [pd.Statement.lex(state) for state in states]
-proof = pd.ProofBase(states, [pd.StateTag.AXIOM for _ in states])
+proof = pd.ProofBase.convert(('(not P)', '(Q and P)'))
 res = proof.inferConclusions(pd.InferType.ExpliInst, 0, 1)
 test('ProofBase.inferConclusions ExpliInst 2', res == (), tuple(str(ree) for ree in res))
 
-states = ('((A and B) imply Q)', '(A and B)')
-states = [pd.Statement.lex(state) for state in states]
-proof = pd.ProofBase(states, [pd.StateTag.AXIOM for _ in states])
+proof = pd.ProofBase.convert(('((A and B) imply Q)', '(A and B)'))
 res = proof.inferConclusions(pd.InferType.ModPonens, 0, 1)
 test('ProofBase.inferConclusions ModPonens 1', res == (pd.Statement.lex('Q'),), tuple(str(ree) for ree in res))
 
-states = ('((A and B) and R)', '(A and B)')
-states = [pd.Statement.lex(state) for state in states]
-proof = pd.ProofBase(states, [pd.StateTag.AXIOM for _ in states])
+proof = pd.ProofBase.convert(('((A and B) and R)', '(A and B)'))
 res = proof.inferConclusions(pd.InferType.ModPonens, 0, 1)
 test('ProofBase.inferConclusions ModPonens 2', res == (), tuple(str(ree) for ree in res))
 
-states = ('((A and B) imply R)', '(A and Q)')
-states = [pd.Statement.lex(state) for state in states]
-proof = pd.ProofBase(states, [pd.StateTag.AXIOM for _ in states])
+proof = pd.ProofBase.convert(('((A and B) imply R)', '(A and Q)'))
 res = proof.inferConclusions(pd.InferType.ModPonens, 0, 1)
 test('ProofBase.inferConclusions ModPonens 3', res == (), tuple(str(ree) for ree in res))
 
-states = ('((A and B) imply Q)', '(not Q)')
-states = [pd.Statement.lex(state) for state in states]
-proof = pd.ProofBase(states, [pd.StateTag.AXIOM for _ in states])
+proof = pd.ProofBase.convert(('((A and B) imply Q)', '(not Q)'))
 res = proof.inferConclusions(pd.InferType.ModTollens, 0, 1)
 test('ProofBase.inferConclusions ModTollens 1', res == (pd.Statement.lex('(not (A and B))'),), tuple(str(ree) for ree in res))
 
-states = ('((A and B) imply Q)', '(not (Q and A))')
-states = [pd.Statement.lex(state) for state in states]
-proof = pd.ProofBase(states, [pd.StateTag.AXIOM for _ in states])
+proof = pd.ProofBase.convert(('((A and B) imply Q)', '(not (Q and A))'))
 res = proof.inferConclusions(pd.InferType.ModTollens, 0, 1)
 test('ProofBase.inferConclusions ModTollens 2', res == (), tuple(str(ree) for ree in res))
 
-states = ('((A and B) imply R)', '(not Q)')
-states = [pd.Statement.lex(state) for state in states]
-proof = pd.ProofBase(states, [pd.StateTag.AXIOM for _ in states])
+proof = pd.ProofBase.convert(('((A and B) imply R)', '(not Q)'))
 res = proof.inferConclusions(pd.InferType.ModTollens, 0, 1)
 test('ProofBase.inferConclusions ModTollens 3', res == (), tuple(str(ree) for ree in res))
