@@ -660,5 +660,34 @@ class ProofBase:
                     ) ) + premise1 + Statement( (
                         ('bracket', ')'),
                     ) ))
+            case InferType.ExistentialInst: #TODO: Test this method
+                try: A = premise1.formulasInForm(
+                    (
+                        ('bracket', '('),
+                        ('quanti', 'exists'),
+                        ('bracket', '('),
+                        ('var', '0'),
+                        ('bracket', ')'),
+                    ),
+                    (
+                        ('bracket', ')'),
+                    ),
+                )[0][0]
+                except TypeError: A = None
+                if A:
+                    conclusions.append(A)
+            case InferType.ExistentialGenr: #TODO: Test this method
+                for var in (sym for sym in self.syms() if 'ar' in sym[0]):
+                    conclusions.append(
+                        Statement((
+                            ('bracket', '('),
+                            ('quanti', 'exists'),
+                            ('bracket', '('),
+                            var,
+                            ('bracket', ')'),
+                        )) + premise1 + Statement((
+                            ('bracket', ')'),
+                        ))
+                    )
 
         return tuple(conclusions)
