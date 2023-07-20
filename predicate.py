@@ -427,14 +427,15 @@ class InferType(Enum):
     ImpliInst = 12
     ExpliInst = 11
     ModPonens = 0
-    ModTollens = 1
     UniversalInst = 2
     UniversalGenr = 3
     ExistentialInst = 4
     ExistentialGenr = 5
     Conjunc = 6
     Simplific = 7
+    FalsyAND = 15
     Addition = 8
+    FalsyOR = 16
     UnivModPonens = 9
     ExistModPonens = 10
     Truth = 13
@@ -444,7 +445,6 @@ premiseUsesOfInferType = { #(p1, p2, z1, z2, z3)
     InferType.ImpliInst: (True, True, False, False, False),
     InferType.ExpliInst: (True, True, False, False, False),
     InferType.ModPonens: (True, True, False, False, False),
-    InferType.ModTollens: (True, True, False, False, False),
     InferType.UniversalInst: (True, False, False, False, False),
     InferType.UniversalGenr: (True, False, False, False, False),
     InferType.ExistentialInst: (True, False, False, False, False),
@@ -597,32 +597,6 @@ class ProofBase:
                 )[0]
                 except TypeError: Bb = None
                 if Bb and tuple(Bb[0]) == tuple(A): conclusions.append(Bb[1])
-            case InferType.ModTollens:
-                try: B = premise2.formulasInForm(
-                    (
-                        ('bracket', '('),
-                        ('connect', 'not'),
-                    ),
-                    (
-                        ('bracket', ')'),
-                    ),
-                )[0][0]
-                except TypeError: B = None
-                if B:
-                    try: Aa = premise1.formulasInForm(
-                        (
-                            ('bracket', '('),
-                        ),
-                        (
-                            ('bracket', ')'),
-                        ),
-                        (
-                            ('connect', 'imply'),
-                        ),
-                    )[0]
-                    except TypeError: Aa = None
-                    if Aa and tuple(Aa[1]) == tuple(B):
-                        conclusions.append(Statement.lex('(not ') + Aa[0] + Statement.lex(')'))
             case InferType.UniversalInst:
                 try: A = premise1.formulasInForm(
                     (
@@ -691,5 +665,126 @@ class ProofBase:
                             ('bracket', ')'),
                         ))
                     )
-
+            case InferType.Conjunc: #TODO: Test this case
+                conclusions.append(
+                    Statement((
+                        ('bracket', '('),
+                    )) + premise1 + Statement((
+                        ('connect', 'and'),
+                    )) + premise2 + Statement((
+                        ('bracket', ')'),
+                    ))
+                )
+            case InferType.Simplific: #TODO: Test this case
+                A, B = premise1.formulasInForm(
+                    (('bracket', '('),),
+                    (('bracket', ')'),),
+                    (('connect', 'and'),),
+                )[0]
+                conclusions.append(A)
+                conclusions.append(B)
+            case InferType.FalsyAND: #TODO: Test this case
+                try: A = premise1.formulasInForm(
+                    (('bracket', '('),
+                     ('connect', 'not')),
+                    (('bracket', ')'),),
+                )[0][0]
+                except TypeError: A = None
+                if A:
+                    for B in self.statements:
+                        conclusions.append(
+                            Statement((
+                                ('bracket', '('),
+                                ('connect', 'not'),
+                                ('bracket', '(')
+                            )) +
+                            A +
+                            Statement((
+                                ('connect', 'and'),
+                            )) +
+                            B +
+                            Statement((
+                                ('bracket', ')'),
+                                ('bracket', ')'),
+                            ))
+                        )
+                        conclusions.append(
+                            Statement((
+                                ('bracket', '('),
+                                ('connect', 'not'),
+                                ('bracket', '(')
+                            )) +
+                            A +
+                            Statement((
+                                ('connect', 'and'),
+                                ('bracket', '('),
+                                ('connect', 'not'),
+                            )) +
+                            B +
+                            Statement((
+                                ('bracket', ')'),
+                                ('bracket', ')'),
+                                ('bracket', ')'),
+                            ))
+                        )
+            case InferType.Addition: #TODO: Test this case
+                for premise2 in self.statements:
+                    conclusions.append(
+                        Statement((
+                            ('bracket', '(')
+                        )) +
+                        premise1 +
+                        Statement((
+                            ('connect', 'or'),
+                        )) +
+                        premise2 +
+                        Statement((
+                            ('bracket', ')'),
+                        ))
+                    )
+                    conclusions.append(
+                        Statement((
+                            ('bracket', '(')
+                        )) +
+                        premise1 +
+                        Statement((
+                            ('connect', 'or'),
+                            ('bracket', '('),
+                            ('connect', 'not'),
+                        )) +
+                        premise2 +
+                        Statement((
+                            ('bracket', ')'),
+                        ))
+                    )
+            case InferType.FalsyOR: #TODO: Test this case
+                try: A = premise1.formulasInForm(
+                    (('bracket', '('),
+                     ('connect', 'not')),
+                    (('bracket', ')'),),
+                )[0][0]
+                except TypeError: A = None
+                try: B = premise2.formulasInForm(
+                    (('bracket', '('),
+                     ('connect', 'not')),
+                    (('bracket', ')'),),
+                )[0][0]
+                except TypeError: B = None
+                if A and B:
+                    conclusions.append(
+                        Statement((
+                            ('bracket', '('),
+                            ('connect', 'not'),
+                            ('bracket', '(')
+                        )) +
+                        A +
+                        Statement((
+                            ('connect', 'or'),
+                        )) +
+                        B +
+                        Statement((
+                            ('bracket', ')'),
+                            ('bracket', ')'),
+                        ))
+                    )
         return tuple(conclusions)

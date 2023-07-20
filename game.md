@@ -118,14 +118,15 @@ A *proof* X is *inferred* from another *proof* Y having a *subproof* Z that has 
 - Implication instantiation: If (**p1** is **A** or (¬**A**), and **p2** is **B**), or (**p1** is (¬**A**) and **p2** is (¬**B**)), then **c** is (**A** → **B**)
 - Explication instantiation: If **p1** is **A** and **p2** is (¬**B**), then **c** is (¬(**A** → **B**))
 - Modus ponens: If **p1** is (**A** → **B**) and **p2** is **A**, then **c** is **B**
-- Modus tollens: If **p1** is (**A** → **B**) and **p2** is (¬**B**), then **c** is (¬**A**)
 - Universal instantiation: If **p1** is (∀(x)**A**) then **c** is **A**{x ↦ a}
 - Universal generalization: If **p1** is **A**(d) then **c** is (∀(d)**A**(d))
 - Existential instantiation: If **p1** is (∃(x)P(x)) then **c** is P(x)
 - Existential generalization: If **p1** is P(x) then **c** is (∃(x)P(x))
 - Conjunction: If **p1** is **A** and **p2** is **B** then **c** is (**A** ∧ **B**)
 - Simplification: If **p1** is (**A** ∧ **B**) then **c** is **A** or **B**
+- Falsy AND: If **p1** is (¬**A**) then **c** is (¬(**A** ∧ **B**))
 - Addition: If **p1** is **A**, then **c** is (**A** ∨ **B**) for any **B**
+- Falsy OR: If **p1** is (¬**A**) and **p2** is (¬**B**) then **c** is (¬(**A** ∨ **B**))
 - Conditional proof: If **z1** is **A**, **z2** is **B**, and **p1** is **A**(x), then **c** is **B**(x)
 - Indirect proof: If **z1** is (¬**A**), **z2** is **B**, **z3** is (¬**B**), then **c** is **A**(x)
 - Universal modus ponens: If **p1** is (∀(x)(**A**(x) → **B**(x))) and **p2** is **A**(d), then **c** is **B**(d)

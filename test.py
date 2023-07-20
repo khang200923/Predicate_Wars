@@ -183,18 +183,6 @@ proof = pd.ProofBase.convert(('((A and B) imply R)', '(A and Q)'))
 res = proof.inferConclusions(pd.InferType.ModPonens, 0, 1)
 test('ProofBase.inferConclusions ModPonens 3', res == (), tuple(str(ree) for ree in res))
 
-proof = pd.ProofBase.convert(('((A and B) imply Q)', '(not Q)'))
-res = proof.inferConclusions(pd.InferType.ModTollens, 0, 1)
-test('ProofBase.inferConclusions ModTollens 1', res == (pd.Statement.lex('(not (A and B))'),), tuple(str(ree) for ree in res))
-
-proof = pd.ProofBase.convert(('((A and B) imply Q)', '(not (Q and A))'))
-res = proof.inferConclusions(pd.InferType.ModTollens, 0, 1)
-test('ProofBase.inferConclusions ModTollens 2', res == (), tuple(str(ree) for ree in res))
-
-proof = pd.ProofBase.convert(('((A and B) imply R)', '(not Q)'))
-res = proof.inferConclusions(pd.InferType.ModTollens, 0, 1)
-test('ProofBase.inferConclusions ModTollens 3', res == (), tuple(str(ree) for ree in res))
-
 proof = pd.ProofBase.convert(('(forall(x)(x = x))', 'Q(y)', 'P(z)'))
 res = proof.inferConclusions(pd.InferType.UniversalInst, 0, -1)
 test('ProofBase.inferConclusions UniversalInst 1', set(tuple(state) for state in res[:-1]) ==
