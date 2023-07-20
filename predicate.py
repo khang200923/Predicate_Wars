@@ -1,6 +1,7 @@
 from copy import deepcopy
 from dataclasses import dataclass, field
 from enum import Enum
+import random
 import re
 from typing import Any, Callable, List, Sequence, Set, Tuple
 
@@ -66,7 +67,7 @@ def _seqFormOptionalsIndexes(seq: Sequence, start: Sequence, end: Sequence, mid:
 #Export constants and functions
 gameFuncNames = ['[randPlayer]', '[randCard]', '[chosenPlayer]', '[chosenCard]', '[playerOfChosenCard]']
 predGFuncNames = ['[PLAYER]', '[CARD]', '[HEALTHLOWER]', '[HEALTHHIGHER]', '[POWERLOWER]', '[POWERHIGHER]', '[PROVPOWERLOWER]', '[PROVPOWERHIGHER]', '[SYMBOLPOINTLOWER]', '[SYMBOLPOINTHIGHER]']
-predAFuncNames = ['[CLAIM]', '[ATK]', '[HEAL]', '[ADDPOWER]', '[SUBPOWER]', '[ADDRULE]', '[DELETERULE]', '[ADDSUBPROOF]']
+predAFuncNames = ['[CLAIM]', '[ATK]', '[HEAL]', '[ADDPOWER]', '[SUBPOWER]', '[ADDRULE]', '[DELETERULE]']
 
 varDetector = r'([a-z](_[0-9]+)?)|([0-9]+)'
 
@@ -436,6 +437,7 @@ premiseUsesOfInferType = { #(p1, p2, z1, z2, z3)
     InferType.ExpliInst: (True, True, False, False, False),
     InferType.ModPonens: (True, True, False, False, False),
     InferType.ModTollens: (True, True, False, False, False),
+    InferType.UniversalInst: (True, True, False, False, False),
 }
 
 class InferenceError(Exception): pass
@@ -454,6 +456,32 @@ class ProofBase:
             return {'state': self.statements[index], 'tag': self.stateTags[index], 'infer': self.inferences[index]}
         except IndexError:
             return {'state': self.statements[index], 'tag': self.stateTags[index], 'infer': None}
+
+    def syms(self) -> Set[Tuple]:
+        """
+        Returns vars and preds used in proof.
+        """
+        #TODO: Test this method
+        return {sym for state in self.statements for sym in state.syms()}
+
+    def symsWithout(self, stateIndex) -> Set[Tuple]:
+        """
+        Returns vars and preds used in proof, without the statement on specified index.
+        """
+        #TODO: Test this method
+        return {sym for state in (state for index, state in enumerate(self.statements) if index != stateIndex) for sym in state.syms()}
+
+    def unusedVarSuggester(self):
+        """
+        Suggests an unused variable name based on existing syms in random.
+        """
+        #TODO: Test this method
+        char = random.randint(1, 26)
+        syms = self.syms()
+        syms = {sym for sym in syms if sym[0] in ['var', 'distVar'] and sym[1] == str(char)}
+        height = min((0 if sym[0] == 'var' else int(sym[2]) for sym in syms), default=-1) + 1
+        if height == 0: return ('var', str(char))
+        return ('distVar', str(char), str(height))
 
     def inferConclusions(self, inferType: InferType, premise1Index: int, premise2Index: int) -> Tuple[Statement]:
         """
@@ -580,4 +608,39 @@ class ProofBase:
                     except TypeError: Aa = None
                     if Aa and tuple(Aa[1]) == tuple(B):
                         conclusions.append(Statement.lex('(not ') + Aa[0] + Statement.lex(')'))
+            case InferType.UniversalInst: #TODO: Test this method
+                try: A = premise1.formulasInForm(
+                    (
+                        ('bracket', '('),
+                        ('quanti', 'forall'),
+                        ('bracket', '('),
+                        ('var', '0'),
+                        ('bracket', ')'),
+                    ),
+                    (
+                        ('bracket', ')'),
+                    ),
+                )[0][0]
+                except TypeError: A = None
+                if A:
+                    _, maps = A.eq(
+                        Statement( (('var', '0'),) )
+                    )
+                    thatVar = maps[('var', '0')]
+                    for sym in self.syms():
+                        conclusions.append({thatVar: sym})
+                    conclusions.append({thatVar: self.unusedVarSuggester()})
+            case InferType.UniversalGenr: #TODO: Test this method
+                uniqueVars1 = self.syms() - self.symsWithout(premise1Index)
+                for uniqueVar in uniqueVars1:
+                    conclusions.append(Statement( (
+                        ('bracket', '('),
+                        ('quanti', 'forall'),
+                        ('bracket', '('),
+                        uniqueVar,
+                        ('bracket', ')'),
+                    ) ) + premise1 + Statement( (
+                        ('bracket', ')'),
+                    ) ))
+
         return tuple(conclusions)
