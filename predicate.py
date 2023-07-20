@@ -447,6 +447,8 @@ premiseUsesOfInferType = { #(p1, p2, z1, z2, z3)
     InferType.ModTollens: (True, True, False, False, False),
     InferType.UniversalInst: (True, False, False, False, False),
     InferType.UniversalGenr: (True, False, False, False, False),
+    InferType.ExistentialInst: (True, False, False, False, False),
+    InferType.ExistentialGenr: (True, False, False, False, False),
 }
 
 class InferenceError(Exception): pass
@@ -660,7 +662,7 @@ class ProofBase:
                     ) ) + premise1 + Statement( (
                         ('bracket', ')'),
                     ) ))
-            case InferType.ExistentialInst: #TODO: Test this method
+            case InferType.ExistentialInst:
                 try: A = premise1.formulasInForm(
                     (
                         ('bracket', '('),
@@ -676,8 +678,8 @@ class ProofBase:
                 except TypeError: A = None
                 if A:
                     conclusions.append(A)
-            case InferType.ExistentialGenr: #TODO: Test this method
-                for var in (sym for sym in self.syms() if 'ar' in sym[0]):
+            case InferType.ExistentialGenr:
+                for var in (sym for sym in premise1.syms() if 'ar' in sym[0]):
                     conclusions.append(
                         Statement((
                             ('bracket', '('),

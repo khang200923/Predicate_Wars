@@ -215,3 +215,31 @@ test('ProofBase.inferConclusions UniversalGenr 1', set(tuple(state) for state in
     {tuple(pd.Statement.lex('(forall(x) (P(x) and (P(y) and P(z))))')), tuple(pd.Statement.lex('(forall(y) (P(x) and (P(y) and P(z))))'))},
     tuple(str(ree) for ree in res)
 )
+
+proof = pd.ProofBase.convert(('(exists(x) (P and Q(x)))',))
+res = proof.inferConclusions(pd.InferType.ExistentialInst, 0, -1)
+test('ProofBase.inferConclusions ExistentialInst 1', set(tuple(state) for state in res) ==
+    {tuple(pd.Statement.lex('(P and Q(x))'))},
+    tuple(str(ree) for ree in res)
+)
+
+proof = pd.ProofBase.convert(('(forall(x) (P and Q(x)))',))
+res = proof.inferConclusions(pd.InferType.ExistentialInst, 0, -1)
+test('ProofBase.inferConclusions ExistentialInst 2', set(tuple(state) for state in res) ==
+    set(),
+    tuple(str(ree) for ree in res)
+)
+
+proof = pd.ProofBase.convert(('(P(y) and Q(x))', 'Q(a, b(a))',))
+res = proof.inferConclusions(pd.InferType.ExistentialGenr, 0, -1)
+test('ProofBase.inferConclusions ExistentialGenr 1', set(tuple(state) for state in res) ==
+    {tuple(pd.Statement.lex('(exists(x) (P(y) and Q(x)))')), tuple(pd.Statement.lex('(exists(y) (P(y) and Q(x)))'))},
+    tuple(str(ree) for ree in res)
+)
+
+proof = pd.ProofBase.convert(('(exists(x) (P(y) and Q(x)))', 'Q(a, b(a))',))
+res = proof.inferConclusions(pd.InferType.ExistentialGenr, 0, -1)
+test('ProofBase.inferConclusions ExistentialGenr 2', set(tuple(state) for state in res) ==
+    {tuple(pd.Statement.lex('(exists(x) (exists(x) (P(y) and Q(x))))')), tuple(pd.Statement.lex('(exists(y) (exists(x) (P(y) and Q(x))))'))},
+    tuple(str(ree) for ree in res)
+)
