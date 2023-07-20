@@ -125,6 +125,31 @@ test('Statement.substitute 1', res == statements[0], res)
 test('Statement.substitute 2', res == statements[1], res)
 test('Statement.substitute 3', res != statements[2], res)
 
+proof = pd.ProofBase.convert(('P', '(Q(y) imply R(x))', '(A(y) and B(z))'))
+res = proof.syms()
+test('ProofBase.syms', set(res) == {('pred', '16'), ('pred', '17'), ('pred', '18'), ('pred', '1'), ('pred', '2'), ('var', '24'), ('var', '25'), ('var', '26')}, res)
+res = proof.symsWithout(2)
+test('ProofBase.symsWithout', set(res) == {('pred', '16'), ('pred', '17'), ('pred', '18'), ('var', '24'), ('var', '25')}, res)
+
+proof = pd.ProofBase.convert(('P(b, c, c_0, d, d_0, d_1, e_0, e_1)',))
+class DeterministicRNG: #Credit to an AI chatbot
+    def __init__(self):
+        self.num = 0
+
+    def randint(self, a, b):
+        self.num += 1
+        return self.num
+rng = DeterministicRNG()
+res = proof.unusedVarSuggester(rng)
+test('ProofBase.unusedVarSuggester 1', res == ('var', '1'), res)
+res = proof.unusedVarSuggester(rng)
+test('ProofBase.unusedVarSuggester 2', res == ('distVar', '2', '0'), res)
+res = proof.unusedVarSuggester(rng)
+test('ProofBase.unusedVarSuggester 3', res == ('distVar', '3', '1'), res)
+res = proof.unusedVarSuggester(rng)
+test('ProofBase.unusedVarSuggester 4', res == ('distVar', '4', '2'), res)
+res = proof.unusedVarSuggester(rng)
+test('ProofBase.unusedVarSuggester 5', res == ('var', '5'), res)
 
 proof = pd.ProofBase.convert(('P', '(Q imply R)'))
 res = proof.inferConclusions(pd.InferType.ImpliInst, 0, 1)
@@ -169,3 +194,24 @@ test('ProofBase.inferConclusions ModTollens 2', res == (), tuple(str(ree) for re
 proof = pd.ProofBase.convert(('((A and B) imply R)', '(not Q)'))
 res = proof.inferConclusions(pd.InferType.ModTollens, 0, 1)
 test('ProofBase.inferConclusions ModTollens 3', res == (), tuple(str(ree) for ree in res))
+
+proof = pd.ProofBase.convert(('(forall(x)(x = x))', 'Q(y)', 'P(z)'))
+res = proof.inferConclusions(pd.InferType.UniversalInst, 0, -1)
+test('ProofBase.inferConclusions UniversalInst 1', set(tuple(state) for state in res[:-1]) ==
+    {tuple(pd.Statement.lex('(x = x)')), tuple(pd.Statement.lex('(y = y)')), tuple(pd.Statement.lex('(z = z)'))},
+    tuple(str(ree) for ree in res)
+)
+
+proof = pd.ProofBase.convert(('(forall(x)(x = a))', 'Q(y)', 'P(z)'))
+res = proof.inferConclusions(pd.InferType.UniversalInst, 0, -1)
+test('ProofBase.inferConclusions UniversalInst 2', set(tuple(state) for state in res[:-1]) ==
+    {tuple(pd.Statement.lex('(x = a)')), tuple(pd.Statement.lex('(y = a)')), tuple(pd.Statement.lex('(z = a)')), tuple(pd.Statement.lex('(a = a)'))},
+    tuple(str(ree) for ree in res)
+)
+
+proof = pd.ProofBase.convert(('(P(x) and (P(y) and P(z)))', 'Q(z)'))
+res = proof.inferConclusions(pd.InferType.UniversalGenr, 0, -1)
+test('ProofBase.inferConclusions UniversalGenr 1', set(tuple(state) for state in res) ==
+    {tuple(pd.Statement.lex('(forall(x) (P(x) and (P(y) and P(z))))')), tuple(pd.Statement.lex('(forall(y) (P(x) and (P(y) and P(z))))'))},
+    tuple(str(ree) for ree in res)
+)

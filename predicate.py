@@ -63,6 +63,14 @@ def _seqFormOptionalsIndexes(seq: Sequence, start: Sequence, end: Sequence, mid:
             )
     return None
 
+def _smallestMissingInteger(sequence: Sequence[int], ground=0, default=0) -> int:
+    if len(sequence) == 0: return default
+    elements = sorted(set(sequence))
+    if elements[0] - ground >= 1: return ground
+    for element, change in ((elements[i], elements[i+1] - elements[i]) for i in range(len(elements)-1)):
+        if change != 1: return element + 1
+    return max(elements) + 1
+
 
 #Export constants and functions
 gameFuncNames = ['[randPlayer]', '[randCard]', '[chosenPlayer]', '[chosenCard]', '[playerOfChosenCard]']
@@ -395,7 +403,7 @@ class Statement:
 
         return False
 
-    def substitute(self, startingMap: dict[Tuple, Tuple], obj: bool = False) -> 'Statement | None':
+    def substitute(self, startingMap: dict[Tuple, Tuple], obj: bool = False, mappableCheck: bool = True) -> 'Statement | None':
         """
         Maps each symbol in statement with a map, and return the resulting statement.
         When the result is not well-formed, return None
@@ -403,7 +411,7 @@ class Statement:
         """
         map = {sym: sym for sym in self.syms()}
         map.update(startingMap)
-        if not _mappableDict(map): return None
+        if mappableCheck and not _mappableDict(map): return None
         res = Statement(tuple(map.get(symbol, symbol) for symbol in self))
         if obj:
             if not res.wellformedobj(): return None
@@ -437,7 +445,8 @@ premiseUsesOfInferType = { #(p1, p2, z1, z2, z3)
     InferType.ExpliInst: (True, True, False, False, False),
     InferType.ModPonens: (True, True, False, False, False),
     InferType.ModTollens: (True, True, False, False, False),
-    InferType.UniversalInst: (True, True, False, False, False),
+    InferType.UniversalInst: (True, False, False, False, False),
+    InferType.UniversalGenr: (True, False, False, False, False),
 }
 
 class InferenceError(Exception): pass
@@ -468,26 +477,23 @@ class ProofBase:
         """
         Returns vars and preds used in proof.
         """
-        #TODO: Test this method
         return {sym for state in self.statements for sym in state.syms()}
 
     def symsWithout(self, stateIndex) -> Set[Tuple]:
         """
         Returns vars and preds used in proof, without the statement on specified index.
         """
-        #TODO: Test this method
         return {sym for state in (state for index, state in enumerate(self.statements) if index != stateIndex) for sym in state.syms()}
 
-    def unusedVarSuggester(self):
+    def unusedVarSuggester(self, randomClass = random):
         """
         Suggests an unused variable name based on existing syms in random.
         """
-        #TODO: Test this method
-        char = random.randint(1, 26)
+        char = randomClass.randint(1, 26)
         syms = self.syms()
         syms = {sym for sym in syms if sym[0] in ['var', 'distVar'] and sym[1] == str(char)}
-        height = min((0 if sym[0] == 'var' else int(sym[2]) for sym in syms), default=-1) + 1
-        if height == 0: return ('var', str(char))
+        height = _smallestMissingInteger(tuple(-1 if sym[0] == 'var' else int(sym[2]) for sym in syms), default=-1, ground=-1)
+        if height == -1: return ('var', str(char))
         return ('distVar', str(char), str(height))
 
     def inferConclusions(self, inferType: InferType, premise1Index: int, premise2Index: int) -> Tuple[Statement]:
@@ -589,7 +595,7 @@ class ProofBase:
                 )[0]
                 except TypeError: Bb = None
                 if Bb and tuple(Bb[0]) == tuple(A): conclusions.append(Bb[1])
-            case InferType.ModTollens: #TODO: Test this case
+            case InferType.ModTollens:
                 try: B = premise2.formulasInForm(
                     (
                         ('bracket', '('),
@@ -615,7 +621,7 @@ class ProofBase:
                     except TypeError: Aa = None
                     if Aa and tuple(Aa[1]) == tuple(B):
                         conclusions.append(Statement.lex('(not ') + Aa[0] + Statement.lex(')'))
-            case InferType.UniversalInst: #TODO: Test this method
+            case InferType.UniversalInst:
                 try: A = premise1.formulasInForm(
                     (
                         ('bracket', '('),
@@ -630,15 +636,20 @@ class ProofBase:
                 )[0][0]
                 except TypeError: A = None
                 if A:
-                    _, maps = A.eq(
-                        Statement( (('var', '0'),) )
-                    )
+                    eq, maps = Statement( (
+                        ('bracket', '('),
+                        ('quanti', 'forall'),
+                        ('bracket', '('),
+                        ('var', '0'),
+                        ('bracket', ')'),
+                    ) ).eq(Statement(premise1[:5]))
+                    assert eq, 'brah'
                     thatVar = maps[('var', '0')]
-                    for sym in self.syms():
-                        conclusions.append({thatVar: sym})
-                    conclusions.append({thatVar: self.unusedVarSuggester()})
-            case InferType.UniversalGenr: #TODO: Test this method
-                uniqueVars1 = self.syms() - self.symsWithout(premise1Index)
+                    for sym in (sym for sym in self.syms() if 'ar' in sym[0]):
+                        conclusions.append(A.substitute({thatVar: sym}, mappableCheck=False))
+                    conclusions.append(A.substitute({thatVar: self.unusedVarSuggester()}))
+            case InferType.UniversalGenr:
+                uniqueVars1 = (sym for sym in self.syms() - self.symsWithout(premise1Index) if 'ar' in sym[0])
                 for uniqueVar in uniqueVars1:
                     conclusions.append(Statement( (
                         ('bracket', '('),
