@@ -84,7 +84,7 @@ symbolsType = (
     ('predGFuncName', '|'.join([x.replace("[", "\[").replace("]", "\]") for x in predGFuncNames])),
     ('predAFuncName', '|'.join([x.replace("[", "\[").replace("]", "\]") for x in predAFuncNames])),
     ('distVar', r'[a-z]_[0-9]+'),
-    ('distPred', r'[A_Z]_[0-9]+'),
+    ('distPred', r'[A-Z]_[0-9]+'),
     ('truth', r't[TF]'),
     ('quanti', r'forall|exists'),
     ('connect', r'not\s|\sand\s|\sor\s|\simply\s'),
@@ -449,6 +449,11 @@ premiseUsesOfInferType = { #(p1, p2, z1, z2, z3)
     InferType.UniversalGenr: (True, False, False, False, False),
     InferType.ExistentialInst: (True, False, False, False, False),
     InferType.ExistentialGenr: (True, False, False, False, False),
+    InferType.Conjunc: (True, True, False, False, False),
+    InferType.Simplific: (True, False, False, False, False),
+    InferType.FalsyAND: (True, False, False, False, False),
+    InferType.Addition: (True, False, False, False, False),
+    InferType.FalsyOR: (True, True, False, False, False),
 }
 
 class InferenceError(Exception): pass
@@ -665,7 +670,7 @@ class ProofBase:
                             ('bracket', ')'),
                         ))
                     )
-            case InferType.Conjunc: #TODO: Test this case
+            case InferType.Conjunc:
                 conclusions.append(
                     Statement((
                         ('bracket', '('),
@@ -675,7 +680,7 @@ class ProofBase:
                         ('bracket', ')'),
                     ))
                 )
-            case InferType.Simplific: #TODO: Test this case
+            case InferType.Simplific:
                 A, B = premise1.formulasInForm(
                     (('bracket', '('),),
                     (('bracket', ')'),),
@@ -683,7 +688,7 @@ class ProofBase:
                 )[0]
                 conclusions.append(A)
                 conclusions.append(B)
-            case InferType.FalsyAND: #TODO: Test this case
+            case InferType.FalsyAND:
                 try: A = premise1.formulasInForm(
                     (('bracket', '('),
                      ('connect', 'not')),
@@ -727,11 +732,11 @@ class ProofBase:
                                 ('bracket', ')'),
                             ))
                         )
-            case InferType.Addition: #TODO: Test this case
+            case InferType.Addition:
                 for premise2 in self.statements:
                     conclusions.append(
                         Statement((
-                            ('bracket', '(')
+                            ('bracket', '('),
                         )) +
                         premise1 +
                         Statement((
@@ -744,7 +749,7 @@ class ProofBase:
                     )
                     conclusions.append(
                         Statement((
-                            ('bracket', '(')
+                            ('bracket', '('),
                         )) +
                         premise1 +
                         Statement((
@@ -754,6 +759,7 @@ class ProofBase:
                         )) +
                         premise2 +
                         Statement((
+                            ('bracket', ')'),
                             ('bracket', ')'),
                         ))
                     )

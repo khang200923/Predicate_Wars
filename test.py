@@ -231,3 +231,38 @@ test('ProofBase.inferConclusions ExistentialGenr 2', set(tuple(state) for state 
     {tuple(pd.Statement.lex('(exists(x) (exists(x) (P(y) and Q(x))))')), tuple(pd.Statement.lex('(exists(y) (exists(x) (P(y) and Q(x))))'))},
     tuple(str(ree) for ree in res)
 )
+
+proof = pd.ProofBase.convert(('(A imply B)', 'A'))
+res = proof.inferConclusions(pd.InferType.Conjunc, 0, 1)
+test('ProofBase.inferConclusions Conjunc', set(tuple(state) for state in res) ==
+    {tuple(pd.Statement.lex('((A imply B) and A)'))},
+    tuple(str(ree) for ree in res)
+)
+
+proof = pd.ProofBase.convert(('((A imply B) and A)',))
+res = proof.inferConclusions(pd.InferType.Simplific, 0, -1)
+test('ProofBase.inferConclusions Simplific', set(tuple(state) for state in res) ==
+    {tuple(pd.Statement.lex('(A imply B)')), tuple(pd.Statement.lex('A'))},
+    tuple(str(ree) for ree in res)
+)
+
+proof = pd.ProofBase.convert(('(not (A imply B))', 'C_3(x)'))
+res = proof.inferConclusions(pd.InferType.FalsyAND, 0, -1)
+test('ProofBase.inferConclusions FalsyAND', set(tuple(state) for state in res) ==
+    {tuple(pd.Statement.lex('(not ((A imply B) and C_3(x)))')), tuple(pd.Statement.lex('(not ((A imply B) and (not C_3(x))))')), tuple(pd.Statement.lex('(not ((A imply B) and (not (A imply B))))')), tuple(pd.Statement.lex('(not ((A imply B) and (not (not (A imply B)))))'))},
+    tuple(str(ree) for ree in res)
+)
+
+proof = pd.ProofBase.convert(('(A imply B)', 'C_23(x)'))
+res = proof.inferConclusions(pd.InferType.Addition, 0, 1)
+test('ProofBase.inferConclusions Addition', set(tuple(state) for state in res) ==
+    {tuple(pd.Statement.lex('((A imply B) or C_23(x))')), tuple(pd.Statement.lex('((A imply B) or (not C_23(x)))')), tuple(pd.Statement.lex('((A imply B) or (A imply B))')), tuple(pd.Statement.lex('((A imply B) or (not (A imply B)))')),},
+    tuple(str(ree) for ree in res)
+)
+
+proof = pd.ProofBase.convert(('(not A)', '(not C_3(x_0))'))
+res = proof.inferConclusions(pd.InferType.FalsyOR, 0, 1)
+test('ProofBase.inferConclusions FalsyOR', set(tuple(state) for state in res) ==
+    {tuple(pd.Statement.lex('(not (A or C_3(x_0)))'))},
+    tuple(str(ree) for ree in res)
+)

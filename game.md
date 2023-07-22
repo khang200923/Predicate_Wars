@@ -1,5 +1,4 @@
 (semi-completed)
-<!-- TODO: Redefine functions -->
 ## Requirements:
 - 2-16 **players**
 - 256 **blank cards** that when [edited](#card-editing-rules) should have:
@@ -101,8 +100,8 @@ A *statement* is an ordered list of *symbols*, which consists of:
 - Number (variable, cannot be function name): 0, 1, 2, 3, 4, ...
 - Distinct variables (variable): ('x_0', 'x_1', ..., 'y_0', 'y_1', ...)
 - Distinct predicates (predicate): ('P_0', 'P_1', ..., 'Q_0', 'Q_1', ...)
-- Functions (variable, cannot be function name): lowercase character or distinct variable or \[gameFunctionName...\] + '(' + optional( + variable + repeated(',' + different variables)) + ')'
-- Predicate functions (predicate): uppercase character or distinct predicate or \[PREDICATEGAMEFUNCTIONNAME...\] + '(' + optional( variable + repeated(',' + different variables)) + ')'
+- Functions (variable, cannot be function name): lowercase character or distinct variable or \[gameFunctionName...\] + '(' + optional( + variable + repeated(',' + variables)) + ')'
+- Predicate functions (predicate): uppercase character or distinct predicate or \[PREDICATEGAMEFUNCTIONNAME...\] + '(' + optional( variable + repeated(',' + variables)) + ')'
 - Game function names: '\[randPlayer\]', '\[randCard\]', '\[chosenPlayer\]', '\[chosenCard\]', '\[playerOfChosenCard\]' (symbol point each: 4)
 - Predicate game function names: '\[PLAYER\]', '\[CARD\]', '\[HEALTHLOWER\]', '\[HEALTHHIGHER\]', '\[POWERLOWER\]', '\[POWERHIGHER\]', '\[PROVPOWERLOWER\]', '\[PROVPOWERHIGHER\]', '\[SYMBOLPOINTLOWER\]', '\[SYMBOLPOINTHIGHER\]'
 (symbol point each: 4)
