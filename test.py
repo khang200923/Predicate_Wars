@@ -260,9 +260,9 @@ test('ProofBase.inferConclusions Addition', set(tuple(state) for state in res) =
     tuple(str(ree) for ree in res)
 )
 
-proof = pd.ProofBase.convert(('(not A)', '(not C_3(x_0))'))
+proof = pd.ProofBase.convert(('(not A)', '(not [ATK]([randPlayer](x)))'))
 res = proof.inferConclusions(pd.InferType.FalsyOR, 0, 1)
 test('ProofBase.inferConclusions FalsyOR', set(tuple(state) for state in res) ==
-    {tuple(pd.Statement.lex('(not (A or C_3(x_0)))'))},
+    {tuple(pd.Statement.lex('(not (A or [ATK]([randPlayer](x))))'))},
     tuple(str(ree) for ree in res)
 )
