@@ -454,6 +454,8 @@ premiseUsesOfInferType = { #(p1, p2, z1, z2, z3)
     InferType.FalsyAND: (True, False, False, False, False),
     InferType.Addition: (True, False, False, False, False),
     InferType.FalsyOR: (True, True, False, False, False),
+    InferType.UnivModPonens: (True, True, False, False, False),
+    InferType.ExistModPonens: (True, True, False, False, False),
 }
 
 class InferenceError(Exception): pass
@@ -681,13 +683,15 @@ class ProofBase:
                     ))
                 )
             case InferType.Simplific:
-                A, B = premise1.formulasInForm(
+                try: A, B = premise1.formulasInForm(
                     (('bracket', '('),),
                     (('bracket', ')'),),
                     (('connect', 'and'),),
                 )[0]
-                conclusions.append(A)
-                conclusions.append(B)
+                except TypeError: A, B = (None, None)
+                if A and B:
+                    conclusions.append(A)
+                    conclusions.append(B)
             case InferType.FalsyAND:
                 try: A = premise1.formulasInForm(
                     (('bracket', '('),
@@ -793,4 +797,67 @@ class ProofBase:
                             ('bracket', ')'),
                         ))
                     )
+            case InferType.UnivModPonens:
+                try: Ax, Bx = premise1.formulasInForm((
+                    ('bracket', '('),
+                    ('quanti', 'forall'),
+                    ('bracket', '('),
+                    ('var', '0'),
+                    ('bracket', ')'),
+                    ('bracket', '('),
+                ), (
+                    ('bracket', ')'),
+                    ('bracket', ')'),
+                ), (
+                    ('connect', 'imply'),
+                ),)[0]
+                except TypeError: Ax, Bx = (None, None)
+                if Ax and Bx:
+                    assert premise1[3][0] in ['var', 'distVar'], 'brah'
+                    bol, maps = Ax.eq(premise2)
+                    x = premise1[3]
+                    if bol and x in Ax.syms():
+                        y = maps[x]
+                        conclusions.append(Bx.substitute({x: y}))
+            case InferType.ExistModPonens:
+                try: Ax = premise1.formulasInForm((
+                    ('bracket', '('),
+                    ('quanti', 'exists'),
+                    ('bracket', '('),
+                    ('var', '0'),
+                    ('bracket', ')'),
+                ), (
+                    ('bracket', ')'),
+                ),)[0][0]
+                except TypeError: Ax = None
+                else:
+                    x = premise1[3]
+                    try: Ay, By = premise2.formulasInForm((
+                        ('bracket', '('),
+                    ), (
+                        ('bracket', ')'),
+                    ), (
+                        ('connect', 'imply'),
+                    ),)[0]
+                    except TypeError: Ay, By = (None, None)
+                    else:
+                        bol, maps = Ax.eq(Ay)
+                        if bol:
+                            y = maps[x]
+                            for z in (sym for sym in self.syms() - By.syms() if sym[0] in ['var', 'distVar']):
+                                conclusions.append(
+                                    Statement.lex('(exists(') +
+                                    Statement((z,)) +
+                                    Statement.lex(')') +
+                                    By.substitute({y: z}) +
+                                    Statement.lex(')')
+                                )
+                            conclusions.append(
+                                Statement.lex('(exists(') +
+                                Statement((y,)) +
+                                Statement.lex(')') +
+                                By +
+                                Statement.lex(')')
+                            )
+
         return tuple(conclusions)

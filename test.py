@@ -266,3 +266,17 @@ test('ProofBase.inferConclusions FalsyOR', set(tuple(state) for state in res) ==
     {tuple(pd.Statement.lex('(not (A or [ATK]([randPlayer](x))))'))},
     tuple(str(ree) for ree in res)
 )
+
+proof = pd.ProofBase.convert(('(forall(x)(A(x) imply B_2(x)))', 'A(q)'))
+res = proof.inferConclusions(pd.InferType.UnivModPonens, 0, 1)
+test('ProofBase.inferConclusions UnivModPonens', set(tuple(state) for state in res) ==
+    {tuple(pd.Statement.lex('B_2(q)'))},
+    tuple(str(ree) for ree in res)
+)
+
+proof = pd.ProofBase.convert(('(exists(x)A(x))', '(A(q) imply P(w, q))'))
+res = proof.inferConclusions(pd.InferType.ExistModPonens, 0, 1)
+test('ProofBase.inferConclusions ExistModPonens', set(tuple(state) for state in res) ==
+    {tuple(pd.Statement.lex('(exists(x)P(w, x))')), tuple(pd.Statement.lex('(exists(q)P(w, q))'))},
+    tuple(str(ree) for ree in res)
+)
