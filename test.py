@@ -125,6 +125,19 @@ test('Statement.substitute 1', res == statements[0], res)
 test('Statement.substitute 2', res == statements[1], res)
 test('Statement.substitute 3', res != statements[2], res)
 
+res = statements[0].complexSubstitute({
+    ('var', '24'): (('var', '25'),),
+    ('var', '25'): (('var', '24'),),
+    ('pred', '17'): (('pred', '18'),),
+})
+test('Statement.complexSubstitute 1', res == statements[0], str(res))
+test('Statement.complexSubstitute 2', res == statements[1], str(res))
+test('Statement.complexSubstitute 3', res != statements[2], str(res))
+res = pd.Statement.lex('P(x)').complexSubstitute({
+    ('var', '24'): (('var', '25'), ('bracket', '('), ('bracket', ')')),
+})
+test('Statement.complexSubstitute 4', res == pd.Statement.lex('P(x())'), str(res))
+
 proof = pd.ProofBase.convert(('P', '(Q(y) imply R(x))', '(A(y) and B(z))'))
 res = proof.syms()
 test('ProofBase.syms', set(res) == {('pred', '16'), ('pred', '17'), ('pred', '18'), ('pred', '1'), ('pred', '2'), ('var', '24'), ('var', '25'), ('var', '26')}, res)

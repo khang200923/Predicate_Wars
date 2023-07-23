@@ -173,6 +173,11 @@ class Statement:
     def __getitem__(self, key):
         return self.statement[key]
 
+    def __setitem__(self, key, value):
+        self.statement = list(self.statement)
+        self.statement[key] = value
+        self.statement = tuple(self.statement)
+
     def __len__(self):
         return len(self.statement)
 
@@ -413,6 +418,29 @@ class Statement:
         map.update(startingMap)
         if mappableCheck and not _mappableDict(map): return None
         res = Statement(tuple(map.get(symbol, symbol) for symbol in self))
+        if obj:
+            if not res.wellformedobj(): return None
+        else:
+            if not res.wellformed(): return None
+        return res
+
+    def complexSubstitute(self, startingMap: dict[Tuple, Tuple[Tuple]], obj: bool = False) -> 'Statement | None':
+        """
+        Maps each symbol in statement with a map (replacing occurences with one or more elems), and return the resulting statement.
+        When the result is not well-formed, return None
+        """
+        mapPlace = {}
+        indexAdd = 0
+        for fro, tos in startingMap.items(): #Each types of occurence
+            for i, val in enumerate(self):
+                if val == fro: #If found occurence, change it
+                    mapPlace[i + indexAdd] = tos
+                    indexAdd += len(tos) - 1
+        listSymbols = list(deepcopy(self.statement))
+        for ind, val in sorted(mapPlace.items(), key=lambda x: x[0]):
+            listSymbols[ind:ind+1] = val
+        res = deepcopy(self)
+        res.statement = tuple(listSymbols)
         if obj:
             if not res.wellformedobj(): return None
         else:
