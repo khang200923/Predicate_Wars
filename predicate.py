@@ -456,6 +456,8 @@ premiseUsesOfInferType = { #(p1, p2, z1, z2, z3)
     InferType.FalsyOR: (True, True, False, False, False),
     InferType.UnivModPonens: (True, True, False, False, False),
     InferType.ExistModPonens: (True, True, False, False, False),
+    InferType.Truth: (False, False, False, False, False),
+    InferType.Falsehood: (False, False, False, False, False),
 }
 
 class InferenceError(Exception): pass
@@ -859,5 +861,9 @@ class ProofBase:
                                 By +
                                 Statement.lex(')')
                             )
+            case InferType.Truth:
+                conclusions.append(Statement.lex('tT'))
+            case InferType.Falsehood:
+                conclusions.append(Statement.lex('(not tF)'))
 
         return tuple(conclusions)

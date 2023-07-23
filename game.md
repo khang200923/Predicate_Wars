@@ -83,7 +83,9 @@ If one of these action function is proven to be true, then the effect is applied
 - \[ADDRULE\](i, **A**) for all i, x (if there is only one **A** that \[ADDRULE\](i, **A**), then apply): Replace a *rule* of index i to **A**, if the rule is empty
 - \[DELETERULE\](i) for all i: Replace a *rule* of index i to empty
 #### *Game rule* rules
-*Rules* of the game are by default, contains 32 empty statements, with index 0 to 31 for reference. They are saved across rounds.
+- *Rules* of the game are by default, contains 32 empty statements, with index 0 to 31 for reference. They are saved across rounds.
+- *Base rules* are built-in statements that cannot be changed, and are saved across rounds:
+    *empty*
 
 ## Predicate logic and the proving system:
 ### *Statement*
@@ -113,7 +115,7 @@ A *proof* is an ordered list of *statements* and *proof tags* associated with th
 
 A *proof* X is *inferred* from another *proof* Y having a *subproof* Z that has only one statement tagged \[Axiom\] iff it adds a new *statement* **c** and a *proof tag* \[Lemma\] associated with it, and one of these conditions is true:
 
-(here **p1** is a statement from Y, **p2** is another statement from Y; **z1** is a statement tagged \[Axiom\] from Z, **z2**, **z3** are statements tagged \[Lemma\] from Z; **A**, **B** are WFFs; and **A**{x ↦ a} is a result formula of substituting every term a for each free occurrence of x in A; and 'd' is a  variable that does not appear in Y (except p1 and p2 where the variable appears) or **A**; and **A**(x) is a WFF that takes one variable that does not occur in **A**; every variable/predicate symbols referenced can be all replaced from a single variable/predicate symbol to another variable/predicate symbol)
+(here **p1** is a statement from Y, **p2** is another statement from Y; **z1** is a statement tagged \[Axiom\] from Z, **z2**, **z3** are statements tagged \[Lemma\] from Z; **A**, **B** are WFFs; and **A**{x ↦ a} is a result formula of substituting every term a for each free occurrence of x in A; and 'd' is a  variable that does not appear in Y (except p1 and p2 where the variable appears) or **A**; and **A**(x) is a WFF that takes one variable that does not occur in **A**; every variable/predicate symbols referenced can be all replaced from a single variable/predicate symbol to another variable/predicate symbol; **x**, **y**, **z** are variables)
 - Implication instantiation: If (**p1** is **A** or (¬**A**), and **p2** is **B**), or (**p1** is (¬**A**) and **p2** is (¬**B**)), then **c** is (**A** → **B**)
 - Explication instantiation: If **p1** is **A** and **p2** is (¬**B**), then **c** is (¬(**A** → **B**))
 - Modus ponens: If **p1** is (**A** → **B**) and **p2** is **A**, then **c** is **B**
@@ -130,9 +132,9 @@ A *proof* X is *inferred* from another *proof* Y having a *subproof* Z that has 
 - Indirect proof: If **z1** is (¬**A**), **z2** is **B**, **z3** is (¬**B**), then **c** is **A**(x)
 - Universal modus ponens: If **p1** is (∀(x)(**A**(x) → **B**(x))) and **p2** is **A**(y), then **c** is **B**(y)
 - Existential modus ponens: If **p1** is ∃(x)(**A**(x)) and **p2** is (**A**(y) → **B**(y)) then **c** is ∃(z)(**B**(z))
-- Identity: **c** is (∀(x)(x = x))
-- Symmetric property: If **p1** is x = y, then **c** is y = x
-- Substitution property: If **p1** is x = y, and  **p2** is y = z, then **c** is x = z
+- Identity: **c** is **x** = **x**
+- Symmetric property: If **p1** is **x** = **y**, then **c** is **y** = **x**
+- Transitive property: If **p1** is **x** = **y**, and  **p2** is **y** = **z**, then **c** is **x** = **z**
 - Truth: **c** is tT
 - Falsehood: **c** is (¬tF)
 
