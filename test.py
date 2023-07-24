@@ -7,11 +7,25 @@ res: Any = None
 
 os.system('color')
 
+sucTest = 0
+totalTest = 0
+try: testIndex = int(sys.argv[1])
+except IndexError: testIndex = None
+
 def test(name: str, bl: bool, failinfo: Any, note: str = ''):
+    global sucTest, totalTest
+    totalTest += 1
     failstr = ': ' + repr(failinfo)
 
-    if bl: print('\033[1m\033[32mTest {0} success\033[0m'.format(name) + note)
-    else: print('\033[1m\033[31mTest {0} failure\033[0m{1}'.format(name, failstr) + note)
+    if totalTest == testIndex or testIndex == None:
+        if bl:
+            print('{1}. \033[1m\033[32mTest {0} success\033[0m'.format(name, totalTest) + note)
+            sucTest += 1
+        else: print('{2}. \033[1m\033[31mTest {0} failure\033[0m{1}'.format(name, failstr, totalTest) + note)
+
+def summary():
+    if testIndex == None: print('\n{0}/{1} successful tests'.format(sucTest, totalTest))
+    else: print('\n{0}/1 successful tests'.format(sucTest))
 
 test('_checkSubSeq true 1', pd._checkSubSeq((1, 2, 5, 6), (2, 3, 1, 2, 5, 6, 'e')), False)
 
@@ -97,6 +111,13 @@ test('Statement.__eq__ 4', not statements[0] == statements[3], True)
 for index, state in enumerate(statements):
     test('Statement.wellformed {}'.format(index + 1), statements[index].wellformed(), False)
 
+res = pd.Statement.lex('(f(x) = x)')
+test('Statement.form', pd.Statement.lex('(f(x) = x)').form(
+    tuple(pd.Statement.lex('(')),
+    tuple(pd.Statement.lex('= x)')),
+    opt1obj=True
+), False)
+
 res = statements[4].formulasInForm(
     tuple(pd.Statement.lex('(forall(x)')),
     tuple(pd.Statement.lex(')'))
@@ -115,6 +136,14 @@ res = statements[5].formulasInForm(
     tuple(pd.Statement.lex(' imply ')),
 )
 test('Statement.formulasInForm 2', res == (( pd.Statement.lex("P(f)"), pd.Statement.lex("R(a,x)") ),), res)
+
+state = pd.Statement.lex('(f(x) = x)')
+res = state.formulasInForm(
+    tuple(pd.Statement.lex('(')),
+    tuple(pd.Statement.lex('= x)')),
+    opt1obj=True
+)
+test('Statement.formulasInForm 3', res == ((pd.Statement.lex('f(x)'),),), False)
 
 res = statements[0].substitute({
     ('var', '24'): ('var', '25'),
@@ -293,3 +322,40 @@ test('ProofBase.inferConclusions ExistModPonens', set(tuple(state) for state in 
     {tuple(pd.Statement.lex('(exists(x)P(w, x))')), tuple(pd.Statement.lex('(exists(q)P(w, q))'))},
     tuple(str(ree) for ree in res)
 )
+
+proof = pd.ProofBase.convert(('(forall(z)(z = z))', '(1 = 1)'))
+res = proof.inferConclusions(pd.InferType.SubsProp, 0, object=pd.Statement.lex('f(x)'))
+test('ProofBase.inferConclusions SubsProp', set(tuple(state) for state in res) ==
+    {tuple(pd.Statement.lex('(f(x) = f(x))'))},
+    tuple(str(ree) for ree in res)
+)
+
+proof = pd.ProofBase.convert(('P', '(1 = 1)'))
+res = proof.inferConclusions(pd.InferType.Identity, 0, object=pd.Statement.lex('c_1( [randPlayer](1) )'))
+test('ProofBase.inferConclusions Identity 1', set(tuple(state) for state in res) ==
+    {tuple(pd.Statement.lex('(c_1( [randPlayer](1) ) = c_1( [randPlayer](1) ))'))},
+    tuple(str(ree) for ree in res)
+)
+
+proof = pd.ProofBase.convert(('P', '(1 = 1)'))
+res = proof.inferConclusions(pd.InferType.Identity, 0, object=pd.Statement.lex('x_1234567890000'))
+test('ProofBase.inferConclusions Identity 2', set(tuple(state) for state in res) ==
+    {tuple(pd.Statement.lex('(x_1234567890000 = x_1234567890000)'))},
+    tuple(str(ree) for ree in res)
+)
+
+proof = pd.ProofBase.convert(('(x(y) = 3)', '(1 = 1)'))
+res = proof.inferConclusions(pd.InferType.SymmProp, 0)
+test('ProofBase.inferConclusions SymmProp', set(tuple(state) for state in res) ==
+    {tuple(pd.Statement.lex('(3 = x(y))'))},
+    tuple(str(ree) for ree in res)
+)
+
+proof = pd.ProofBase.convert(('(x(y) = 3)', '(3 = e)'))
+res = proof.inferConclusions(pd.InferType.TransProp, 0, 1)
+test('ProofBase.inferConclusions TransProp', set(tuple(state) for state in res) ==
+    {tuple(pd.Statement.lex('(x(y) = e)'))},
+    tuple(str(ree) for ree in res)
+)
+
+summary()

@@ -200,7 +200,7 @@ class Statement:
             elif sym1 != sym2: return (False, maps)
         return (_mappableDict(maps), maps)
 
-    def syms(self) -> Set[Tuple]:
+    def syms(self) -> Set[Tuple[str]]:
         """
         Returns vars and preds in the statement.
         """
@@ -217,7 +217,7 @@ class Statement:
         assert isinstance(statement, Statement), 'must add with a valid instance of class "Statement"'
         return Statement(self.statement + statement.statement)
 
-    def form(self, start: Tuple[Tuple, ...]=(), end: Tuple[Tuple, ...]=(), mid: Tuple[Tuple, ...]=(), startingMaps: dict[Tuple, Tuple]={}) -> bool:
+    def form(self, start: Tuple[Tuple, ...]=(), end: Tuple[Tuple, ...]=(), mid: Tuple[Tuple, ...]=(), startingMaps: dict[Tuple, Tuple]={}, opt1obj: bool = False, opt2obj: bool = False) -> bool:
         """
         Checks if the statement form fits the statement.
         """
@@ -235,25 +235,30 @@ class Statement:
         if not check[0]: return False
         maps = check[1]
 
+        if opt1obj: opt1wellmethod = 'wellformedobj'
+        else: opt1wellmethod = 'wellformed'
+
         #Check for special case mid
         if mid:
+            if opt2obj: opt2wellmethod = 'wellformedobj'
+            else: opt2wellmethod = 'wellformed'
             minIndexes = _seqFormOptionalsIndexes(self, start, end, mid, midcond=lambda index: \
-                        Statement(self[startEndIndexes[0]:index]).wellformed() and \
-                        Statement(self[index+len(mid):startEndIndexes[1]]).wellformed() \
+                        getattr(Statement(self[startEndIndexes[0]:index]), opt1wellmethod)() and \
+                        getattr(Statement(self[index+len(mid):startEndIndexes[1]]), opt2wellmethod)() \
             , startEndMatch=lambda x, y: Statement(x) == Statement(y))[1]
             for minIndex in minIndexes:
                 if self[minIndex[0] : minIndex[1]] == mid:
                     return True
             return False
-        if not Statement(self[startEndIndexes[0]:startEndIndexes[1]]).wellformed():
+        if not getattr(Statement(self[startEndIndexes[0]:startEndIndexes[1]]), opt1wellmethod)():
             return False
 
         #All filters passed - great!
         return True
 
-    def formulasInForm(self, start: Tuple[Tuple, ...]=(), end: Tuple[Tuple, ...]=(), mid: Tuple[Tuple, ...]=(), startingMaps: dict[Tuple, Tuple]={}) -> Tuple[Tuple['Statement', ...], ...] | None:
+    def formulasInForm(self, start: Tuple[Tuple, ...]=(), end: Tuple[Tuple, ...]=(), mid: Tuple[Tuple, ...]=(), startingMaps: dict[Tuple, Tuple]={}, opt1obj: bool = False, opt2obj: bool = False) -> Tuple[Tuple['Statement', ...], ...] | None:
         """
-        Returns all optional formulas in statement if it fits with the statement form.
+        Returns all optional formulas (or objs) in statement if it fits with the statement form.
         """
 
         #Check form first
@@ -269,18 +274,25 @@ class Statement:
         if not check[0]: return None
         maps = check[1]
 
+        if opt1obj: opt1wellmethod = 'wellformedobj'
+        else: opt1wellmethod = 'wellformed'
+
         #Check for special case mid
         if mid:
+            if opt1obj: opt1wellmethod = 'wellformedobj'
+            else: opt1wellmethod = 'wellformed'
+            if opt2obj: opt2wellmethod = 'wellformedobj'
+            else: opt2wellmethod = 'wellformed'
             minIndexes = _seqFormOptionalsIndexes(self, start, end, mid, midcond=lambda index: \
-                        Statement(self[startEndIndexes[0]:index]).wellformed() and \
-                        Statement(self[index+len(mid):startEndIndexes[1]]).wellformed() \
+                        getattr(Statement(self[startEndIndexes[0]:index]), opt1wellmethod)() and \
+                        getattr(Statement(self[index+len(mid):startEndIndexes[1]]), opt2wellmethod)() \
             , startEndMatch=lambda x, y: Statement(x) == Statement(y))[1]
             for minIndex in minIndexes:
                 if self[minIndex[0] : minIndex[1]] == mid:
                     return tuple( ( Statement(self[startEndIndexes[0]:minIndex[0]]), Statement(self[minIndex[1]:startEndIndexes[1]]) ) for minIndex in minIndexes)
             return None
         else:
-            if not Statement(self[startEndIndexes[0]:startEndIndexes[1]]).wellformed():
+            if not getattr(Statement(self[startEndIndexes[0]:startEndIndexes[1]]), opt1wellmethod)():
                 return None
         return ( ( Statement(self[startEndIndexes[0]:startEndIndexes[1]],) ,) ,)
 
@@ -392,9 +404,19 @@ class Statement:
         ): return True
 
         #Equal syntax
-        if len(self) == 5 and self[2] == ('equal',) and self[0] == ('bracket', '(') and self[4] == ('bracket', ')'):
-            if self[1][0] in ('distVar', 'var', 'number') and self[3][0] in ['distVar', 'var', 'number']:
-                return True
+        if self.form(
+            (
+                ('bracket', '('),
+            ),
+            (
+                ('bracket', ')'),
+            ),
+            (
+                ('equal',),
+            ),
+            opt1obj=True,
+            opt2obj=True,
+        ): return True
 
         #Function syntax
         if self[1] == ('bracket', '(') and self[-1] == ('bracket', ')') and \
@@ -468,24 +490,32 @@ class InferType(Enum):
     ExistModPonens = 10
     Truth = 13
     Falsehood = 14
+    SubsProp = 17
+    Identity = 18
+    SymmProp = 19
+    TransProp = 20
 
-premiseUsesOfInferType = { #(p1, p2, z1, z2, z3)
-    InferType.ImpliInst: (True, True, False, False, False),
-    InferType.ExpliInst: (True, True, False, False, False),
-    InferType.ModPonens: (True, True, False, False, False),
-    InferType.UniversalInst: (True, False, False, False, False),
-    InferType.UniversalGenr: (True, False, False, False, False),
-    InferType.ExistentialInst: (True, False, False, False, False),
-    InferType.ExistentialGenr: (True, False, False, False, False),
-    InferType.Conjunc: (True, True, False, False, False),
-    InferType.Simplific: (True, False, False, False, False),
-    InferType.FalsyAND: (True, False, False, False, False),
-    InferType.Addition: (True, False, False, False, False),
-    InferType.FalsyOR: (True, True, False, False, False),
-    InferType.UnivModPonens: (True, True, False, False, False),
-    InferType.ExistModPonens: (True, True, False, False, False),
-    InferType.Truth: (False, False, False, False, False),
-    InferType.Falsehood: (False, False, False, False, False),
+premiseUsesOfInferType = { #(p1, p2, x, z1, z2, z3)
+    InferType.ImpliInst: (True, True, False, False, False, False),
+    InferType.ExpliInst: (True, True, False, False, False, False),
+    InferType.ModPonens: (True, True, False, False, False, False),
+    InferType.UniversalInst: (True, False, False, False, False, False),
+    InferType.UniversalGenr: (True, False, False, False, False, False),
+    InferType.ExistentialInst: (True, False, False, False, False, False),
+    InferType.ExistentialGenr: (True, False, False, False, False, False),
+    InferType.Conjunc: (True, True, False, False, False, False),
+    InferType.Simplific: (True, False, False, False, False, False),
+    InferType.FalsyAND: (True, False, False, False, False, False),
+    InferType.Addition: (True, False, False, False, False, False),
+    InferType.FalsyOR: (True, True, False, False, False, False),
+    InferType.UnivModPonens: (True, True, False, False, False, False),
+    InferType.ExistModPonens: (True, True, False, False, False, False),
+    InferType.Truth: (False, False, False, False, False, False),
+    InferType.Falsehood: (False, False, False, False, False, False),
+    InferType.SubsProp: (True, False, True, False, False, False),
+    InferType.Identity: (False, False, True, False, False, False),
+    InferType.SymmProp: (True, False, False, False, False, False),
+    InferType.TransProp: (True, True, False, False, False, False),
 }
 
 class InferenceError(Exception): pass
@@ -535,7 +565,7 @@ class ProofBase:
         if height == -1: return ('var', str(char))
         return ('distVar', str(char), str(height))
 
-    def inferConclusions(self, inferType: InferType, premise1Index: int, premise2Index: int) -> Tuple[Statement]:
+    def inferConclusions(self, inferType: InferType, premise1Index: int, premise2Index: int = None, object: Statement = Statement(())) -> Tuple[Statement]:
         """
         Infers the proof and yields conclusions.
         """
@@ -549,6 +579,8 @@ class ProofBase:
         if premiseUses[1]:
             premise2: Statement = self[premise2Index]['state']
             if not premise2.wellformed(): raise InferenceError('Premise 2 is ill-formed')
+        if premiseUses[2]:
+            if not object.wellformedobj(): raise InferenceError('Object is ill-formed')
 
         conclusions = []
 
@@ -893,5 +925,63 @@ class ProofBase:
                 conclusions.append(Statement.lex('tT'))
             case InferType.Falsehood:
                 conclusions.append(Statement.lex('(not tF)'))
+            case InferType.SubsProp:
+                try: A = premise1.formulasInForm((
+                    ('bracket', '('),
+                    ('quanti', 'forall'),
+                    ('bracket', '('),
+                    ('var', '0'),
+                    ('bracket', ')'),
+                ), (
+                    ('bracket', ')'),
+                ))[0][0]
+                except TypeError: pass
+                else:
+                    x = premise1[3]
+                    res = A.complexSubstitute({x: tuple(object)})
+                    if res: conclusions.append(res)
+            case InferType.Identity:
+                conclusions.append(Statement.lex('(') + object + Statement.lex('=') + object + Statement.lex(')'))
+            case InferType.SymmProp:
+                try: X, Y = premise1.formulasInForm((
+                    ('bracket', '('),
+                ), (
+                    ('bracket', ')'),
+                ), (
+                    ('equal',),
+                ),
+                opt1obj=True,
+                opt2obj=True,
+                )[0]
+                except TypeError: pass
+                else:
+                    conclusions.append(Statement.lex('(') + Y + Statement.lex('=') + X + Statement.lex(')'))
+            case InferType.TransProp:
+                try: X, Y = premise1.formulasInForm((
+                    ('bracket', '('),
+                ), (
+                    ('bracket', ')'),
+                ), (
+                    ('equal',),
+                ),
+                opt1obj=True,
+                opt2obj=True,
+                )[0]
+                except TypeError: pass
+                else:
+                    try: Y2, Z = premise2.formulasInForm((
+                        ('bracket', '('),
+                    ), (
+                        ('bracket', ')'),
+                    ), (
+                        ('equal',),
+                    ),
+                    opt1obj=True,
+                    opt2obj=True,
+                    )[0]
+                    except TypeError: pass
+                    else:
+                        if tuple(Y2) == tuple(Y):
+                            conclusions.append(Statement.lex('(') + X + Statement.lex('=') + Z + Statement.lex(')'))
 
         return tuple(conclusions)
