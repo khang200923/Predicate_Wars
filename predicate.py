@@ -88,6 +88,7 @@ symbolsType = (
     ('truth', r't[TF]'),
     ('quanti', r'forall|exists'),
     ('connect', r'not\s|\sand\s|\sor\s|\simply\s'),
+    ('oper', r'[+\-*/%]|f/|c/'),
     ('var', r'[a-z]'),
     ('pred', r'[A-Z]'),
     ('equal', r'='),
@@ -118,9 +119,10 @@ def symbolTrans(symbol: str) -> Tuple[str, ...] | None:
         if 'not' in symbol:
             return (symType, 'not')
         return (symType, symbol[1:-1])
-    if symType in ['gameFuncName', 'predGFuncName', 'predAFuncName', 'truth', 'quanti', 'bracket', 'number']:
+    if symType in ['gameFuncName', 'predGFuncName', 'predAFuncName', 'truth', 'quanti', 'bracket', 'number', 'oper']:
         return (symType, symbol)
     return (symType,)
+
 @dataclass
 class Statement:
     statement: Tuple[Tuple, ...]
@@ -168,6 +170,8 @@ class Statement:
                 res += '='
             elif symType == 'comma':
                 res += ','
+            else:
+                res += '{?}'
         return res
 
     def __getitem__(self, key):
@@ -305,6 +309,7 @@ class Statement:
         if len(self) == 1:
             return self.statement[0][0] in ('distVar', 'var', 'number')
         if len(self) > 2:
+            #Function syntax
             if self[1] == ('bracket', '(') and self[-1] == ('bracket', ')') and \
             self[0][0] in ('gameFuncName', 'distVar', 'var'):
                 paramsLeft = self[2:-1]
@@ -313,6 +318,78 @@ class Statement:
                     if paramEndIndex == None: return Statement(paramsLeft).wellformedobj()
                     paramsLeft = paramsLeft[paramEndIndex+1:]
                 return True
+
+            #Operator syntax
+            elif self.form((
+                ('bracket', '('),
+            ), (
+                ('bracket', ')'),
+            ), (
+                ('oper', '+'),
+            ),
+            opt1obj=True,
+            opt2obj=True,
+            ): return True
+            elif self.form((
+                ('bracket', '('),
+            ), (
+                ('bracket', ')'),
+            ), (
+                ('oper', '-'),
+            ),
+            opt1obj=True,
+            opt2obj=True,
+            ): return True
+            elif self.form((
+                ('bracket', '('),
+            ), (
+                ('bracket', ')'),
+            ), (
+                ('oper', '*'),
+            ),
+            opt1obj=True,
+            opt2obj=True,
+            ): return True
+            elif self.form((
+                ('bracket', '('),
+            ), (
+                ('bracket', ')'),
+            ), (
+                ('oper', '/'),
+            ),
+            opt1obj=True,
+            opt2obj=True,
+            ): return True
+            elif self.form((
+                ('bracket', '('),
+            ), (
+                ('bracket', ')'),
+            ), (
+                ('oper', 'f/'),
+            ),
+            opt1obj=True,
+            opt2obj=True,
+            ): return True
+            elif self.form((
+                ('bracket', '('),
+            ), (
+                ('bracket', ')'),
+            ), (
+                ('oper', 'c/'),
+            ),
+            opt1obj=True,
+            opt2obj=True,
+            ): return True
+            elif self.form((
+                ('bracket', '('),
+            ), (
+                ('bracket', ')'),
+            ), (
+                ('oper', '%'),
+            ),
+            opt1obj=True,
+            opt2obj=True,
+            ): return True
         return False
 
 
@@ -494,6 +571,7 @@ class InferType(Enum):
     Identity = 18
     SymmProp = 19
     TransProp = 20
+    OpSimplify = 21
 
 premiseUsesOfInferType = { #(p1, p2, x, z1, z2, z3)
     InferType.ImpliInst: (True, True, False, False, False, False),
@@ -516,6 +594,7 @@ premiseUsesOfInferType = { #(p1, p2, x, z1, z2, z3)
     InferType.Identity: (False, False, True, False, False, False),
     InferType.SymmProp: (True, False, False, False, False, False),
     InferType.TransProp: (True, True, False, False, False, False),
+    InferType.OpSimplify: (True, False, False, False, False, False),
 }
 
 class InferenceError(Exception): pass

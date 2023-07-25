@@ -110,6 +110,10 @@ test('Statement.__eq__ 4', not statements[0] == statements[3], True)
 
 for index, state in enumerate(statements):
     test('Statement.wellformed {}'.format(index + 1), statements[index].wellformed(), False)
+test('Statement.wellformed {}'.format(len(statements) + 1), pd.Statement.lex('((3+2)=5)').wellformed(), False)
+test('Statement.wellformed {}'.format(len(statements) + 2), pd.Statement.lex('((3+(5+x))=(x-4))').wellformed(), False)
+
+test('Statement.wellformedobj 1', pd.Statement.lex('(3+2)').wellformedobj(), False)
 
 res = pd.Statement.lex('(f(x) = x)')
 test('Statement.form', pd.Statement.lex('(f(x) = x)').form(

@@ -95,6 +95,7 @@ A *statement* is an ordered list of *symbols*, which consists of:
 - Truth value (predicate): 'tT', 'tF'
 - Quantifiers: '∀', '∃' (symbol point each: 2)
 - Connectives: '¬', '∧', '∨', '→' (symbol point each: 1)
+- Operators: '+', '-', '*', '/', 'f/', 'c/', '%'
 - Brackets: '(', ')' (symbol point each: 0)
 - Equality: '='
 - Comma: ',' (symbol point each: 0)
@@ -138,6 +139,7 @@ A *proof* X is *inferred* from another *proof* Y having a *subproof* Z that has 
 - Transitive property: If **p1** is **x** = **y**, and  **p2** is **y** = **z**, then **c** is **x** = **z**
 - Truth: **c** is tT
 - Falsehood: **c** is (¬tF)
+- Operator simplification: If **p1** has an occurence of (**x** **op** **y**), where **x** and **y** and numbers, and **op** is an operator, then **c** replaces the occurence with the result of the operation ('+' is addition, '-' is subtraction, '*' is multiplication, '/' is rounded division, 'f/' is floor division, 'c/' is ceil division, '%' is modulo)
 
 A *proof* has a symbol point of the total symbol points of the *symbols* of all the \[Lemma\]-tagged statements in the *proof* (excluding the *subproofs*)
 ### *WFF* (*Well-formed formula*)
