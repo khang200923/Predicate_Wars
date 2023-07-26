@@ -1,6 +1,7 @@
 from copy import deepcopy
 from dataclasses import dataclass, field
 from enum import Enum
+import math
 import random
 import re
 from typing import Any, Callable, List, Sequence, Set, Tuple
@@ -170,6 +171,8 @@ class Statement:
                 res += '='
             elif symType == 'comma':
                 res += ','
+            elif symType == 'oper':
+                res += symVal[0]
             else:
                 res += '{?}'
         return res
@@ -1062,5 +1065,45 @@ class ProofBase:
                     else:
                         if tuple(Y2) == tuple(Y):
                             conclusions.append(Statement.lex('(') + X + Statement.lex('=') + Z + Statement.lex(')'))
+            case InferType.OpSimplify: #Holy complexity
+                occurences = (( premise1[i+1][1 % len(premise1[i+1])], premise1[i+3][1 % len(premise1[i+3])], premise1[i+2][1 % len(premise1[i+2])], i, i+5 ) for i in range(len(premise1) - 4) if \
+                              premise1[i] == ('bracket', '(') and premise1[i+4] == ('bracket', ')') and premise1[i+2][0] == 'oper')
+                for num1, num2, connect, start, end in occurences:
+                    if connect == '+':
+                        res = list(premise1.statement)
+                        res[start:end] = (('number', str(int(num1) + int(num2))),)
+                        conclusions.append(Statement(tuple(res)))
+                        continue
+                    if connect == '-':
+                        res = list(premise1.statement)
+                        res[start:end] = (('number', str(int(num1) - int(num2))),)
+                        conclusions.append(Statement(tuple(res)))
+                        continue
+                    if connect == '*':
+                        res = list(premise1.statement)
+                        res[start:end] = (('number', str(int(num1) * int(num2))),)
+                        conclusions.append(Statement(tuple(res)))
+                        continue
+                    if connect == '/':
+                        res = list(premise1.statement)
+                        res[start:end] = (('number', str( round(int(num1) / int(num2)) )),)
+                        conclusions.append(Statement(tuple(res)))
+                        continue
+                    if connect == 'f/':
+                        res = list(premise1.statement)
+                        res[start:end] = (('number', str( math.floor(int(num1) / int(num2)) )),)
+                        conclusions.append(Statement(tuple(res)))
+                        continue
+                    if connect == 'c/':
+                        res = list(premise1.statement)
+                        res[start:end] = (('number', str( math.ceil(int(num1) / int(num2)) )),)
+                        conclusions.append(Statement(tuple(res)))
+                        continue
+                    if connect == '%':
+                        res = list(premise1.statement)
+                        res[start:end] = (('number', str(int(num1) % int(num2))),)
+                        conclusions.append(Statement(tuple(res)))
+                        continue
+                    raise 'brah'
 
         return tuple(conclusions)

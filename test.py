@@ -362,4 +362,32 @@ test('ProofBase.inferConclusions TransProp', set(tuple(state) for state in res) 
     tuple(str(ree) for ree in res)
 )
 
+proof = pd.ProofBase.convert(('((4+3) = 7)', '(3 = e)'))
+res = proof.inferConclusions(pd.InferType.OpSimplify, 0)
+test('ProofBase.inferConclusions OpSimplify +', set(tuple(state) for state in res) ==
+    {tuple(pd.Statement.lex('(7 = 7)'))},
+    tuple(str(ree) for ree in res)
+)
+
+proof = pd.ProofBase.convert(('((4+(4-1)) = 7)', '(3 = e)'))
+res = proof.inferConclusions(pd.InferType.OpSimplify, 0)
+test('ProofBase.inferConclusions OpSimplify -', set(tuple(state) for state in res) ==
+    {tuple(pd.Statement.lex('((4+3) = 7)'))},
+    tuple(str(ree) for ree in res)
+)
+
+proof = pd.ProofBase.convert(('((4+((2*2)-1)) = (14/2))', '(3 = e)'))
+res = proof.inferConclusions(pd.InferType.OpSimplify, 0)
+test('ProofBase.inferConclusions OpSimplify * /', set(tuple(state) for state in res) ==
+    {tuple(pd.Statement.lex('((4+(4-1)) = (14/2))')), tuple(pd.Statement.lex('((4+((2*2)-1)) = 7)'))},
+    tuple(str(ree) for ree in res)
+)
+
+proof = pd.ProofBase.convert(('P((5 f/ 2), (5 c/ 2), x)', '(3 = e(x))'))
+res = proof.inferConclusions(pd.InferType.OpSimplify, 0)
+test('ProofBase.inferConclusions OpSimplify * /', set(tuple(state) for state in res) ==
+    {tuple(pd.Statement.lex('P((5 f/ 2), 3, x)')), tuple(pd.Statement.lex('P(2, (5 c/ 2), x)'))},
+    tuple(str(ree) for ree in res)
+)
+
 summary()
