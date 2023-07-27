@@ -90,6 +90,7 @@ symbolsType = (
     ('quanti', r'forall|exists'),
     ('connect', r'not\s|\sand\s|\sor\s|\simply\s'),
     ('oper', r'[+\-*/%]|f/|c/'),
+    ('compare', r'[<>]'),
     ('var', r'[a-z]'),
     ('pred', r'[A-Z]'),
     ('equal', r'='),
@@ -120,7 +121,7 @@ def symbolTrans(symbol: str) -> Tuple[str, ...] | None:
         if 'not' in symbol:
             return (symType, 'not')
         return (symType, symbol[1:-1])
-    if symType in ['gameFuncName', 'predGFuncName', 'predAFuncName', 'truth', 'quanti', 'bracket', 'number', 'oper']:
+    if symType in ['gameFuncName', 'predGFuncName', 'predAFuncName', 'truth', 'quanti', 'bracket', 'number', 'oper', 'compare']:
         return (symType, symbol)
     return (symType,)
 
@@ -165,14 +166,12 @@ class Statement:
                 if 'not' in symVal[0]:
                     res += 'not '
                 else: res += ' {} '.format(symVal[0])
-            elif symType in ['gameFuncName', 'predGFuncName', 'predAFuncName', 'truth', 'quanti', 'bracket', 'number']:
+            elif symType in ['gameFuncName', 'predGFuncName', 'predAFuncName', 'truth', 'quanti', 'bracket', 'number', 'oper', 'compare']:
                 res += symVal[0]
             elif symType == 'equal':
                 res += '='
             elif symType == 'comma':
                 res += ','
-            elif symType == 'oper':
-                res += symVal[0]
             else:
                 res += '{?}'
         return res
@@ -498,6 +497,35 @@ class Statement:
             opt2obj=True,
         ): return True
 
+        #Comparator syntax
+        if self.form(
+            (
+                ('bracket', '('),
+            ),
+            (
+                ('bracket', ')'),
+            ),
+            (
+                ('compare', '<'),
+            ),
+            opt1obj=True,
+            opt2obj=True,
+        ): return True
+
+        if self.form(
+            (
+                ('bracket', '('),
+            ),
+            (
+                ('bracket', ')'),
+            ),
+            (
+                ('compare', '>'),
+            ),
+            opt1obj=True,
+            opt2obj=True,
+        ): return True
+
         #Function syntax
         if self[1] == ('bracket', '(') and self[-1] == ('bracket', ')') and \
         self[0][0] in ('predGFuncName', 'predAFuncName', 'distPred', 'pred'):
@@ -575,6 +603,7 @@ class InferType(Enum):
     SymmProp = 19
     TransProp = 20
     OpSimplify = 21
+    Comparison = 22
 
 premiseUsesOfInferType = { #(p1, p2, x, z1, z2, z3)
     InferType.ImpliInst: (True, True, False, False, False, False),
@@ -598,6 +627,7 @@ premiseUsesOfInferType = { #(p1, p2, x, z1, z2, z3)
     InferType.SymmProp: (True, False, False, False, False, False),
     InferType.TransProp: (True, True, False, False, False, False),
     InferType.OpSimplify: (True, False, False, False, False, False),
+    InferType.Comparison: (True, False, False, False, False, False),
 }
 
 class InferenceError(Exception): pass
@@ -1105,5 +1135,20 @@ class ProofBase:
                         conclusions.append(Statement(tuple(res)))
                         continue
                     raise 'brah'
+            case InferType.Comparison: #Holy complexity
+                occurences = (( premise1[i+1][1 % len(premise1[i+1])], premise1[i+3][1 % len(premise1[i+3])], premise1[i+2][1 % len(premise1[i+2])], i, i+5 ) for i in range(len(premise1) - 4) if \
+                              premise1[i] == ('bracket', '(') and premise1[i+4] == ('bracket', ')') and premise1[i+2][0] == 'compare')
+                mapper = {True: 'tT', False: 'tF'}
+                for num1, num2, connect, start, end in occurences:
+                    if connect == '>':
+                        res = list(premise1.statement)
+                        res[start:end] = (('truth', mapper[int(num1) > int(num2)],),)
+                        conclusions.append(Statement(tuple(res)))
+                        continue
+                    elif connect == '<':
+                        res = list(premise1.statement)
+                        res[start:end] = (('truth', mapper[int(num1) < int(num2)],),)
+                        conclusions.append(Statement(tuple(res)))
+                        continue
 
         return tuple(conclusions)
