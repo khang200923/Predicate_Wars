@@ -681,9 +681,6 @@ class ProofBase:
         """
         Infers the proof and yields conclusions.
         """
-        #TODO: Implement this method (the hardest part yet)
-        #TODO: Test this method (oh no)
-        #TODO: Try to avoid creating a spaghetti code...
         premiseUses = premiseUsesOfInferType[inferType]
         if premiseUses[0]:
             premise1: Statement = self[premise1Index]['state']
@@ -941,7 +938,7 @@ class ProofBase:
                             ('bracket', ')'),
                         ))
                     )
-            case InferType.FalsyOR: #TODO: Test this case
+            case InferType.FalsyOR:
                 try: A = premise1.formulasInForm(
                     (('bracket', '('),
                      ('connect', 'not')),
@@ -1150,5 +1147,29 @@ class ProofBase:
                         res[start:end] = (('truth', mapper[int(num1) < int(num2)],),)
                         conclusions.append(Statement(tuple(res)))
                         continue
+            case _: raise InferenceError('Unsupported infer type: {}'.format(inferType))
 
         return tuple(conclusions)
+    def inferAllConclusions(self, premise1Index: int, premise2Index: int = None, object: Statement = Statement(())) -> Tuple[Statement]:
+        """
+        Infers the proof and yields all possilble conclusions.
+        """
+        #TODO: Test this method
+
+        premise1Use = premise1Index != None
+        premise2Use = premise2Index != None
+        objectUse = object != Statement(())
+
+        if premise1Use:
+            premise1: Statement = self[premise1Index]['state']
+            if not premise1.wellformed(): raise InferenceError('Premise 1 is ill-formed')
+        if premise2Use:
+            premise2: Statement = self[premise2Index]['state']
+            if not premise2.wellformed(): raise InferenceError('Premise 2 is ill-formed')
+        if objectUse:
+            if not object.wellformedobj(): raise InferenceError('Object is ill-formed')
+        checkableInferTypes = (iType for iType in InferType if premiseUsesOfInferType[iType] == (premise1Use, premise2Use, objectUse, False, False, False))
+        conclusion = ()
+        for inferType in checkableInferTypes:\
+            conclusion += self.inferConclusions(inferType, premise1Index, premise2Index, object)
+        return conclusion
