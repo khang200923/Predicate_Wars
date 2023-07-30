@@ -639,7 +639,7 @@ class ProofBase:
     """
     statements: List[Statement] = field(default_factory=list)
     stateTags: List[StateTag] = field(default_factory=list)
-    inferences: List[Tuple[InferType, int, int, Tuple[Tuple[int, int], Tuple[int, int]], Tuple[Tuple[int, int], Tuple[int, int]]]] = field(default_factory=list)
+    inferences: List[Tuple[InferType, int, int, Statement]] = field(default_factory=list) #[(inferType, premise1index, premise2index, object)...]
 
     def convert(strAxioms: Tuple[str]) -> 'ProofBase':
         """
@@ -1150,7 +1150,7 @@ class ProofBase:
             case _: raise InferenceError('Unsupported infer type: {}'.format(inferType))
 
         return tuple(conclusions)
-    def inferAllConclusions(self, premise1Index: int, premise2Index: int = None, object: Statement = Statement(())) -> Tuple[Statement]:
+    def inferAllConclusions(self, premise1Index: int, premise2Index: int = None, object: Statement = Statement(())) -> Tuple[Tuple[Statement, InferType]]:
         """
         Infers the proof and yields all possilble conclusions.
         """
@@ -1170,5 +1170,16 @@ class ProofBase:
         checkableInferTypes = (iType for iType in InferType if premiseUsesOfInferType[iType] == (premise1Use, premise2Use, objectUse, False, False, False))
         conclusion = ()
         for inferType in checkableInferTypes:\
-            conclusion += self.inferConclusions(inferType, premise1Index, premise2Index, object)
+            conclusion += (self.inferConclusions(inferType, premise1Index, premise2Index, object), inferType)
         return conclusion
+    def infer(self, premise1Index: int, premise2Index: int = None, object: Statement = Statement(()), conclusionIndex: int = 0) -> 'ProofBase':
+        """
+        Infers the proof and returns the result.
+        """
+
+        res = deepcopy(self)
+        state, inferType = res.inferAllConclusions(premise1Index, premise2Index, object)[conclusionIndex]
+        res.statements += [state]
+        res.stateTags += [StateTag.LEMMA]
+        res.inferences += [(inferType, premise1Index, premise2Index, object)]
+        return res
