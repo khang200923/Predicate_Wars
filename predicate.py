@@ -1154,7 +1154,6 @@ class ProofBase:
         """
         Infers the proof and yields all possilble conclusions.
         """
-        #TODO: Test this method
 
         premise1Use = premise1Index != None
         premise2Use = premise2Index != None
