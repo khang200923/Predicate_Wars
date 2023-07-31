@@ -605,6 +605,9 @@ class InferType(Enum):
     OpSimplify = 21
     Comparison = 22
 
+    CondProof = 23
+    IndProof = 24
+
 premiseUsesOfInferType = { #(p1, p2, x, z1, z2, z3)
     InferType.ImpliInst: (True, True, False, False, False, False),
     InferType.ExpliInst: (True, True, False, False, False, False),
@@ -628,6 +631,9 @@ premiseUsesOfInferType = { #(p1, p2, x, z1, z2, z3)
     InferType.TransProp: (True, True, False, False, False, False),
     InferType.OpSimplify: (True, False, False, False, False, False),
     InferType.Comparison: (True, False, False, False, False, False),
+
+    InferType.CondProof: (True, False, False, True, True, False),
+    InferType.IndProof: (False, False, True, True, True, True),
 }
 
 class InferenceError(Exception): pass
@@ -660,6 +666,14 @@ class ProofBase:
         """
         return {sym for state in self.statements for sym in state.syms()}
 
+    def subProof(self) -> Set[Tuple]:
+        """
+        Check if this ProofBase can be a subproof.
+        """
+
+        if isinstance(self, Proof): return False
+        return self.stateTags[0] == StateTag.AXIOM and all(tag == StateTag.LEMMA for tag in self.stateTags[1:])
+
     def symsWithout(self, stateIndex) -> Set[Tuple]:
         """
         Returns vars and preds used in proof, without the statement on specified index.
@@ -681,6 +695,8 @@ class ProofBase:
         """
         Infers the proof and yields conclusions.
         """
+        #TODO: For variable-substitution-required inference types, substitute manually on object param instead of suggestions
+
         premiseUses = premiseUsesOfInferType[inferType]
         if premiseUses[0]:
             premise1: Statement = self[premise1Index]['state']
@@ -1167,10 +1183,10 @@ class ProofBase:
             if not premise2.wellformed(): raise InferenceError('Premise 2 is ill-formed')
         if objectUse:
             if not object.wellformedobj(): raise InferenceError('Object is ill-formed')
-        checkableInferTypes = (iType for iType in InferType if premiseUsesOfInferType[iType] == (premise1Use, premise2Use, objectUse, False, False, False))
+        checkableInferTypes = tuple(iType for iType in InferType if premiseUsesOfInferType[iType] == (premise1Use, premise2Use, objectUse, False, False, False))
         conclusion = ()
-        for inferType in checkableInferTypes:\
-            conclusion += (self.inferConclusions(inferType, premise1Index, premise2Index, object), inferType)
+        for inferType in checkableInferTypes:
+            conclusion += ((self.inferConclusions(inferType, premise1Index, premise2Index, object), inferType),)
         return conclusion
     def infer(self, premise1Index: int, premise2Index: int = None, object: Statement = Statement(()), conclusionIndex: int = 0) -> 'ProofBase':
         """
@@ -1183,3 +1199,137 @@ class ProofBase:
         res.stateTags += [StateTag.LEMMA]
         res.inferences += [(inferType, premise1Index, premise2Index, object)]
         return res
+
+@dataclass
+class Proof(ProofBase):
+    """
+    Contains a list of Statements, with subproofs, and a list of inference.
+    """
+    subproofs: List[ProofBase] = []
+
+    def convert(strAxioms: Tuple[str]) -> ProofBase:
+        states = [Statement.lex(state) for state in strAxioms]
+        return Proof(states, [StateTag.AXIOM for _ in states])
+
+    def inferConclusions(self, inferType: InferType, premise1Index: int, premise2Index: int = None, subProofIndex: int = None, premise4Index: int = None, premise5Index: int = None, object: Statement = Statement(())) -> Tuple[Statement]:
+        premiseUses = premiseUsesOfInferType[inferType]
+        if premiseUses[0]:
+            premise1: Statement = self[premise1Index]['state']
+            if not premise1.wellformed(): raise InferenceError('Premise 1 is ill-formed')
+        if premiseUses[1]:
+            premise2: Statement = self[premise2Index]['state']
+            if not premise2.wellformed(): raise InferenceError('Premise 2 is ill-formed')
+        if premiseUses[2]:
+            if not object.wellformedobj(): raise InferenceError('Object is ill-formed')
+        if premiseUses[3:] == (False, False, False):
+            return super().inferConclusions(inferType, premise1Index, premise2Index, object)
+        subproof = self.subproofs[subProofIndex]
+        if premiseUses[3]:
+            premise3: Statement = self[0]['state']
+            if not premise3.wellformed(): raise InferenceError('Premise 3 is ill-formed')
+        if premiseUses[4]:
+            premise4: Statement = self[premise4Index]['state']
+            if not premise4.wellformed(): raise InferenceError('Premise 4 is ill-formed')
+        if premiseUses[5]:
+            premise5: Statement = self[premise5Index]['state']
+            if not premise5.wellformed(): raise InferenceError('Premise 5 is ill-formed')
+
+        conclusions = []
+
+        match inferType:
+            case InferType.CondProof:
+                try:
+                    Ax = premise3.formulasInForm(
+                        (
+                            ('bracket', '('),
+                            ('quanti', 'forall'),
+                            ('bracket', '('),
+                            ('var', '0'),
+                            ('bracket', ')'),
+                        ),
+                        (
+                            ('bracket', ')'),
+                        ),
+                    )[0][0]
+                    Bx = premise4.formulasInForm(
+                        (
+                            ('bracket', '('),
+                            ('quanti', 'forall'),
+                            ('bracket', '('),
+                            ('var', '0'),
+                            ('bracket', ')'),
+                        ),
+                        (
+                            ('bracket', ')'),
+                        ),
+                    )[0][0]
+                    Ay = premise1.formulasInForm(
+                        (
+                            ('bracket', '('),
+                            ('quanti', 'forall'),
+                            ('bracket', '('),
+                            ('var', '0'),
+                            ('bracket', ')'),
+                        ),
+                        (
+                            ('bracket', ')'),
+                        ),
+                    )[0][0]
+                except InferenceError: pass
+                else:
+                    bol, _ = Ax.eq(Ay)
+                    if bol:
+                        x = premise3[3]
+                        y = premise1[3]
+                        conclusions.append(Bx.substitute({x: y}))
+            case InferType.IndProof:
+                try:
+                    Ax = premise3.formulasInForm(
+                        (
+                            ('bracket', '('),
+                            ('quanti', 'forall'),
+                            ('bracket', '('),
+                            ('var', '0'),
+                            ('bracket', ')'),
+                            ('bracket', '('),
+                            ('connect', 'not'),
+                        ),
+                        (
+                            ('bracket', ')'),
+                            ('bracket', ')'),
+                        ),
+                    )[0][0]
+                    Bx = premise5.formulasInForm(
+                        (
+                            ('bracket', '('),
+                            ('quanti', 'forall'),
+                            ('bracket', '('),
+                            ('var', '0'),
+                            ('bracket', ')'),
+                            ('bracket', '('),
+                            ('connect', 'not'),
+                        ),
+                        (
+                            ('bracket', ')'),
+                            ('bracket', ')'),
+                        ),
+                    )[0][0]
+                    Bx2 = premise5.formulasInForm(
+                        (
+                            ('bracket', '('),
+                            ('quanti', 'forall'),
+                            ('bracket', '('),
+                            ('var', '0'),
+                            ('bracket', ')'),
+                        ),
+                        (
+                            ('bracket', ')'),
+                        ),
+                    )[0][0]
+                except InferenceError: pass
+                else:
+                    if Bx == Bx2 and len(tuple(object)) == 1:
+                        x = premise4[3]
+                        y = object
+                        conclusions.append(Bx.substitute({x: y}))
+        return conclusions

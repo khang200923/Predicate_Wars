@@ -130,8 +130,8 @@ A *proof* X is *inferred* from another *proof* Y having a *subproof* Z that has 
 - Falsy AND: If **p1** is (¬**A**) then **c** is (¬(**A** ∧ **B**))
 - Addition: If **p1** is **A**, then **c** is (**A** ∨ **B**) for any **B**
 - Falsy OR: If **p1** is (¬**A**) and **p2** is (¬**B**) then **c** is (¬(**A** ∨ **B**))
-- Conditional proof: If **z1** is **A**, **z2** is **B**, and **p1** is **A**(x), then **c** is **B**(x)
-- Indirect proof: If **z1** is (¬**A**), **z2** is **B**, **z3** is (¬**B**), then **c** is **A**(x)
+- Conditional proof: If **z1** is (∀(x)**A**(x)), **z2** is (∀(x)**B**(x)), and **p1** is (∀(y)**A**(y)), then **c** is (∀(y)**B**(y))
+- Indirect proof: If **z1** is (∀(x)(¬**A**(x))), **z2** is (∀(x)**B**(x)), **z3** is (∀(x)(¬**B**(x))), then **c** is (∀(y)**A**(y))
 - Universal modus ponens: If **p1** is (∀(x)(**A**(x) → **B**(x))) and **p2** is **A**(y), then **c** is **B**(y)
 - Existential modus ponens: If **p1** is ∃(x)(**A**(x)) and **p2** is (**A**(y) → **B**(y)) then **c** is ∃(z)(**B**(z))
 - Substitution property: If **p1** is (∀(x)**A**(x)), then **c** is **A**(**x**).

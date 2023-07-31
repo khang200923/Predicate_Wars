@@ -197,6 +197,13 @@ test('ProofBase.unusedVarSuggester 4', res == ('distVar', '4', '2'), res)
 res = proof.unusedVarSuggester(rng)
 test('ProofBase.unusedVarSuggester 5', res == ('var', '5'), res)
 
+proof = pd.ProofBase.convert(('P(b, c, c_0, d, d_0, d_1, e_0, e_1)',))
+test('ProofBase.subProof 1', proof.subProof(), False)
+proof = pd.Proof.convert(('P(b, c, c_0, d, d_0, d_1, e_0, e_1)',))
+test('Proof.subProof 2', not proof.subProof(), True)
+proof = pd.ProofBase.convert(('(A and B(x))',)).infer(0, 0)
+test('ProofBase.subProof 3', proof.subProof(), False)
+
 proof = pd.ProofBase.convert(('P', '(Q imply R)'))
 res = proof.inferConclusions(pd.InferType.ImpliInst, 0, 1)
 test('ProofBase.inferConclusions ImpliInst 1', res == (pd.Statement.lex('(P imply (Q imply R))'),), res)
