@@ -587,6 +587,7 @@ class InferType(Enum):
     ModPonens = 0
     UniversalInst = 2
     UniversalGenr = 3
+    UniversalGenrWRef = 25
     ExistentialInst = 4
     ExistentialGenr = 5
     Conjunc = 6
@@ -614,6 +615,7 @@ premiseUsesOfInferType = { #(p1, p2, x, z1, z2, z3)
     InferType.ModPonens: (True, True, False, False, False, False),
     InferType.UniversalInst: (True, False, False, False, False, False),
     InferType.UniversalGenr: (True, False, False, False, False, False),
+    InferType.UniversalGenrWRef: (True, True, False, False, False, False),
     InferType.ExistentialInst: (True, False, False, False, False, False),
     InferType.ExistentialGenr: (True, False, False, False, False, False),
     InferType.Conjunc: (True, True, False, False, False, False),
@@ -645,14 +647,17 @@ class ProofBase:
     """
     statements: List[Statement] = field(default_factory=list)
     stateTags: List[StateTag] = field(default_factory=list)
-    inferences: List[Tuple[InferType, int, int, Statement]] = field(default_factory=list) #[(inferType, premise1index, premise2index, object)...]
+    inferences: List[Tuple[InferType, int, int, Statement, int] | None] = field(default_factory=list) #[(inferType, premise1index, premise2index, object, conclusionIndex)...]
 
-    def convert(strAxioms: Tuple[str]) -> 'ProofBase':
+    def convert(strAxioms: Tuple[str], inferences: List[Tuple[InferType | None, int, int | None, Statement, int]] = []) -> 'ProofBase':
         """
         Convert from strings of axioms to proof.
         """
         states = [Statement.lex(state) for state in strAxioms]
-        return ProofBase(states, [StateTag.AXIOM for _ in states])
+        proof = ProofBase(states, [StateTag.AXIOM for _ in states], [None for _ in states])
+        for inferType, premise1Index, premise2Index, object, conclusionIndex in inferences:
+            proof = proof.infer(premise1Index, premise2Index, Statement.lex(object), conclusionIndex)
+        return proof
 
     def __getitem__(self, index: int) -> dict[str, Any]:
         try:
@@ -804,8 +809,8 @@ class ProofBase:
                         ('bracket', ')'),
                     ),
                 )[0][0]
-                except TypeError: A = None
-                if A:
+                except TypeError: pass
+                else:
                     eq, maps = Statement( (
                         ('bracket', '('),
                         ('quanti', 'forall'),
@@ -819,13 +824,35 @@ class ProofBase:
                         conclusions.append(A.substitute({thatVar: sym}, mappableCheck=False))
                     conclusions.append(A.substitute({thatVar: self.unusedVarSuggester()}))
             case InferType.UniversalGenr:
-                uniqueVars1 = (sym for sym in self.syms() - self.symsWithout(premise1Index) if 'ar' in sym[0])
+                uniqueVars1 = (sym for sym in (self.syms() - self.symsWithout(premise1Index)) | {self.unusedVarSuggester()} if 'ar' in sym[0])
                 for uniqueVar in uniqueVars1:
                     conclusions.append(Statement( (
                         ('bracket', '('),
                         ('quanti', 'forall'),
                         ('bracket', '('),
                         uniqueVar,
+                        ('bracket', ')'),
+                    ) ) + premise1 + Statement( (
+                        ('bracket', ')'),
+                    ) ))
+            case InferType.UniversalGenrWRef:
+                if premise2.form(
+                        (
+                            ('bracket', '('),
+                            ('quanti', 'forall'),
+                            ('bracket', '('),
+                            ('var', '0'),
+                            ('bracket', ')'),
+                        ), (
+                            ('bracket', ')'),
+                        )
+                    ):
+                    x = premise2[3]
+                    conclusions.append(Statement( (
+                        ('bracket', '('),
+                        ('quanti', 'forall'),
+                        ('bracket', '('),
+                        x,
                         ('bracket', ')'),
                     ) ) + premise1 + Statement( (
                         ('bracket', ')'),
@@ -1186,7 +1213,8 @@ class ProofBase:
         checkableInferTypes = tuple(iType for iType in InferType if premiseUsesOfInferType[iType] == (premise1Use, premise2Use, objectUse, False, False, False))
         conclusion = ()
         for inferType in checkableInferTypes:
-            conclusion += ((self.inferConclusions(inferType, premise1Index, premise2Index, object), inferType),)
+            for conclusionState in self.inferConclusions(inferType, premise1Index, premise2Index, object):
+                conclusion += ((conclusionState, inferType),)
         return conclusion
     def infer(self, premise1Index: int, premise2Index: int = None, object: Statement = Statement(()), conclusionIndex: int = 0) -> 'ProofBase':
         """
@@ -1197,7 +1225,7 @@ class ProofBase:
         state, inferType = res.inferAllConclusions(premise1Index, premise2Index, object)[conclusionIndex]
         res.statements += [state]
         res.stateTags += [StateTag.LEMMA]
-        res.inferences += [(inferType, premise1Index, premise2Index, object)]
+        res.inferences += [(inferType, premise1Index, premise2Index, object, conclusionIndex)]
         return res
 
 @dataclass
@@ -1205,11 +1233,16 @@ class Proof(ProofBase):
     """
     Contains a list of Statements, with subproofs, and a list of inference.
     """
-    subproofs: List[ProofBase] = []
+    subproofs: List[ProofBase] = field(default_factory=list)
 
-    def convert(strAxioms: Tuple[str]) -> ProofBase:
+    def convert(strAxioms: Tuple[str], subProofs: Tuple[Tuple[ str, Tuple[Tuple[int, int, str, int], ...] ]] = ()) -> 'Proof':
         states = [Statement.lex(state) for state in strAxioms]
-        return Proof(states, [StateTag.AXIOM for _ in states])
+        proof = Proof(states, [StateTag.AXIOM for _ in states], [None for _ in states], subproofs=list(
+            ProofBase.convert((axiom,),
+                tuple( (None, p1index, p2index, object, concIndex) for p1index, p2index, object, concIndex in inference)
+            ) for axiom, inference in subProofs
+        ))
+        return proof
 
     def inferConclusions(self, inferType: InferType, premise1Index: int, premise2Index: int = None, subProofIndex: int = None, premise4Index: int = None, premise5Index: int = None, object: Statement = Statement(())) -> Tuple[Statement]:
         premiseUses = premiseUsesOfInferType[inferType]
@@ -1225,13 +1258,13 @@ class Proof(ProofBase):
             return super().inferConclusions(inferType, premise1Index, premise2Index, object)
         subproof = self.subproofs[subProofIndex]
         if premiseUses[3]:
-            premise3: Statement = self[0]['state']
+            premise3: Statement = subproof[0]['state']
             if not premise3.wellformed(): raise InferenceError('Premise 3 is ill-formed')
         if premiseUses[4]:
-            premise4: Statement = self[premise4Index]['state']
+            premise4: Statement = subproof[premise4Index]['state']
             if not premise4.wellformed(): raise InferenceError('Premise 4 is ill-formed')
         if premiseUses[5]:
-            premise5: Statement = self[premise5Index]['state']
+            premise5: Statement = subproof[premise5Index]['state']
             if not premise5.wellformed(): raise InferenceError('Premise 5 is ill-formed')
 
         conclusions = []
@@ -1275,13 +1308,13 @@ class Proof(ProofBase):
                             ('bracket', ')'),
                         ),
                     )[0][0]
-                except InferenceError: pass
+                except TypeError: pass
                 else:
                     bol, _ = Ax.eq(Ay)
                     if bol:
                         x = premise3[3]
                         y = premise1[3]
-                        conclusions.append(Bx.substitute({x: y}))
+                        conclusions.append(premise4.substitute({x: y}))
             case InferType.IndProof:
                 try:
                     Ax = premise3.formulasInForm(
@@ -1326,7 +1359,7 @@ class Proof(ProofBase):
                             ('bracket', ')'),
                         ),
                     )[0][0]
-                except InferenceError: pass
+                except TypeError: pass
                 else:
                     if Bx == Bx2 and len(tuple(object)) == 1:
                         x = premise4[3]
