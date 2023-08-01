@@ -435,4 +435,32 @@ test('Proof.inferConclusions CondProof 2', set(tuple(state) for state in res) ==
     tuple(str(ree) for ree in res)
 )
 
+proof = pd.Proof.convert(('(1=1)',), ( ('(forall(x)(P(x) and  (not P(x) )))', (
+    (0, None, '', 0),
+    (1, None, '', 2),
+    (1, None, '', 3),
+    (2, 0, '', 1),
+    (3, 0, '', 2),
+)) ,))
+res = proof.inferConclusions(pd.InferType.IndProof, None, None, 0, 4, 5, pd.Statement.lex('y'))
+test('Proof.inferConclusions IndProof 1', set(tuple(state) for state in res) ==
+    {tuple(pd.Statement.lex('''(forall(y)(not
+      (P(y) and  (not P(y) ))
+    ))'''))},
+    tuple(str(ree) for ree in res)
+)
+
+proof = pd.Proof.convert(('(1=1)',), ( ('(forall(x)(P(x) and  (not P(x) )))', (
+    (0, None, '', 0),
+    (1, None, '', 2),
+    (1, None, '', 3),
+    (2, 0, '', 1),
+    (3, 0, '', 2),
+)) ,))
+res = proof.inferConclusions(pd.InferType.IndProof, None, None, 0, 5, 4, pd.Statement.lex('y'))
+test('Proof.inferConclusions IndProof 2', set(tuple(state) for state in res) ==
+    set(),
+    tuple(str(ree) for ree in res)
+)
+
 summary()

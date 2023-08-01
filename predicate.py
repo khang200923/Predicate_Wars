@@ -1324,26 +1324,20 @@ class Proof(ProofBase):
                             ('bracket', '('),
                             ('var', '0'),
                             ('bracket', ')'),
-                            ('bracket', '('),
-                            ('connect', 'not'),
                         ),
                         (
                             ('bracket', ')'),
-                            ('bracket', ')'),
                         ),
                     )[0][0]
-                    Bx = premise5.formulasInForm(
+                    Bx = premise4.formulasInForm(
                         (
                             ('bracket', '('),
                             ('quanti', 'forall'),
                             ('bracket', '('),
                             ('var', '0'),
                             ('bracket', ')'),
-                            ('bracket', '('),
-                            ('connect', 'not'),
                         ),
                         (
-                            ('bracket', ')'),
                             ('bracket', ')'),
                         ),
                     )[0][0]
@@ -1354,8 +1348,11 @@ class Proof(ProofBase):
                             ('bracket', '('),
                             ('var', '0'),
                             ('bracket', ')'),
+                            ('bracket', '('),
+                            ('connect', 'not'),
                         ),
                         (
+                            ('bracket', ')'),
                             ('bracket', ')'),
                         ),
                     )[0][0]
@@ -1363,6 +1360,16 @@ class Proof(ProofBase):
                 else:
                     if Bx == Bx2 and len(tuple(object)) == 1:
                         x = premise4[3]
-                        y = object
-                        conclusions.append(Bx.substitute({x: y}))
+                        y = object[0]
+                        conclusions.append(
+                            Statement.lex('(forall(')
+                            +
+                            Statement((y,))
+                            +
+                            Statement.lex(')(not ')
+                            +
+                            Ax.substitute({x: y})
+                            +
+                            Statement.lex('))')
+                        )
         return conclusions

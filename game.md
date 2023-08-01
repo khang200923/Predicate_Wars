@@ -132,7 +132,7 @@ A *proof* X is *inferred* from another *proof* Y having a *subproof* Z that has 
 - Addition: If **p1** is **A**, then **c** is (**A** ∨ **B**) for any **B**
 - Falsy OR: If **p1** is (¬**A**) and **p2** is (¬**B**) then **c** is (¬(**A** ∨ **B**))
 - Conditional proof: If **z1** is (∀(x)**A**(x)), **z2** is (∀(x)**B**(x)), and **p1** is (∀(y)**A**(y)), then **c** is (∀(y)**B**(y))
-- Indirect proof: If **z1** is (∀(x)(¬**A**(x))), **z2** is (∀(x)**B**(x)), **z3** is (∀(x)(¬**B**(x))), then **c** is (∀(y)**A**(y))
+- Indirect proof: If **z1** is (∀(x)**A**(x)), **z2** is (∀(x)**B**(x)), **z3** is (∀(x)(¬**B**(x))), then **c** is (∀(y)(¬**A**(y)))
 - Universal modus ponens: If **p1** is (∀(x)(**A**(x) → **B**(x))) and **p2** is **A**(y), then **c** is **B**(y)
 - Existential modus ponens: If **p1** is ∃(x)(**A**(x)) and **p2** is (**A**(y) → **B**(y)) then **c** is ∃(z)(**B**(z))
 - Substitution property: If **p1** is (∀(x)**A**(x)), then **c** is **A**(**x**).
