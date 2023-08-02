@@ -613,8 +613,8 @@ premiseUsesOfInferType = { #(p1, p2, x, z1, z2, z3)
     InferType.ImpliInst: (True, True, False, False, False, False),
     InferType.ExpliInst: (True, True, False, False, False, False),
     InferType.ModPonens: (True, True, False, False, False, False),
-    InferType.UniversalInst: (True, False, False, False, False, False),
-    InferType.UniversalGenr: (True, False, False, False, False, False),
+    InferType.UniversalInst: (True, False, True, False, False, False),
+    InferType.UniversalGenr: (True, False, True, False, False, False),
     InferType.UniversalGenrWRef: (True, True, False, False, False, False),
     InferType.ExistentialInst: (True, False, False, False, False, False),
     InferType.ExistentialGenr: (True, False, False, False, False, False),
@@ -649,14 +649,19 @@ class ProofBase:
     stateTags: List[StateTag] = field(default_factory=list)
     inferences: List[Tuple[InferType, int, int, Statement, int] | None] = field(default_factory=list) #[(inferType, premise1index, premise2index, object, conclusionIndex)...]
 
-    def convert(strAxioms: Tuple[str], inferences: List[Tuple[InferType | None, int, int | None, Statement, int]] = []) -> 'ProofBase':
+    def convert(strAxioms: Tuple[str], inferences: List[Tuple[InferType | None, int, int | None, Statement, int | str]] = []) -> 'ProofBase': #[(inferType, premise1index, premise2index, object, conclusionIndex | conclusion)...]
         """
         Convert from strings of axioms to proof.
         """
         states = [Statement.lex(state) for state in strAxioms]
         proof = ProofBase(states, [StateTag.AXIOM for _ in states], [None for _ in states])
-        for inferType, premise1Index, premise2Index, object, conclusionIndex in inferences:
-            proof = proof.infer(premise1Index, premise2Index, Statement.lex(object), conclusionIndex)
+        for index, (inferType, premise1Index, premise2Index, object, conclusionI) in enumerate(inferences):
+            if isinstance(conclusionI, int):
+                proof = proof.infer(premise1Index, premise2Index, Statement.lex(object), conclusionI)
+            elif isinstance(conclusionI, str):
+                proof = proof.infer(premise1Index, premise2Index, Statement.lex(object), Statement.lex(conclusionI))
+            else:
+                raise TypeError('ProofBase.convert only supports conclusionI param types of int and str, your type is: ' + str(type(conclusionI)) + 'at index ' + str(index))
         return proof
 
     def __getitem__(self, index: int) -> dict[str, Any]:
@@ -811,30 +816,33 @@ class ProofBase:
                 )[0][0]
                 except TypeError: pass
                 else:
-                    eq, maps = Statement( (
-                        ('bracket', '('),
-                        ('quanti', 'forall'),
-                        ('bracket', '('),
-                        ('var', '0'),
-                        ('bracket', ')'),
-                    ) ).eq(Statement(premise1[:5]))
-                    assert eq, 'brah'
-                    thatVar = maps[('var', '0')]
-                    for sym in (sym for sym in self.syms() if 'ar' in sym[0]):
-                        conclusions.append(A.substitute({thatVar: sym}, mappableCheck=False))
-                    conclusions.append(A.substitute({thatVar: self.unusedVarSuggester()}))
+                    if len(object) == 1 and object[0][0] in ('var', 'distVar'):
+                        eq, maps = Statement( (
+                            ('bracket', '('),
+                            ('quanti', 'forall'),
+                            ('bracket', '('),
+                            ('var', '0'),
+                            ('bracket', ')'),
+                        ) ).eq(Statement(premise1[:5]))
+                        assert eq, 'brah'
+                        thatVar = maps[('var', '0')]
+                        conclusions.append(A.substitute({thatVar: object[0]}))
+                        conclusions.append(A.substitute({thatVar: self.unusedVarSuggester()}))
+                    else:
+                        raise InferenceError('Object must be a single-letter variable')
             case InferType.UniversalGenr:
-                uniqueVars1 = (sym for sym in (self.syms() - self.symsWithout(premise1Index)) | {self.unusedVarSuggester()} if 'ar' in sym[0])
-                for uniqueVar in uniqueVars1:
-                    conclusions.append(Statement( (
-                        ('bracket', '('),
-                        ('quanti', 'forall'),
-                        ('bracket', '('),
-                        uniqueVar,
-                        ('bracket', ')'),
-                    ) ) + premise1 + Statement( (
-                        ('bracket', ')'),
-                    ) ))
+                if (len(object) == 1 and object[0][0] in ('var', 'distVar')) and not object[0] in self.symsWithout(premise1Index):
+                    uniqueVars1 = (object[0], self.unusedVarSuggester())
+                    for uniqueVar in uniqueVars1:
+                        conclusions.append(Statement( (
+                            ('bracket', '('),
+                            ('quanti', 'forall'),
+                            ('bracket', '('),
+                            uniqueVar,
+                            ('bracket', ')'),
+                        ) ) + premise1 + Statement( (
+                            ('bracket', ')'),
+                        ) ))
             case InferType.UniversalGenrWRef:
                 if premise2.form(
                         (
@@ -1200,7 +1208,7 @@ class ProofBase:
 
         premise1Use = premise1Index != None
         premise2Use = premise2Index != None
-        objectUse = object != Statement(())
+        objectUse = tuple(object) != ()
 
         if premise1Use:
             premise1: Statement = self[premise1Index]['state']
@@ -1216,16 +1224,27 @@ class ProofBase:
             for conclusionState in self.inferConclusions(inferType, premise1Index, premise2Index, object):
                 conclusion += ((conclusionState, inferType),)
         return conclusion
-    def infer(self, premise1Index: int, premise2Index: int = None, object: Statement = Statement(()), conclusionIndex: int = 0) -> 'ProofBase':
+    def infer(self, premise1Index: int, premise2Index: int = None, object: Statement = Statement(()), conclusionI: int | Statement = 0) -> 'ProofBase':
         """
         Infers the proof and returns the result.
         """
 
         res = deepcopy(self)
-        state, inferType = res.inferAllConclusions(premise1Index, premise2Index, object)[conclusionIndex]
+        state = 0
+        conclusions = res.inferAllConclusions(premise1Index, premise2Index, object)
+        if isinstance(conclusionI, int):
+            state, inferType = conclusions[conclusionI]
+            res.inferences += [(inferType, premise1Index, premise2Index, object, conclusionI)]
+        elif isinstance(conclusionI, Statement):
+            if not tuple(conclusionI) in tuple(tuple(state) for state, _ in conclusions): raise InferenceError('Invalid conclusion')
+            conclusionIndex = tuple(tuple(state) for state, _ in conclusions).index(tuple(conclusionI))
+            state, inferType = conclusions[conclusionIndex]
+            res.inferences += [(inferType, premise1Index, premise2Index, object, conclusionIndex)]
+        else:
+            raise TypeError('ProofBase.infer only supports conclusionI param types of int and Statement, your type is: ' + str(type(conclusionI)))
+        assert not isinstance(state, int), 'brah'
         res.statements += [state]
         res.stateTags += [StateTag.LEMMA]
-        res.inferences += [(inferType, premise1Index, premise2Index, object, conclusionIndex)]
         return res
 
 @dataclass
@@ -1235,11 +1254,11 @@ class Proof(ProofBase):
     """
     subproofs: List[ProofBase] = field(default_factory=list)
 
-    def convert(strAxioms: Tuple[str], subProofs: Tuple[Tuple[ str, Tuple[Tuple[int, int, str, int], ...] ]] = ()) -> 'Proof':
+    def convert(strAxioms: Tuple[str], subProofs: Tuple[Tuple[ str, Tuple[Tuple[int, int | None, str, int | Statement], ...] ]] = ()) -> 'Proof':
         states = [Statement.lex(state) for state in strAxioms]
         proof = Proof(states, [StateTag.AXIOM for _ in states], [None for _ in states], subproofs=list(
             ProofBase.convert((axiom,),
-                tuple( (None, p1index, p2index, object, concIndex) for p1index, p2index, object, concIndex in inference)
+                tuple( (None, p1index, p2index, object, concI) for p1index, p2index, object, concI in inference)
             ) for axiom, inference in subProofs
         ))
         return proof

@@ -239,31 +239,38 @@ res = proof.inferConclusions(pd.InferType.ModPonens, 0, 1)
 test('ProofBase.inferConclusions ModPonens 3', res == (), tuple(str(ree) for ree in res))
 
 proof = pd.ProofBase.convert(('(forall(x)(x = x))', 'Q(y)', 'P(z)'))
-res = proof.inferConclusions(pd.InferType.UniversalInst, 0, -1)
+res = proof.inferConclusions(pd.InferType.UniversalInst, 0, -1, pd.Statement.lex('y'))
 test('ProofBase.inferConclusions UniversalInst 1', set(tuple(state) for state in res[:-1]) ==
-    {tuple(pd.Statement.lex('(x = x)')), tuple(pd.Statement.lex('(y = y)')), tuple(pd.Statement.lex('(z = z)'))},
+    {tuple(pd.Statement.lex('(y = y)'))},
     tuple(str(ree) for ree in res)
 )
 
 proof = pd.ProofBase.convert(('(forall(x)(x = a))', 'Q(y)', 'P(z)'))
-res = proof.inferConclusions(pd.InferType.UniversalInst, 0, -1)
+res = proof.inferConclusions(pd.InferType.UniversalInst, 0, -1, pd.Statement.lex('b'))
 test('ProofBase.inferConclusions UniversalInst 2', set(tuple(state) for state in res[:-1]) ==
-    {tuple(pd.Statement.lex('(x = a)')), tuple(pd.Statement.lex('(y = a)')), tuple(pd.Statement.lex('(z = a)')), tuple(pd.Statement.lex('(a = a)'))},
+    {tuple(pd.Statement.lex('(b = a)'))},
     tuple(str(ree) for ree in res)
 )
 
 proof = pd.ProofBase.convert(('(forall(x)P)',))
-res = proof.inferConclusions(pd.InferType.UniversalInst, 0, -1)
-test('ProofBase.inferConclusions UniversalInst 2', set(tuple(state) for state in res[:-1]) ==
+res = proof.inferConclusions(pd.InferType.UniversalInst, 0, -1, pd.Statement.lex('c_33'))
+test('ProofBase.inferConclusions UniversalInst 3', set(tuple(state) for state in res[:-1]) ==
     {tuple(pd.Statement.lex('P'))},
     tuple(str(ree) for ree in res)
 )
 
 proof = pd.ProofBase.convert(('(P(x) and (P(y) and P(z)))', 'Q(z)'))
-res = proof.inferConclusions(pd.InferType.UniversalGenr, 0, -1)
+res = proof.inferConclusions(pd.InferType.UniversalGenr, 0, -1, pd.Statement.lex('b_1'))
 test('ProofBase.inferConclusions UniversalGenr 1',
-    {tuple(pd.Statement.lex('(forall(x) (P(x) and (P(y) and P(z))))')), tuple(pd.Statement.lex('(forall(y) (P(x) and (P(y) and P(z))))'))}.\
-    issubset(set(tuple(state) for state in res)) and len(tuple(tuple(state) for state in res)) == 3,
+    {tuple(pd.Statement.lex('(forall(b_1) (P(x) and (P(y) and P(z))))'))}.\
+    issubset(set(tuple(state) for state in res)) and len(tuple(tuple(state) for state in res)) == 2,
+    tuple(str(ree) for ree in res)
+)
+
+proof = pd.ProofBase.convert(('(P(x) and (P(y) and P(z)))', 'Q(z)'))
+res = proof.inferConclusions(pd.InferType.UniversalGenr, 0, -1, pd.Statement.lex('z'))
+test('ProofBase.inferConclusions UniversalGenr 2',
+    set(tuple(state) for state in res) == set(),
     tuple(str(ree) for ree in res)
 )
 
@@ -421,14 +428,14 @@ test('ProofBase.inferConclusions Comparison', set(tuple(state) for state in res)
     tuple(str(ree) for ree in res)
 )
 
-proof = pd.Proof.convert(('(forall(x)(P(x) and Q))',), ( ('(forall(x)(P(x) and Q))', ((0, None, '', 0), (1, None, '', 2), (2, 0, '', 1))) ,))
+proof = pd.Proof.convert(('(forall(x)(P(x) and Q))',), ( ('(forall(x)(P(x) and Q))', ((0, None, 'x', '(P(x) and Q)'), (1, None, '', 'P(x)'), (2, 0, '', '(forall(x)P(x))'))) ,))
 res = proof.inferConclusions(pd.InferType.CondProof, 0, None, 0, 3, None)
 test('Proof.inferConclusions CondProof 1', set(tuple(state) for state in res) ==
     {tuple(pd.Statement.lex('(forall(x)P(x))')),},
     tuple(str(ree) for ree in res)
 )
 
-proof = pd.Proof.convert(('(forall(x)(P(x) and Q))',), ( ('(forall(x)(P(x) and Q))', ((0, None, '', 0), (1, None, '', 2), (2, 0, '', 1))) ,))
+proof = pd.Proof.convert(('(forall(x)(P(x) and Q))',), ( ('(forall(x)(P(x) and Q))', ((0, None, 'x', '(P(x) and Q)'), (1, None, '', 'P(x)'), (2, 0, '', '(forall(x)P(x))'))) ,))
 res = proof.inferConclusions(pd.InferType.CondProof, 0, None, 0, 2, None)
 test('Proof.inferConclusions CondProof 2', set(tuple(state) for state in res) ==
     set(),
@@ -436,11 +443,11 @@ test('Proof.inferConclusions CondProof 2', set(tuple(state) for state in res) ==
 )
 
 proof = pd.Proof.convert(('(1=1)',), ( ('(forall(x)(P(x) and  (not P(x) )))', (
-    (0, None, '', 0),
-    (1, None, '', 2),
-    (1, None, '', 3),
-    (2, 0, '', 1),
-    (3, 0, '', 2),
+    (0, None, 'x', '(P(x) and (not P(x)))'),
+    (1, None, '', 'P(x)'),
+    (1, None, '', '(not P(x))'),
+    (2, 0, '', '(forall(x)P(x))'),
+    (3, 0, '', '(forall(x)(not P(x)))'),
 )) ,))
 res = proof.inferConclusions(pd.InferType.IndProof, None, None, 0, 4, 5, pd.Statement.lex('y'))
 test('Proof.inferConclusions IndProof 1', set(tuple(state) for state in res) ==
@@ -451,11 +458,11 @@ test('Proof.inferConclusions IndProof 1', set(tuple(state) for state in res) ==
 )
 
 proof = pd.Proof.convert(('(1=1)',), ( ('(forall(x)(P(x) and  (not P(x) )))', (
-    (0, None, '', 0),
-    (1, None, '', 2),
-    (1, None, '', 3),
-    (2, 0, '', 1),
-    (3, 0, '', 2),
+    (0, None, 'x', '(P(x) and (not P(x)))'),
+    (1, None, '', 'P(x)'),
+    (1, None, '', '(not P(x))'),
+    (2, 0, '', '(forall(x)P(x))'),
+    (3, 0, '', '(forall(x)(not P(x)))'),
 )) ,))
 res = proof.inferConclusions(pd.InferType.IndProof, None, None, 0, 5, 4, pd.Statement.lex('y'))
 test('Proof.inferConclusions IndProof 2', set(tuple(state) for state in res) ==
