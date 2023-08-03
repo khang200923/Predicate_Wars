@@ -309,11 +309,11 @@ class Statement:
 
         if len(self) == 0: return False
         if len(self) == 1:
-            return self.statement[0][0] in ('distVar', 'var', 'number')
+            return self.statement[0][0] in ('distVar', 'var', 'number', 'gameFuncName')
         if len(self) > 2:
             #Function syntax
             if self[1] == ('bracket', '(') and self[-1] == ('bracket', ')') and \
-            self[0][0] in ('gameFuncName', 'distVar', 'var'):
+            self[0][0] in ('distVar', 'var', 'number', 'gameFuncName'):
                 paramsLeft = self[2:-1]
                 while len(paramsLeft) > 0:
                     paramEndIndex = next((index for index in range(len(paramsLeft) + 1) if Statement(paramsLeft[:index]).wellformedobj() and not (index < len(paramsLeft) and not paramsLeft[index] == ('comma',))), None)
@@ -603,6 +603,7 @@ class InferType(Enum):
     Identity = 18
     SymmProp = 19
     TransProp = 20
+    SubsPropEq = 26
     OpSimplify = 21
     Comparison = 22
 
@@ -631,6 +632,7 @@ premiseUsesOfInferType = { #(p1, p2, x, z1, z2, z3)
     InferType.Identity: (False, False, True, False, False, False),
     InferType.SymmProp: (True, False, False, False, False, False),
     InferType.TransProp: (True, True, False, False, False, False),
+    InferType.SubsPropEq: (True, False, True, False, False, False),
     InferType.OpSimplify: (True, False, False, False, False, False),
     InferType.Comparison: (True, False, False, False, False, False),
 
@@ -1143,6 +1145,25 @@ class ProofBase:
                     else:
                         if tuple(Y2) == tuple(Y):
                             conclusions.append(Statement.lex('(') + X + Statement.lex('=') + Z + Statement.lex(')'))
+            case InferType.SubsPropEq:
+                try: x, y = premise1.formulasInForm((('bracket', '('),), (('bracket', ')'),), (('equal',),),
+                    opt1obj=True,
+                    opt2obj=True,
+                )[0]
+                except TypeError: pass
+                else:
+                    if len(object) == 1:
+                        conclusions.append(
+                            Statement.lex('(') +
+                            object +
+                            Statement.lex('(') +
+                            x +
+                            Statement.lex(') = ') +
+                            object +
+                            Statement.lex('(') +
+                            y +
+                            Statement.lex('))')
+                        )
             case InferType.OpSimplify: #Holy complexity
                 occurences = (( premise1[i+1][1 % len(premise1[i+1])], premise1[i+3][1 % len(premise1[i+3])], premise1[i+2][1 % len(premise1[i+2])], i, i+5 ) for i in range(len(premise1) - 4) if \
                               premise1[i] == ('bracket', '(') and premise1[i+4] == ('bracket', ')') and premise1[i+2][0] == 'oper')

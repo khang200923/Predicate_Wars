@@ -393,6 +393,13 @@ test('ProofBase.inferConclusions TransProp', set(tuple(state) for state in res) 
     tuple(str(ree) for ree in res)
 )
 
+proof = pd.ProofBase.convert(('(x(y) = 3)', '(3 = e)'))
+res = proof.inferConclusions(pd.InferType.SubsPropEq, 0, None, pd.Statement.lex('f'))
+test('ProofBase.inferConclusions SubsPropEq', set(tuple(state) for state in res) ==
+    {tuple(pd.Statement.lex('(f(x(y)) = f(3))'))},
+    tuple(str(ree) for ree in res)
+)
+
 proof = pd.ProofBase.convert(('((4+3) = 7)', '(3 = e)'))
 res = proof.inferConclusions(pd.InferType.OpSimplify, 0)
 test('ProofBase.inferConclusions OpSimplify +', set(tuple(state) for state in res) ==

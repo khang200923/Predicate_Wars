@@ -55,9 +55,9 @@ Go in cycles of remained players, moving clockwise, starting from the latest pla
 ### Card editing rules:
 When a player edits a card, they add/change tag, power cost (smaller or equal to their current power) and effect (written in [predicate logic](#predicate-logic-and-the-proving-system) syntax). They must add/change their identifier onto the card.
 ### Proving rules:
-- When a player proves a predicate game function applied to a player is true or false in the scope of a played card, they start with a *proof* containing all of the statements in the card as \[Axiom\] and subproofs the player has, then infer the *proof* repeatedly. If (\[PREDICATEACTIONFUNCTIONNAME...\](...)) is derived, then the other players can optionally prove the *proof* is contradictory. If the players do not or cannot prove, then the game effect is applied.
-- When a player proves a *proof* is contradictory, they start with a *proof* containing all of the statements in the *proof* and in all the *rules* as \[Axiom\] and subproofs the player has, then infer the *proof* repeatedly. If **A** and (¬**A**) are both derived, or tF is derived, then the game effect is not applied.
-- When a player proves a potential *rule* is contradictory, they start with a *proof* containing all of the statements in all the *rules* and the potential *rule* as \[Axiom\] and subproofs the player has, then infer the *proof* repeatedly. If **A** and (¬**A**) are both derived, or tF is derived, then the rule is not added.
+- When a player proves a predicate game function applied to a player is true or false in the scope of a played card, they start with a *proof* containing all of the statements in the card as \[Axiom\] and *subproofs* the player has, then infer the *proof* repeatedly. If (\[PREDICATEACTIONFUNCTIONNAME...\](...)) is derived, then the other players can optionally prove the *proof* is contradictory. If the players do not or cannot prove, then the game effect is applied.
+- When a player proves a *proof* is contradictory, they start with a *proof* containing all of the statements in the *proof*, all *rules* as \[Axiom\] and *subproofs* used in the proof with ones that the player has, then infer the *proof* repeatedly. If **A** and (¬**A**) are both derived, or tF is derived, and no players wanted to prove the proof is contradictory, then the game effect is not applied.
+- When a player proves a potential *rule* is contradictory, they start with a *proof* containing all of the statements, all the *rules* and the potential *rule* as \[Axiom\] and *subproofs* used in the proof with ones that the player has, then infer the *proof* repeatedly. If **A** and (¬**A**) are both derived, or tF is derived, and no players wanted to prove the proof is contradictory, then the rule is not added.
 - Proofs can only apply their effect if the player creating the proof has enough proving power (larger than the symbol point of the proof), then subtract the proving power by the symbol point of the proof.
 ### Game function rules:
 Game functions are fixed, meaning they have a predetermined value. Action functions are not.
@@ -85,7 +85,23 @@ If one of these action function is proven to be true, then the effect is applied
 #### *Game rule* rules
 - *Rules* of the game are by default, contains 32 empty statements, with index 0 to 31 for reference. They are saved across rounds.
 - *Base rules* are built-in statements that cannot be changed, and are saved across rounds:
-    *empty*
+    1. (∀(x)(∀(y)(
+        (\[NUMBER\](x) ∧ \[NUMBER\](y))
+        →
+        \[NUMBER\]((x + y))
+    )))
+    2. (∀(x)(∀(y)(
+        ((x + y) = (y + x))
+    )))
+    3. (∀(x)(∀(y)(∀(z)(
+        (((x + y) + z) = (x + (y + z)))
+    ))))
+    4. (∀(x)(
+        \[NUMBER\](x)
+        →
+        ((x + 0) = x)
+    ))
+    5. ()
 
 ## Predicate logic and the proving system:
 ### *Statement*
@@ -107,7 +123,7 @@ A *statement* is an ordered list of *symbols*, which consists of:
 - Functions (variable, cannot be function name): lowercase character or distinct variable or \[gameFunctionName...\] + '(' + optional( + variable + repeated(',' + variables)) + ')'
 - Predicate functions (predicate): uppercase character or distinct predicate or \[PREDICATEGAMEFUNCTIONNAME...\] + '(' + optional( variable + repeated(',' + variables)) + ')'
 - Game function names: '\[randPlayer\]', '\[randCard\]', '\[chosenPlayer\]', '\[chosenCard\]', '\[playerOfChosenCard\]' (symbol point each: 4)
-- Predicate game function names: '\[PLAYER\]', '\[CARD\]', '\[HEALTHLOWER\]', '\[HEALTHHIGHER\]', '\[POWERLOWER\]', '\[POWERHIGHER\]', '\[PROVPOWERLOWER\]', '\[PROVPOWERHIGHER\]', '\[SYMBOLPOINTLOWER\]', '\[SYMBOLPOINTHIGHER\]'
+- Predicate game function names: '\[NUMBER\]', '\[PLAYER\]', '\[CARD\]', '\[HEALTHLOWER\]', '\[HEALTHHIGHER\]', '\[POWERLOWER\]', '\[POWERHIGHER\]', '\[PROVPOWERLOWER\]', '\[PROVPOWERHIGHER\]', '\[SYMBOLPOINTLOWER\]', '\[SYMBOLPOINTHIGHER\]'
 (symbol point each: 4)
 - Predicate action function names: '\[CLAIM\]', '\[ATK\]', '\[HEAL\]', '\[ADDPOWER\]', '\[SUBPOWER\]' (symbol point each: 4) '\[ADDRULE\]', '\[DELETERULE\]' (symbol point each: 12)
 ### *Proof*
@@ -127,7 +143,7 @@ A *proof* X is *inferred* from another *proof* Y having a *subproof* Z that has 
 - Existential instantiation: If **p1** is (∃(x)P(x)) then **c** is P(x)
 - Existential generalization: If **p1** is P(x) then **c** is (∃(x)P(x))
 - Conjunction: If **p1** is **A** and **p2** is **B** then **c** is (**A** ∧ **B**)
-- Simplification: If **p1** is (**A** ∧ **B**) then **c** is **A** or **B**,,
+- Simplification: If **p1** is (**A** ∧ **B**) then **c** is **A** or **B**
 - Falsy AND: If **p1** is (¬**A**) then **c** is (¬(**A** ∧ **B**))
 - Addition: If **p1** is **A**, then **c** is (**A** ∨ **B**) for any **B**
 - Falsy OR: If **p1** is (¬**A**) and **p2** is (¬**B**) then **c** is (¬(**A** ∨ **B**))
@@ -139,6 +155,7 @@ A *proof* X is *inferred* from another *proof* Y having a *subproof* Z that has 
 - Identity: **c** is **x** = **x**
 - Symmetric property: If **p1** is **x** = **y**, then **c** is **y** = **x**
 - Transitive property: If **p1** is **x** = **y**, and  **p2** is **y** = **z**, then **c** is **x** = **z**
+- Substitution property (equality): If **p1** is (**x** = **y**), then **c** is (f(**x**) = f(**y**)).
 - Truth: **c** is tT
 - Falsehood: **c** is (¬tF)
 - Operator simplification: If **p1** has an occurence of (**x** **op** **y**), where **x** and **y** and numbers, and **op** is an operator, then **c** replaces the occurence with the result of the operation ('+' is addition, '-' is subtraction, '*' is multiplication, '/' is rounded division, 'f/' is floor division, 'c/' is ceil division, '%' is modulo)
