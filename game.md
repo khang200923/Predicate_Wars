@@ -1,13 +1,12 @@
 (semi-completed)
 ## Requirements:
 - 2-16 **players**
-- 256 **blank cards** that when [edited](#card-editing-rules) should have:
+- **Deck** with 256 **blank cards** (by default) that when [edited](#card-editing-rules) should have:
     - Rock-paper-scissors **tag** (publicly seen)
     - **Power cost** number (publicly seen)
     - **Effect** (written in [predicate logic](#predicate-logic-and-the-proving-system) in the form of statements)
     - **Symbol point** of the effect
     - **Card's creator identifier** (private)
-- **Deck** with 100 blank cards by default
 - Player **stats**:
     - **Health** (default: total players * 50) (public)
     - **Power** (default: 100) (public)
@@ -17,7 +16,7 @@
 ## Rules:
 ### Initial gameplay:
 - Players sit in a circle.
-- Each player is dealt eight blank cards.
+- Each player is dealt eight blank cards from the deck.
 - Players [edit](#card-editing-rules) their cards they want to, each one subtracts the players' power by twice the edited card's symbol costs.
 - Choose a random player to start the turn first.
 ### Gameplay phases each round:
@@ -101,7 +100,7 @@ If one of these action function is proven to be true, then the effect is applied
         →
         ((x + 0) = x)
     ))
-    5. ()
+    5. () **(WIP)**
 
 ## Predicate logic and the proving system:
 ### *Statement*
