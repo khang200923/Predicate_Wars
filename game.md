@@ -1,7 +1,7 @@
 (semi-completed)
 ## Requirements:
 - 2-16 **players**
-- **Deck** with 256 **blank cards** (by default) that when [edited](#card-editing-rules) should have:
+- **Deck** with 128 **blank cards** (by default) that when [edited](#card-editing-rules) should have:
     - Rock-paper-scissors **tag** (publicly seen)
     - **Power cost** number (publicly seen)
     - **Effect** (written in [predicate logic](#predicate-logic-and-the-proving-system) in the form of statements)
@@ -11,13 +11,13 @@
     - **Health** (default: total players * 50) (public)
     - **Power** (default: 100) (public)
     - **Owned cards** (default: 2 blank cards) (only game function type count used in the effect and RPS tag is public)
-    - **Proving potency** (default: 25) (public)
+    - **Proving potency** (default: 128) (public)
 
 ## Rules:
 ### Initial gameplay:
 - Players sit in a circle.
 - Each player is dealt eight blank cards from the deck.
-- Players [edit](#card-editing-rules) their cards they want to, each one subtracts the players' power by twice the edited card's symbol costs.
+- Players [edit](#card-editing-rules) their cards if they want to, each one subtracts the players' power by twice the edited card's symbol costs.
 - Choose a random player to start the turn first.
 ### Gameplay phases each round:
 #### Phase I: Creation
@@ -26,52 +26,55 @@
 - If the amount of blank cards on the deck is larger than to equal to the number of players that chooses to take the blank cards, then each of the players take one blank card.
 - If the amount of blank cards on the deck is smaller than the number of players that chooses to take the blank cards, then the latest player takes one blank card.
 - If no one takes any card, this phase ends. If not, continue.
-- Each of the players taking the card takes half of the card's power cost, floor-wise.
 #### Phase II: Editing
 - Each player [edits](#card-editing-rules) only 1 blank card, if desired.
-- If the player does not edit a blank card, they edit a card with twice the power cost of the card, if desired.
+- If the player does not edit a blank card, if desired, they edit an already edited card, taking twice the power cost of the overriden card.
 #### Phase III: Claiming
 Each player in a cycle of players, moving clockwise, starting from the latest player:
-- chooses to take a specific card (that has a power cost lower or equal to the claiming player) from another player or not.
-- If yes, then the claiming player's power is removed by the card's power cost.
+- Chooses to take a specific card (that has a power cost lower or equal to the claiming player) from another player or not.
+- If yes, then the claiming player's power is removed by the card's power cost; then claim cards again, if desired, up to a maximum of 8 times.
 After that, each player that has [edited](#card-editing-rules) a card this round and the created card is still in their hand, takes half of the card's power cost, ceil-wise.
-#### Phase IV: Playing
+#### Phase IV: Playing (main phase)
 Each player has proving power (public) which can only be used for this round, determined by their proving potency
 
 Go in cycles of remained players, moving clockwise, starting from the latest player, ends when there is only 1 remaining:
 - The player remains if they still have cards left, or not choosing to not remain
 - The player can:
-    - Play two cards (one that has smaller symbol count is called *main* card) and apply its effects (if there is no card played yet, or your *main* card tag beats the previous *main* card's, or (the previous *main* card has more symbol count than yours, if the previous *main* card tag doesn't beat yours)), or
+    - Play two paired cards (one that has smaller symbol count is called *main* card, the other is called *secondary* card) and apply its effects (if there is no card played yet, or your *main* card tag beats the previous *main* card's, or (the previous *main* card has more symbol count than yours, if the previous *main* card tag doesn't beat yours)), or
     - Raise a card's power cost by 2 and discard it into the discard pile, or
     - Claim a card from the deck for twice the power cost (if affordable), or
     - Choose not to remain
-- The player can then [prove](#proving-rules) a predicate game function applied to a player is true or false in the scope of a played card by the [proving system](#predicate-logic-and-the-proving-system), only if they have enough proving power to do it, then the proving power is subtracted by the number of lines used in the proof.
-- If a player loses all health (to 0), they lose the game and cannot participate in the game in any way.
-#### Phase V: Final
+- The player can then [prove](#proving-rules) a predicate game function applied to a player is true or false in the scope of two played cards by the [proving system](#predicate-logic-and-the-proving-system), only if they have enough proving power to do it, then the proving power is subtracted by the number of lines used in the proof.
+- If a player loses all health (<= 0), they lose the game and cannot participate in the game in any way.
+#### Phase V: Finalization
 - If there is only one player left, the player in the game wins.
-- Top [half of the number of players, floor-wise] remaining players receive 2 more proving potency. Except the last remaining player, who receives 5 more proving potency.
-- Each player, if desired, buys a *subproof* to use in their proofs, which costs the whole symbol point of the *proof* to the proving potency.
+- Top [half of the number of players, floor-wise] remaining players receive 4 more proving potency. Except the last remaining player, who receives 8 more proving potency.
+- Each player, if desired, buys a *proper subproof* to use in their proofs, which costs twice the symbol point of the *proof* to the proving potency.
+- Each player in a cycle of players, moving clockwise, if desired, buys a *well-formed rule* to use in all proofs, which costs thrice the symbol point of the *rule* to the proving potency, or a cost higher than that chosen by the player (i.e. the potency cost of the *rule*), iff there are less than 32 *rules*.
+- Each player in a cycle of players, moving clockwise, if desired, removes a *well-formed rule*, which costs the potency cost of the *rule*.
+- Start a new round.
 ### Card editing rules:
 When a player edits a card, they add/change tag, power cost (smaller or equal to their current power) and effect (written in [predicate logic](#predicate-logic-and-the-proving-system) syntax). They must add/change their identifier onto the card.
 ### Proving rules:
-- When a player proves a predicate game function applied to a player is true or false in the scope of a played card, they start with a *proof* containing all of the statements in the card as \[Axiom\] and *subproofs* the player has, then infer the *proof* repeatedly. If (\[PREDICATEACTIONFUNCTIONNAME...\](...)) is derived, then the other players can optionally prove the *proof* is contradictory. If the players do not or cannot prove, then the game effect is applied.
+- When a player proves a predicate game function applied to a player is true or false in the scope of two paired cards, they start with a *proof* containing all of the statements in the cards as \[Axiom\] and *subproofs* the player has, then infer the *proof* repeatedly. If (\[PREDICATEACTIONFUNCTIONNAME...\](...)) is derived, then the other players can optionally prove the *proof* is contradictory. If the players do not or cannot prove, then the game effect is applied.
 - When a player proves a *proof* is contradictory, they start with a *proof* containing all of the statements in the *proof*, all *rules* as \[Axiom\] and *subproofs* used in the proof with ones that the player has, then infer the *proof* repeatedly. If **A** and (¬**A**) are both derived, or tF is derived, and no players wanted to prove the proof is contradictory, then the game effect is not applied.
 - When a player proves a potential *rule* is contradictory, they start with a *proof* containing all of the statements, all the *rules* and the potential *rule* as \[Axiom\] and *subproofs* used in the proof with ones that the player has, then infer the *proof* repeatedly. If **A** and (¬**A**) are both derived, or tF is derived, and no players wanted to prove the proof is contradictory, then the rule is not added.
 - Proofs can only apply their effect if the player creating the proof has enough proving power (larger than the symbol point of the proof), then subtract the proving power by the symbol point of the proof.
 ### Game function rules:
 Game functions are fixed, meaning they have a predetermined value. Action functions are not.
-- \[randPlayer\](i): Returns a random player. Reference different random players by using different number i.
-- \[randCard\](i): Returns a random card. Reference different random cards by using different number i.
-- \[chosenPlayer\](i): Returns a player chosen by the player, including themselves. Reference many chosen players by using different number i.
+- \[randPlayer\](i): Returns a random player. Reference different random players by using different number i. Returns 0 otherwise.
+- \[randCard\](i): Returns a random card. Reference different random cards by using different number i. Returns 0 otherwise.
+- \[chosenPlayer\](i): Returns a player chosen by the player, including themselves. Reference many chosen players by using different number i. Returns 0 otherwise.
 - \[chosenCard\](i): Returns a card chosen by the player owned by any player, excluding the deck and the pile. Reference many chosen cards by using different number i.
 - \[playerOfChosenCard\](i): Returns a player owning the ith chosen card.
-- \[PLAYER\](x): Returns true if x is a player.
-- \[CARD\](x): Returns true if x is a card owned by any player.
-- \[HEALTHLOWER\](x, i) and \[HEALTHHIGHER\](x, i): Returns true if player x has lower/higher health than number i
-- \[POWERLOWER\](x, i) and \[POWERHIGHER\](x, i): Returns true if player x has lower/higher power than number i
-- \[PROVPOWERLOWER\](x, i) and \[PROVPOWERHIGHER\](x, i): Returns true if player x has lower/higher proving power than number i
-- \[SYMBOLPOINTLOWER\](x, i) and \[SYMBOLPOINTHIGHER\](x, i): Returns true if card x has lower/higher symbol point than number i
-- \[POWERCOSTLOWER\](x, i) and \[POWERCOSTHIGHER\](x, i): Returns true if card x has lower/higher power cost than number i
+- \[health\](x): Returns health of player x. Returns 0 otherwise.
+- \[power\](x): Returns power of player x. Returns 0 otherwise.
+- \[potency\](x): Returns proving potency of player x. Returns 0 otherwise.
+- \[symbolPoint\](x): Returns symbol point of card x. Returns 0 otherwise.
+- \[powerCost\](x): Returns power cost of card x. Returns 0 otherwise.
+- \[NUMBER\](x): Returns tT if x is a number. Returns tF otherwise.
+- \[PLAYER\](x): Returns tT if x is a player. Returns tF otherwise.
+- \[CARD\](x): Returns tT if x is a card owned by any player. Returns tF otherwise.
 #### Action function rules:
 If one of these action function is proven to be true, then the effect is applied:
 - \[CLAIM\]() for all i, x: Claim a chosen card of any player for twice its power cost
@@ -79,10 +82,8 @@ If one of these action function is proven to be true, then the effect is applied
 - \[HEAL\](x, i) for all i, x: Add health of the player x by max number i (max: 15)
 - \[ADDPOWER\](x, i) for all i, x: Add power of the player x by max number i (max: 10)
 - \[SUBPOWER\](x, i) for all i, x: Subtract power of the player x by max number i (max: 8)
-- \[ADDRULE\](i, **A**) for all i, x (if there is only one **A** that \[ADDRULE\](i, **A**), then apply): Replace a *rule* of index i to **A**, if the rule is empty
-- \[DELETERULE\](i) for all i: Replace a *rule* of index i to empty
 #### *Game rule* rules
-- *Rules* of the game are by default, contains 32 empty statements, with index 0 to 31 for reference. They are saved across rounds.
+- *Rules* of the game are by default, contains 32 empty statements, associated with their potency cost, with index 0 to 31 for reference. They are saved across rounds.
 - *Base rules* are built-in statements that cannot be changed, and are saved across rounds:
     1. (∀(x)(∀(y)(
         (\[NUMBER\](x) ∧ \[NUMBER\](y))
@@ -107,24 +108,22 @@ If one of these action function is proven to be true, then the effect is applied
 A *statement* is an ordered list of *symbols*, which consists of:
 - Variables: lowercase letters ('x', 'y', 'z', ...) (symbol point each: 1)
 - Predicates: uppercase letters ('P', 'Q', 'R', ...) (symbol point each: 1)
-- Truth value (predicate): 'tT', 'tF'
+- Truth value (predicate): 'tT', 'tF' (symbol point each: 0)
 - Quantifiers: '∀', '∃' (symbol point each: 2)
 - Connectives: '¬', '∧', '∨', '→' (symbol point each: 1)
-- Operators: '+', '-', '*', '/', 'f/', 'c/', '%'
-- Comparators: '>', '<'
+- Operators: '+', '-', '*', '/', 'f/', 'c/', '%' (symbol point each: 1)
+- Comparators: '>', '<' (symbol point each: 1)
 - Brackets: '(', ')' (symbol point each: 0)
-- Equality: '='
+- Equality: '=' (symbol point each: 1)
 - Comma: ',' (symbol point each: 0)
-- Underline: '_' (symbol point each: 0)
-- Number (variable, cannot be function name): 0, 1, 2, 3, 4, ...
-- Distinct variables (variable): ('x_0', 'x_1', ..., 'y_0', 'y_1', ...)
-- Distinct predicates (predicate): ('P_0', 'P_1', ..., 'Q_0', 'Q_1', ...)
+- Number (variable, cannot be function name): 0, 1, 2, 3, 4, ... (symbol point each: 1)
+- Distinct variables (variable): ('x_0', 'x_1', ..., 'y_0', 'y_1', ...) (symbol point each: 2)
+- Distinct predicates (predicate): ('P_0', 'P_1', ..., 'Q_0', 'Q_1', ...) (symbol point each: 2)
 - Functions (variable, cannot be function name): lowercase character or distinct variable or \[gameFunctionName...\] + '(' + optional( + variable + repeated(',' + variables)) + ')'
 - Predicate functions (predicate): uppercase character or distinct predicate or \[PREDICATEGAMEFUNCTIONNAME...\] + '(' + optional( variable + repeated(',' + variables)) + ')'
-- Game function names: '\[randPlayer\]', '\[randCard\]', '\[chosenPlayer\]', '\[chosenCard\]', '\[playerOfChosenCard\]' (symbol point each: 4)
-- Predicate game function names: '\[NUMBER\]', '\[PLAYER\]', '\[CARD\]', '\[HEALTHLOWER\]', '\[HEALTHHIGHER\]', '\[POWERLOWER\]', '\[POWERHIGHER\]', '\[PROVPOWERLOWER\]', '\[PROVPOWERHIGHER\]', '\[SYMBOLPOINTLOWER\]', '\[SYMBOLPOINTHIGHER\]'
-(symbol point each: 4)
-- Predicate action function names: '\[CLAIM\]', '\[ATK\]', '\[HEAL\]', '\[ADDPOWER\]', '\[SUBPOWER\]' (symbol point each: 4) '\[ADDRULE\]', '\[DELETERULE\]' (symbol point each: 12)
+- Game function names: '\[randPlayer\]', '\[randCard\]', '\[chosenPlayer\]', '\[chosenCard\]', '\[playerOfChosenCard\]', '\[health\]', '\[power\]', '\[potency\]', '\[symbolPoint\]', '\[powerCost\]' (symbol point each: 4)
+- Predicate game function names: '\[NUMBER\]', '\[PLAYER\]', '\[CARD\]' (symbol point each: 4)
+- Predicate action function names: '\[CLAIM\]', '\[ATK\]', '\[HEAL\]', '\[ADDPOWER\]', '\[SUBPOWER\]' (symbol point each: 4)
 ### *Proof*
 A *proof* is an ordered list of *statements* and *proof tags* associated with them and a set of proofs. A *proof* is *proper* iff all *subproofs* are *proper*, and:
 - *Proof tags* associated with all *statements* in it are all \[Axiom\] or,

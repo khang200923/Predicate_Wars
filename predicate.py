@@ -74,9 +74,9 @@ def _smallestMissingInteger(sequence: Sequence[int], ground=0, default=0) -> int
 
 
 #Export constants and functions
-gameFuncNames = ['[randPlayer]', '[randCard]', '[chosenPlayer]', '[chosenCard]', '[playerOfChosenCard]']
-predGFuncNames = ['[PLAYER]', '[CARD]', '[HEALTHLOWER]', '[HEALTHHIGHER]', '[POWERLOWER]', '[POWERHIGHER]', '[PROVPOWERLOWER]', '[PROVPOWERHIGHER]', '[SYMBOLPOINTLOWER]', '[SYMBOLPOINTHIGHER]']
-predAFuncNames = ['[CLAIM]', '[ATK]', '[HEAL]', '[ADDPOWER]', '[SUBPOWER]', '[ADDRULE]', '[DELETERULE]']
+gameFuncNames = ['[randPlayer]', '[randCard]', '[chosenPlayer]', '[chosenCard]', '[playerOfChosenCard]', '[health]', '[power]', '[potency]', '[symbolPoint]', '[powerCost]']
+predGFuncNames = ['[NUMBER]', '[PLAYER]', '[CARD]']
+predAFuncNames = ['[CLAIM]', '[ATK]', '[HEAL]', '[ADDPOWER]', '[SUBPOWER]']
 
 varDetector = r'([a-z](_[0-9]+)?)|([0-9]+)'
 
@@ -577,6 +577,19 @@ class Statement:
             if not res.wellformed(): return None
         return res
 
+    def symbolPoint(self) -> int:
+        """
+        Return symbol point of this statement.
+        """
+        res = 0
+        for symType, *_ in self:
+            if symType in ['truth', 'bracket', 'comma']: continue
+            elif symType in ['quanti', 'distVar', 'distPred']: res += 2
+            elif symType in ['gameFuncName', 'predGFuncName']: res += 4
+            elif symType in ['predAFuncName']: res += 8
+            else: res += 1
+        return res
+
 class StateTag(Enum):
     AXIOM = 0
     LEMMA = 1
@@ -707,7 +720,6 @@ class ProofBase:
         """
         Infers the proof and yields conclusions.
         """
-        #TODO: For variable-substitution-required inference types, substitute manually on object param instead of suggestions
 
         premiseUses = premiseUsesOfInferType[inferType]
         if premiseUses[0]:
@@ -1267,6 +1279,11 @@ class ProofBase:
         res.statements += [state]
         res.stateTags += [StateTag.LEMMA]
         return res
+    def symbolPoint(self) -> int:
+        """
+        Returns the symbol point of this ProofBase
+        """
+        return sum(statement.symbolPoint() if stateTag == StateTag.LEMMA else 0 for statement, stateTag in zip(self.statements, self.stateTags))
 
 @dataclass
 class Proof(ProofBase):

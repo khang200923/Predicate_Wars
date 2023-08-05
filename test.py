@@ -2,6 +2,7 @@ from typing import Any
 import sys
 import os
 import predicate as pd
+import pwars as pw
 
 res: Any = None
 
@@ -170,6 +171,9 @@ res = pd.Statement.lex('P(x)').complexSubstitute({
     ('var', '24'): (('var', '25'), ('bracket', '('), ('bracket', ')')),
 })
 test('Statement.complexSubstitute 4', res == pd.Statement.lex('P(x())'), str(res))
+
+res = pd.Statement.lex('([ATK](P(x)) and (forall(y_1)( Q_3(y_1, 5) )))').symbolPoint()
+test('Statement.symbolPoint', res == 8+1+1+1+2+2+2+2+1, res)
 
 proof = pd.ProofBase.convert(('P', '(Q(y) imply R(x))', '(A(y) and B(z))'))
 res = proof.syms()
@@ -476,5 +480,9 @@ test('Proof.inferConclusions IndProof 2', set(tuple(state) for state in res) ==
     set(),
     tuple(str(ree) for ree in res)
 )
+
+game = pw.PWars().advance()
+test('PWars.advance 1', game.history == [pw.GameState(0, pw.GameStateType.INITIAL, None)], game.history)
+test('PWars.currentGameStates 1', game.currentGameStates() == (pw.GameState(0, pw.GameStateType.INITIAL, None),), game.currentGameStates())
 
 summary()
