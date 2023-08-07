@@ -83,9 +83,9 @@ class PlayerAction:
     type: PlayerActionType
     info: Any = None
     def valid(self, typeReq = None) -> bool:
-        if not (typeReq == None or self.type == typeReq): print('n'); return False
+        if not (typeReq == None or self.type == typeReq): return False
         #Specific checks
-        if not (self.type == PlayerActionType.EDIT and self.info[1] != Card()): print('n'); return False
+        if not (self.type == PlayerActionType.EDIT and self.info[1] != Card()): return False
         ...
 
         return True
@@ -196,4 +196,4 @@ class PWars:
         if gameStates == (GameState(0, GameStateType.INITIAL, None),) and \
         all(playerAct.valid(PlayerActionType.EDIT) for playerAct in playerActs + (playerAct,)): return True
         ...
-        print(gameStates); return False
+        return False
