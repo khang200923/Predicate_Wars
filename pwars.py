@@ -1,6 +1,7 @@
 from copy import deepcopy
 from dataclasses import dataclass, field
 from enum import Enum
+import random
 from typing import Any, List, Literal, Tuple
 
 from predicate import Statement
@@ -34,6 +35,15 @@ class Player:
     power: int = 100
     cards: List[Card] = field(default_factory=list)
     potency: int = 25
+    def editCard(self, cardID: int, toCard: Card) -> bool:
+        if self.cards[cardID] == Card():
+            self.cards[cardID] = toCard
+            return True
+        if self.power >= 2 * self.cards[cardID].powerCost:
+            self.power -= 2 * self.cards[cardID].powerCost
+            self.cards[cardID] = toCard
+            return True
+        return False
 
 
 
@@ -50,6 +60,8 @@ class GameStateType(Enum):
     REMOVERULE = 8
 
     TURN = 9
+
+    RANDPLAYER = 10
 
 GStateInfoType = {
     GameStateType.INITIAL: None,
@@ -85,7 +97,8 @@ class PlayerAction:
     def valid(self, typeReq = None) -> bool:
         if not (typeReq == None or self.type == typeReq): return False
         #Specific checks
-        if not (self.type == PlayerActionType.EDIT and self.info[1] != Card()): return False
+        if self.type == PlayerActionType.EDIT: return self.info[1] != Card()
+        if self.type == PlayerActionType.TAKEBLANK: return isinstance(self.info, bool)
         ...
 
         return True
@@ -132,11 +145,11 @@ class PWars:
         """
         Return a list of actions taken by each player in order from most recently played action first, since the latest game state.
         """
-        #TODO: Test this method
-        latestGameState = next((len(self.history) - index + 1 for index, element in enumerate(self.history[::-1]) if isinstance(element, GameState)), -1)
-        return tuple(self.history[latestGameState+1:])
+        latestGameState = next((len(self.history) - index for index, element in enumerate(self.history[::-1]) if isinstance(element, GameState)), -1)
+        return tuple(self.history[latestGameState:])
 
     #Main functions
+    #REFACTOR: Argh-
     def nextGameState(self) -> List[GameState]:
         """
         Returns the next game state.
@@ -151,6 +164,12 @@ class PWars:
         playerActs = self.recentPlayerActions()
 
         if gameStates == (GameState(0, GameStateType.INITIAL),): return [GameState(0, GameStateType.CREATION)]
+        if gameStates == (GameState(0, GameStateType.CREATION),):
+            #On creation phase, handle player choices of taking blanks
+            votes = {**{i: False for i in range(len(self.players))}, **{i: bl for i, bl in ((playerAct.player, playerAct.info) for playerAct in playerActs)}}
+            count = len(tuple(0 for i in votes.values() if i))
+            if count > len(tuple(0 for card in self.deck if Card() == card)): return [GameState(1, GameStateType.RANDPLAYER, random.randint(0, len(self.players) - 1)), GameState(0, GameStateType.EDITING)]
+            else: return [GameState(0, GameStateType.EDITING)]
 
         raise GameException('W.I.P')
     def advance(self):
@@ -161,8 +180,20 @@ class PWars:
 
         oldGameStates = self.currentGameStates()
         playerActs = self.recentPlayerActions()
-        self.history += self.nextGameState()
+        nextGameStates = self.nextGameState()
+        self.history += nextGameStates
         newGameStates = self.currentGameStates()
+
+        if oldGameStates == (GameState(0, GameStateType.CREATION),):
+            if nextGameStates[0].type == GameStateType.RANDPLAYER:
+                self.players[nextGameStates[0].info].cards.append(Card())
+                assert Card() in self.deck, 'Undesired error'
+                self.deck.remove(Card())
+            else:
+                votesInd = (i for i, bl in ((playerAct.player, playerAct.info) for playerAct in playerActs) if bl)
+                for i in votesInd:
+                    self.players[i].cards.append(Card())
+                    self.deck.remove(Card())
 
         return self
     def action(self, playerAct: PlayerAction) -> bool:
@@ -179,7 +210,7 @@ class PWars:
 
             #On initial gameplay, edit a card based on the player action
             if gameStates == (GameState(0, GameStateType.INITIAL),):
-                self.players[playerAct.player].cards[playerAct.info[0]] = playerAct.info[1]
+                self.players[playerAct.player].editCard(playerAct.info[0], playerAct.info[1])
             ...
 
         return valid
@@ -195,5 +226,9 @@ class PWars:
         #Initial gameplay
         if gameStates == (GameState(0, GameStateType.INITIAL, None),) and \
         all(playerAct.valid(PlayerActionType.EDIT) for playerAct in playerActs + (playerAct,)): return True
+
+        #Creation phase
+        if gameStates == (GameState(0, GameStateType.CREATION, None),) and \
+        all(playerAct.valid(PlayerActionType.TAKEBLANK) for playerAct in playerActs + (playerAct,)): return True
         ...
         return False

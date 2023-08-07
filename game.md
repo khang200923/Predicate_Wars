@@ -24,7 +24,7 @@
 - Each player chooses to take a blank card or not, during this other players decisions are private.
 - The cards in the deck goes visible to all players, then gets hidden again.
 - If the amount of blank cards on the deck is larger than to equal to the number of players that chooses to take the blank cards, then each of the players take one blank card.
-- If the amount of blank cards on the deck is smaller than the number of players that chooses to take the blank cards, then the latest player takes one blank card.
+- If the amount of blank cards on the deck is smaller than the number of players that chooses to take the blank cards, then a random player takes one blank card.
 - If no one takes any card, this phase ends. If not, continue.
 #### Phase II: Editing
 - Each player [edits](#card-editing-rules) only 1 blank card, if desired.

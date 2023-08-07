@@ -485,4 +485,51 @@ game = pw.PWars().advance()
 test('PWars.advance 1', game.history == [pw.GameState(0, pw.GameStateType.INITIAL, None)], game.history)
 test('PWars.currentGameStates 1', game.currentGameStates() == (pw.GameState(0, pw.GameStateType.INITIAL, None),), game.currentGameStates())
 
+game = pw.PWars(INITPLAYER=3).advance()
+game.action(pw.PlayerAction(
+    0,
+    pw.PlayerActionType.EDIT,
+    (0, pw.Card(blank=False)),
+))
+game.advance()
+test('PWars.currentGameStates 2', game.currentGameStates() == (pw.GameState(layer=0, type=pw.GameStateType.CREATION, info=None),), game.currentGameStates())
+game.action(pw.PlayerAction(
+    1,
+    pw.PlayerActionType.TAKEBLANK,
+    True,
+))
+test('PWars.recentPlayerActions 2', game.recentPlayerActions() == (pw.PlayerAction(player=1, type=pw.PlayerActionType.TAKEBLANK, info=True),), game.recentPlayerActions())
+game.advance()
+test('PWars.currentGameStates 3', game.currentGameStates() == (pw.GameState(layer=0, type=pw.GameStateType.EDITING, info=None),), game.currentGameStates())
+
+game = pw.PWars(INITPLAYER=3, INITCARDDECK=2).advance()
+game.action(pw.PlayerAction(
+    0,
+    pw.PlayerActionType.EDIT,
+    (0, pw.Card(blank=False)),
+))
+game.advance()
+game.action(pw.PlayerAction(
+    0,
+    pw.PlayerActionType.TAKEBLANK,
+    True,
+))
+game.action(pw.PlayerAction(
+    1,
+    pw.PlayerActionType.TAKEBLANK,
+    True,
+))
+game.action(pw.PlayerAction(
+    2,
+    pw.PlayerActionType.TAKEBLANK,
+    True,
+))
+test('PWars.recentPlayerActions 3', game.recentPlayerActions() == (
+    pw.PlayerAction(player=0, type=pw.PlayerActionType.TAKEBLANK, info=True),
+    pw.PlayerAction(player=1, type=pw.PlayerActionType.TAKEBLANK, info=True),
+    pw.PlayerAction(player=2, type=pw.PlayerActionType.TAKEBLANK, info=True),), game.recentPlayerActions())
+game.advance()
+test('PWars.nextGameStates 1', game.history[-1] == pw.GameState(layer=0, type=pw.GameStateType.EDITING, info=None) and \
+    game.history[-2].type == pw.GameStateType.RANDPLAYER, game.history[-2:])
+
 summary()
