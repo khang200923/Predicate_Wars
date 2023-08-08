@@ -2,11 +2,15 @@ from copy import deepcopy
 from dataclasses import dataclass, field
 from enum import Enum
 import random
-from typing import Any, List, Literal, Tuple
+from typing import Any, Callable, Iterable, List, Literal, Tuple
 
 from predicate import Statement
 
 #TODO: Add features in order, in separate commits, one by one...
+
+def _allUnique(iter: Iterable, key: Callable = lambda x: x) -> bool:
+    seenKeys = list()
+    return not any(key(i) in seenKeys or seenKeys.append(key(i)) for i in iter)
 
 class CardTag(Enum):
     ROCK = 0
@@ -66,6 +70,12 @@ class GameStateType(Enum):
 GStateInfoType = {
     GameStateType.INITIAL: None,
     GameStateType.CREATION: None,
+    GameStateType.EDITING: None,
+    GameStateType.CLAIMING: None,
+
+    GameStateType.TURN: int,
+
+    GameStateType.RANDPLAYER: int,
 }
 
 @dataclass
@@ -73,6 +83,14 @@ class GameState:
     layer: int
     type: GameStateType
     info: Any = None
+    @staticmethod
+    def randPlayer(self: 'PWars', layer: int) -> 'GameState':
+        return GameState(layer, GameStateType.RANDPLAYER, random.randint(0, len(self.players) - 1))
+    @staticmethod
+    def nextTurn(self: 'PWars', turn: 'GameState') -> 'GameState':
+        if turn.type == GameStateType.TURN:
+            return GameState(turn.layer, GameStateType.TURN, turn.info + 1 % len(self.players))
+        else: raise ValueError("Not a Turn")
 
 class PlayerActionType(Enum):
     EDIT = 0
@@ -99,6 +117,7 @@ class PlayerAction:
         #Specific checks
         if self.type == PlayerActionType.EDIT: return self.info[1] != Card()
         if self.type == PlayerActionType.TAKEBLANK: return isinstance(self.info, bool)
+        if self.type == PlayerActionType.CLAIM: return isinstance(self.info, list) and all(isinstance(claim, tuple) and len(claim) == 2 and all(isinstance(num, int) for num in claim) for claim in self.info)
         ...
 
         return True
@@ -106,7 +125,7 @@ class PlayerAction:
 PActInfoType = {
     PlayerActionType.EDIT: Tuple[int, Card],
     PlayerActionType.TAKEBLANK: bool,
-    PlayerActionType.CLAIM: List[Tuple[int, int]],
+    PlayerActionType.CLAIM: List[Tuple[int, int]], #[playerID, cardID]
 }
 
 class GameException(Exception): pass
@@ -164,12 +183,17 @@ class PWars:
         playerActs = self.recentPlayerActions()
 
         if gameStates == (GameState(0, GameStateType.INITIAL),): return [GameState(0, GameStateType.CREATION)]
-        if gameStates == (GameState(0, GameStateType.CREATION),):
+        elif gameStates == (GameState(0, GameStateType.CREATION),):
             #On creation phase, handle player choices of taking blanks
             votes = {**{i: False for i in range(len(self.players))}, **{i: bl for i, bl in ((playerAct.player, playerAct.info) for playerAct in playerActs)}}
             count = len(tuple(0 for i in votes.values() if i))
-            if count > len(tuple(0 for card in self.deck if Card() == card)): return [GameState(1, GameStateType.RANDPLAYER, random.randint(0, len(self.players) - 1)), GameState(0, GameStateType.EDITING)]
+            if count > len(tuple(0 for card in self.deck if Card() == card)): return [GameState.randPlayer(self, 1), GameState(0, GameStateType.EDITING)]
             else: return [GameState(0, GameStateType.EDITING)]
+        elif gameStates[0] == GameState(0, GameStateType.EDITING): return [GameState(0, GameStateType.CLAIMING), GameState.randPlayer(self, 1)]
+        elif gameStates[0] == GameState(0, GameStateType.CLAIMING) and len(gameStates) == 2 and gameStates[1].type == GameStateType.RANDPLAYER: return [GameState(2, GameStateType.TURN, gameStates[1].info)]
+        elif gameStates[0] == GameState(0, GameStateType.CLAIMING) and len(gameStates) == 3 and gameStates[1].type == GameStateType.RANDPLAYER and gameStates[2].type == GameStateType.TURN:
+            if GameState.nextTurn(self, gameStates[2]) != GameState(2, GameStateType.TURN, gameStates[1].info): return [GameState.nextTurn(self, gameStates[2])]
+            else: return [GameState(0, GameStateType.MAIN)]
 
         raise GameException('W.I.P')
     def advance(self):
@@ -211,6 +235,18 @@ class PWars:
             #On initial gameplay, edit a card based on the player action
             if gameStates == (GameState(0, GameStateType.INITIAL),):
                 self.players[playerAct.player].editCard(playerAct.info[0], playerAct.info[1])
+
+            #On editing phase, edit a card based on the player action
+            elif gameStates == (GameState(2, GameStateType.EDITING, None),):
+                self.players[playerAct.player].editCard(playerAct.info[0], playerAct.info[1])
+
+            #On claiming phase, claim any card from any player hand and buy it
+            elif gameStates[0] == GameState(2, GameStateType.CLAIMING, None):
+                powerSpent = sum(self.players[playerId].cards[cardId].power for playerId, cardId in playerAct.info)
+                if powerSpent <= self.players[playerAct.player].power:
+                    for playerId, cardId in sorted(playerAct.info, key=lambda x: x[1], reverse=True): #sorted function prevents deleting elements affecting indexes
+                        self.players[playerAct.player].cards.append(self.players[playerId].cards[cardId])
+                        del self.players[playerId].cards[cardId]
             ...
 
         return valid
@@ -219,9 +255,11 @@ class PWars:
         Checks whether the given action is valid.
         """
         #TODO: Implement this method
-        #TODO: Test this method.
+        #TODO: Test this method
         gameStates = self.currentGameStates()
         playerActs = self.recentPlayerActions()
+
+        if len(gameStates) == 0: return False
 
         #Initial gameplay
         if gameStates == (GameState(0, GameStateType.INITIAL, None),) and \
@@ -229,6 +267,19 @@ class PWars:
 
         #Creation phase
         if gameStates == (GameState(0, GameStateType.CREATION, None),) and \
-        all(playerAct.valid(PlayerActionType.TAKEBLANK) for playerAct in playerActs + (playerAct,)): return True
+        all(playerAct.valid(PlayerActionType.TAKEBLANK) for playerAct in playerActs + (playerAct,)) and \
+        _allUnique(playerActs + (playerAct,), key=lambda x: x.player): return True
+
+        #Editing phase
+        if gameStates == (GameState(0, GameStateType.EDITING, None),) and \
+        all(playerAct.valid(PlayerActionType.EDIT) for playerAct in playerActs + (playerAct,)) and \
+        _allUnique(playerActs + (playerAct,), key=lambda x: x.player): return True
+
+        #Claiming phase
+        if gameStates[0] == GameState(0, GameStateType.CLAIMING, None) and \
+        len(gameStates) == 3 and gameStates[2].type == GameStateType.TURN and \
+        all(playerAct.valid(PlayerActionType.CLAIM) for playerAct in playerActs + (playerAct,)) and \
+        len(playerActs) == 0 and playerAct.player == gameStates[2].info and playerAct.type == PlayerActionType.CLAIM and \
+        len(playerAct.info) <= 8: return True
         ...
         return False

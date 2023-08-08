@@ -18,7 +18,6 @@
 - Players sit in a circle.
 - Each player is dealt eight blank cards from the deck.
 - Players [edit](#card-editing-rules) their cards if they want to, each one subtracts the players' power by twice the edited card's symbol costs.
-- Choose a random player to start the turn first.
 ### Gameplay phases each round:
 #### Phase I: Creation
 - Each player chooses to take a blank card or not, during this other players decisions are private.
@@ -30,7 +29,7 @@
 - Each player [edits](#card-editing-rules) only 1 blank card, if desired.
 - If the player does not edit a blank card, if desired, they edit an already edited card, taking twice the power cost of the overriden card.
 #### Phase III: Claiming
-Each player in a cycle of players, moving clockwise, starting from the latest player:
+Each player in a cycle of players, moving clockwise, starting from a random player:
 - Chooses to take a specific card (that has a power cost lower or equal to the claiming player) from another player or not.
 - If yes, then the claiming player's power is removed by the card's power cost; then claim cards again, if desired, up to a maximum of 8 times.
 After that, each player that has [edited](#card-editing-rules) a card this round and the created card is still in their hand, takes half of the card's power cost, ceil-wise.
