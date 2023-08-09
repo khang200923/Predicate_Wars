@@ -151,7 +151,6 @@ class PWars:
         """
         Get current game states, with layers.
         """
-        #TODO: Test this method
         res = ()
         highestLayer = 100000
         state: GameState
@@ -240,7 +239,7 @@ class PWars:
             elif gameStates == (GameState(2, GameStateType.EDITING, None),):
                 self.players[playerAct.player].editCard(playerAct.info[0], playerAct.info[1])
 
-            #On claiming phase, claim any card from any player hand and buy it
+            #On claiming phase, claim any card (not blank) from any player hand and buy it
             elif gameStates[0] == GameState(2, GameStateType.CLAIMING, None):
                 powerSpent = sum(self.players[playerId].cards[cardId].power for playerId, cardId in playerAct.info)
                 if powerSpent <= self.players[playerAct.player].power:
@@ -280,6 +279,6 @@ class PWars:
         len(gameStates) == 3 and gameStates[2].type == GameStateType.TURN and \
         all(playerAct.valid(PlayerActionType.CLAIM) for playerAct in playerActs + (playerAct,)) and \
         len(playerActs) == 0 and playerAct.player == gameStates[2].info and playerAct.type == PlayerActionType.CLAIM and \
-        len(playerAct.info) <= 8: return True
+        len(playerAct.info) <= 8 and not any(self.players[playerId].cards[cardId] == Card() for playerId, cardId in playerAct.info): return True
         ...
         return False
