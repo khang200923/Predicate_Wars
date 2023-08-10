@@ -39,6 +39,7 @@ class Player:
     power: int = 100
     cards: List[Card] = field(default_factory=list)
     potency: int = 25
+    pPower: int = 0
     def editCard(self, cardID: int, toCard: Card) -> bool:
         if self.cards[cardID] == Card():
             self.cards[cardID] = toCard
@@ -48,6 +49,8 @@ class Player:
             self.cards[cardID] = toCard
             return True
         return False
+    def playInit(self):
+        self.pPower = self.potency
 
 
 
@@ -144,6 +147,8 @@ class PWars:
     players: List[Player] = field(default_factory=list)
     deck: List[Card] = field(default_factory=list)
     history: List[Tuple[GameState | PlayerActionType]] = field(default_factory=list)
+    remaining: List[bool] = field(default_factory=list)
+    discardPile: List[Card] = field(default_factory=list)
     def __post_init__(self):
         self.players = [Player(self.INITHEALTHMULT * self.INITPLAYER, self.INITPOWER, [Card()] * self.INITCARDPLAYER, self.INITPOTENCY)] * self.INITPLAYER
         self.deck = [Card()] * self.INITCARDDECK
@@ -192,7 +197,9 @@ class PWars:
         elif gameStates[0] == GameState(0, GameStateType.CLAIMING) and len(gameStates) == 2 and gameStates[1].type == GameStateType.RANDPLAYER: return [GameState(2, GameStateType.TURN, gameStates[1].info)]
         elif gameStates[0] == GameState(0, GameStateType.CLAIMING) and len(gameStates) == 3 and gameStates[1].type == GameStateType.RANDPLAYER and gameStates[2].type == GameStateType.TURN:
             if GameState.nextTurn(self, gameStates[2]) != GameState(2, GameStateType.TURN, gameStates[1].info): return [GameState.nextTurn(self, gameStates[2])]
-            else: return [GameState(0, GameStateType.MAIN)]
+            else: return [GameState(0, GameStateType.MAIN), GameState.randPlayer(self, 1)]
+        elif gameStates == (GameState(0, GameStateType.MAIN), GameState.randPlayer(self, 1)):
+            return [GameState(2, GameStateType.TURN, gameStates[1].info)]
 
         raise GameException('W.I.P')
     def advance(self):
@@ -217,6 +224,10 @@ class PWars:
                 for i in votesInd:
                     self.players[i].cards.append(Card())
                     self.deck.remove(Card())
+        if newGameStates[0] == GameState(0, GameStateType.MAIN) and newGameStates[1].type == GameStateType.RANDPLAYER and len(newGameStates) == 2:
+            self.remainingPlayers = [True for _ in self.players]
+            self.discardPile = []
+            for player in self.players: player.playInit()
 
         return self
     def action(self, playerAct: PlayerAction) -> bool:

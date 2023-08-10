@@ -47,6 +47,7 @@ Go in cycles of remained players, moving clockwise, starting from the latest pla
 - If a player loses all health (<= 0), they lose the game and cannot participate in the game in any way.
 #### Phase V: Finalization
 - If there is only one player left, the player in the game wins.
+- Insert the discard pile to the deck again.
 - Top [half of the number of players, floor-wise] remaining players receive 4 more proving potency. Except the last remaining player, who receives 8 more proving potency.
 - Each player, if desired, buys a *proper subproof* to use in their proofs, which costs twice the symbol point of the *proof* to the proving potency.
 - Each player in a cycle of players, moving clockwise, if desired, buys a *well-formed rule* to use in all proofs, which costs thrice the symbol point of the *rule* to the proving potency, or a cost higher than that chosen by the player (i.e. the potency cost of the *rule*), iff there are less than 32 *rules*.
