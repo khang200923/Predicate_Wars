@@ -8,12 +8,18 @@ from predicate import Proof, Statement
 
 #REMINDER: Add features in order, in separate commits, one by one...
 #REMINDER: When adding player action features, update:
+#          - PlayerActionType variable
 #          - PlayerAction.valid function
 #          - PActInfoType variable
 #          - PWars.nextGameState (if changes in game based on player actions happens after game state & optional)
 #          - PWars.advance (if changes in game based on player actions happens after game state)
 #          - PWars.action
 #          - PWars.actionValid
+#REMINDER: When adding game action features, update:
+#          - GameStateType variable
+#          - GStateInfoType variable
+#          - PWars.nextGameState
+#          - PWars.advance (optional)
 
 
 def _allUnique(iter: Iterable, key: Callable = lambda x: x) -> bool:
