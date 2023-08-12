@@ -4,7 +4,7 @@
 - **Deck** with 128 **blank cards** (by default) that when [edited](#card-editing-rules) should have:
     - Rock-paper-scissors **tag** (publicly seen)
     - **Power cost** number (publicly seen)
-    - **Effect** (written in [predicate logic](#predicate-logic-and-the-proving-system) in the form of statements)
+    - **Effect** (written in [predicate logic](#predicate-logic-and-the-proving-system) in the form of a statement)
     - **Symbol point** of the effect
     - **Card's creator identifier** (private)
 - Player **stats**:
@@ -39,7 +39,7 @@ Each player has proving power (public) which can only be used for this round, de
 Go in cycles of remained players, moving clockwise, starting from the latest player, ends when there is only 1 remaining:
 - The player remains if they still have cards left, or not choosing to not remain
 - The player can:
-    - Play two paired cards (one that has smaller symbol count is called *main* card, the other is called *secondary* card) and apply its effects (if there is no card played yet, or your *main* card tag beats the previous *main* card's, or (the previous *main* card has more symbol count than yours, if the previous *main* card tag doesn't beat yours)), or
+    - Play two paired cards (one that has smaller symbol count is called *main* card, the other is called *secondary* card having larger symbol count) and apply its effects (if there is no card played yet, or the previous *main* card tag doesn't beat your *main* card's, or the previous *main* card has more symbol count than yours) and put them in the drop pile, or
     - Raise a card's power cost by 2 and discard it into the discard pile, or
     - Claim a card from the deck for twice the power cost (if affordable), or
     - Choose not to remain
@@ -47,7 +47,7 @@ Go in cycles of remained players, moving clockwise, starting from the latest pla
 - If a player loses all health (<= 0), they lose the game and cannot participate in the game in any way.
 #### Phase V: Finalization
 - If there is only one player left, the player in the game wins.
-- Insert the discard pile to the deck again.
+- Insert the discard pile and the drop pile to the deck again.
 - Top [half of the number of players, floor-wise] remaining players receive 4 more proving potency. Except the last remaining player, who receives 8 more proving potency.
 - Each player, if desired, buys a *proper subproof* to use in their proofs, which costs twice the symbol point of the *proof* to the proving potency.
 - Each player in a cycle of players, moving clockwise, if desired, buys a *well-formed rule* to use in all proofs, which costs thrice the symbol point of the *rule* to the proving potency, or a cost higher than that chosen by the player (i.e. the potency cost of the *rule*), iff there are less than 32 *rules*.

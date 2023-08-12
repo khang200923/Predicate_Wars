@@ -2,11 +2,19 @@ from copy import deepcopy
 from dataclasses import dataclass, field
 from enum import Enum
 import random
-from typing import Any, Callable, Iterable, List, Literal, Tuple
+from typing import Any, Callable, Iterable, List, Literal, Optional, Tuple
 
-from predicate import Statement
+from predicate import Proof, Statement
 
-#TODO: Add features in order, in separate commits, one by one...
+#REMINDER: Add features in order, in separate commits, one by one...
+#REMINDER: When adding player action features, update:
+#          - PlayerAction.valid function
+#          - PActInfoType variable
+#          - PWars.nextGameState (if changes in game based on player actions happens after game state & optional)
+#          - PWars.advance (if changes in game based on player actions happens after game state)
+#          - PWars.action
+#          - PWars.actionValid
+
 
 def _allUnique(iter: Iterable, key: Callable = lambda x: x) -> bool:
     seenKeys = list()
@@ -16,6 +24,11 @@ class CardTag(Enum):
     ROCK = 0
     PAPER = 1
     SCISSORS = 2
+    def beat(self, oppoTag: 'CardTag'):
+        if (self is CardTag.ROCK and oppoTag is CardTag.SCISSORS): return True
+        if (self is CardTag.PAPER and oppoTag is CardTag.ROCK): return True
+        if (self is CardTag.SCISSORS and oppoTag is CardTag.PAPER): return True
+        return False
 
 @dataclass
 class Card:
@@ -115,12 +128,17 @@ class PlayerAction:
     player: int
     type: PlayerActionType
     info: Any = None
-    def valid(self, typeReq = None) -> bool:
-        if not (typeReq == None or self.type == typeReq): return False
+    def valid(self, typeReq: None | PlayerActionType | Tuple[PlayerActionType] = None) -> bool:
+        if isinstance(typeReq, PlayerActionType):
+            if not self.type == typeReq: return False
+        elif (isinstance(typeReq, tuple)):
+            if not self.type in typeReq: return False
         #Specific checks
         if self.type == PlayerActionType.EDIT: return self.info[1] != Card()
         if self.type == PlayerActionType.TAKEBLANK: return isinstance(self.info, bool)
         if self.type == PlayerActionType.CLAIM: return isinstance(self.info, list) and all(isinstance(claim, tuple) and len(claim) == 2 and all(isinstance(num, int) for num in claim) for claim in self.info)
+
+        if self.type == PlayerActionType.PLAY: return isinstance(self.info, tuple) and len(self.info) == 2 and all(isinstance(x, int) for x in self.info)
         ...
 
         return True
@@ -129,6 +147,12 @@ PActInfoType = {
     PlayerActionType.EDIT: Tuple[int, Card],
     PlayerActionType.TAKEBLANK: bool,
     PlayerActionType.CLAIM: List[Tuple[int, int]], #[playerID, cardID]
+
+    PlayerActionType.PLAY: Tuple[int, int], #(main, secondary)
+    PlayerActionType.DISCARD: int,
+    PlayerActionType.CLAIMPLAY: List[Tuple[int, int]], #[playerID, cardID]
+    PlayerActionType.UNREMAIN: None,
+    PlayerActionType.PROVE: Tuple[Proof, int], #(proof, deriveIndex)
 }
 
 class GameException(Exception): pass
@@ -149,9 +173,12 @@ class PWars:
     history: List[Tuple[GameState | PlayerActionType]] = field(default_factory=list)
     remaining: List[bool] = field(default_factory=list)
     discardPile: List[Card] = field(default_factory=list)
+    dropPile: List[Card] = field(default_factory=list)
+    recentPlay: Optional[Tuple[Card, Card]] = None
     def __post_init__(self):
         self.players = [Player(self.INITHEALTHMULT * self.INITPLAYER, self.INITPOWER, [Card()] * self.INITCARDPLAYER, self.INITPOTENCY)] * self.INITPLAYER
         self.deck = [Card()] * self.INITCARDDECK
+        self.remaining = [False for _ in self.players]
     def currentGameStates(self) -> Tuple[GameState]:
         """
         Get current game states, with layers.
@@ -198,7 +225,7 @@ class PWars:
         elif gameStates[0] == GameState(0, GameStateType.CLAIMING) and len(gameStates) == 3 and gameStates[1].type == GameStateType.RANDPLAYER and gameStates[2].type == GameStateType.TURN:
             if GameState.nextTurn(self, gameStates[2]) != GameState(2, GameStateType.TURN, gameStates[1].info): return [GameState.nextTurn(self, gameStates[2])]
             else: return [GameState(0, GameStateType.MAIN), GameState.randPlayer(self, 1)]
-        elif gameStates == (GameState(0, GameStateType.MAIN), GameState.randPlayer(self, 1)):
+        elif gameStates[0] == GameState(0, GameStateType.MAIN) and len(gameStates) == 2 and gameStates[1].type == GameStateType.RANDPLAYER:
             return [GameState(2, GameStateType.TURN, gameStates[1].info)]
 
         raise GameException('W.I.P')
@@ -235,6 +262,7 @@ class PWars:
         Executes an action on this game instance, if it's valid.
         Returns whether the action is valid or not.
         """
+        #TODO: Implement this method
         #TODO: Test this method
         valid = self.actionValid(playerAct)
         if valid:
@@ -257,7 +285,12 @@ class PWars:
                     for playerId, cardId in sorted(playerAct.info, key=lambda x: x[1], reverse=True): #sorted function prevents deleting elements affecting indexes
                         self.players[playerAct.player].cards.append(self.players[playerId].cards[cardId])
                         del self.players[playerId].cards[cardId]
-            ...
+
+            #On main phase, ...
+            elif gameStates[0] == GameState(0, GameStateType.MAIN):
+                #if PLAY, play the pair of cards
+                self.dropPile += playerAct.info
+                self.recentPlay = playerAct.info
 
         return valid
     def actionValid(self, playerAct: PlayerAction) -> bool:
@@ -291,5 +324,20 @@ class PWars:
         all(playerAct.valid(PlayerActionType.CLAIM) for playerAct in playerActs + (playerAct,)) and \
         len(playerActs) == 0 and playerAct.player == gameStates[2].info and playerAct.type == PlayerActionType.CLAIM and \
         len(playerAct.info) <= 8 and not any(self.players[playerId].cards[cardId] == Card() for playerId, cardId in playerAct.info): return True
+
+        #Main phase
+        if gameStates[0] == GameState(0, GameStateType.MAIN) and \
+        len(gameStates) == 3 and gameStates[2].type == GameStateType.TURN and \
+        all(playerAct.valid((PlayerActionType.PLAY, PlayerActionType.DISCARD, PlayerActionType.CLAIMPLAY, PlayerActionType.UNREMAIN)) for playerAct in playerActs + (playerAct,)) and \
+        self.remaining[playerAct.player]:
+            #Playing action
+            if playerAct.type == PlayerActionType.PLAY:
+                if playerAct.info[0].powerCost > playerAct.info[1].powerCost: return False
+                if self.recentPlay == None: return True
+                mainCard: Card = playerAct.info[0]
+                oppoMainCard: Card = self.recentPlay[0]
+                if (not oppoMainCard.tag.beat(mainCard.tag)) or \
+                (mainCard.effect.symbolPoint() < oppoMainCard.effect.symbolPoint()): return True
+
         ...
         return False
