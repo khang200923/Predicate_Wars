@@ -147,6 +147,7 @@ class PlayerAction:
         if self.type == PlayerActionType.PLAY: return isinstance(self.info, tuple) and len(self.info) == 2 and all(isinstance(x, int) for x in self.info)
         if self.type == PlayerActionType.DISCARD: return isinstance(self.info, int)
         if self.type == PlayerActionType.UNREMAIN: return self.info is None
+        if self.type == PlayerActionType.CLAIMPLAY: return isinstance(self.info, list) and all(isinstance(claim, tuple) and len(claim) == 2 and all(isinstance(num, int) for num in claim) for claim in self.info)
         ...
 
         return True
@@ -293,6 +294,7 @@ class PWars:
                     for playerId, cardId in sorted(playerAct.info, key=lambda x: x[1], reverse=True): #sorted function prevents deleting elements affecting indexes
                         self.players[playerAct.player].cards.append(self.players[playerId].cards[cardId])
                         del self.players[playerId].cards[cardId]
+                    self.players[playerAct.player].power -= powerSpent
 
             #On main phase, ...
             elif gameStates[0] == GameState(0, GameStateType.MAIN):
@@ -312,6 +314,14 @@ class PWars:
                 #if UNREMAIN, leave the main phase
                 elif playerAct.type == PlayerActionType.UNREMAIN:
                     self.remaining[playerAct.player] = False
+                #if CLAIMPLAY, claim the card to player for twice the power cost
+                elif playerAct.type == PlayerActionType.CLAIMPLAY:
+                    powerSpent = sum(self.players[playerId].cards[cardId].power for playerId, cardId in playerAct.info) * 2
+                    if powerSpent <= self.players[playerAct.player].power:
+                        for playerId, cardId in sorted(playerAct.info, key=lambda x: x[1], reverse=True): #sorted function prevents deleting elements affecting indexes
+                            self.players[playerAct.player].cards.append(self.players[playerId].cards[cardId])
+                            del self.players[playerId].cards[cardId]
+                        self.players[playerAct.player].power -= powerSpent
 
         return valid
     def actionValid(self, playerAct: PlayerAction) -> bool:
@@ -343,13 +353,13 @@ class PWars:
         if gameStates[0] == GameState(0, GameStateType.CLAIMING, None) and \
         len(gameStates) == 3 and gameStates[2].type == GameStateType.TURN and \
         all(playerAct.valid(PlayerActionType.CLAIM) for playerAct in playerActs + (playerAct,)) and \
-        len(playerActs) == 0 and playerAct.player == gameStates[2].info and playerAct.type == PlayerActionType.CLAIM and \
+        len(playerActs) == 0 and playerAct.player == gameStates[2].info and """playerAct.type == PlayerActionType.CLAIM (TODO: Check if the quoted part is actually important)""" and \
         len(playerAct.info) <= 8 and not any(self.players[playerId].cards[cardId] == Card() for playerId, cardId in playerAct.info): return True
 
         #Main phase
         if gameStates[0] == GameState(0, GameStateType.MAIN) and \
-        len(gameStates) == 3 and gameStates[2].type == GameStateType.TURN and \
-        all(playerAct.valid((PlayerActionType.PLAY, PlayerActionType.DISCARD, PlayerActionType.CLAIMPLAY, PlayerActionType.UNREMAIN)) for playerAct in playerActs + (playerAct,)) and \
+        len(gameStates) == 3 and gameStates[2].type == GameStateType.TURN and len(playerActs) == 0 and \
+        playerAct.valid((PlayerActionType.PLAY, PlayerActionType.DISCARD, PlayerActionType.CLAIMPLAY, PlayerActionType.UNREMAIN)) and \
         self.remaining[playerAct.player]:
             #Playing action
             if playerAct.type == PlayerActionType.PLAY:
@@ -361,6 +371,9 @@ class PWars:
                 (mainCard.effect.symbolPoint() < oppoMainCard.effect.symbolPoint()): return True
             #Discard and unremain action
             elif playerAct.type in [PlayerActionType.DISCARD, PlayerActionType.UNREMAIN]: return True
+            #Claim action in main phase
+            if playerAct.type == PlayerActionType.CLAIMPLAY and \
+            len(playerAct.info) <= 8 and not any(self.players[playerId].cards[cardId] == Card() for playerId, cardId in playerAct.info): return True
 
         ...
         return False
