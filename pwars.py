@@ -145,6 +145,7 @@ class PlayerAction:
         if self.type == PlayerActionType.CLAIM: return isinstance(self.info, list) and all(isinstance(claim, tuple) and len(claim) == 2 and all(isinstance(num, int) for num in claim) for claim in self.info)
 
         if self.type == PlayerActionType.PLAY: return isinstance(self.info, tuple) and len(self.info) == 2 and all(isinstance(x, int) for x in self.info)
+        if self.type == PlayerActionType.DISCARD: return isinstance(self.info, int)
         ...
 
         return True
@@ -295,8 +296,18 @@ class PWars:
             #On main phase, ...
             elif gameStates[0] == GameState(0, GameStateType.MAIN):
                 #if PLAY, play the pair of cards
-                self.dropPile += playerAct.info
-                self.recentPlay = playerAct.info
+                if playerAct.type == PlayerActionType.PLAY:
+                    self.dropPile += (self.players[playerAct.player].cards[x] for x in playerAct.info)
+                    self.recentPlay = (self.players[playerAct.player].cards[x] for x in playerAct.info)
+                    #Ensure deleting the right indexes
+                    del self.players[playerAct.player].cards[max(playerAct.info)]
+                    del self.players[playerAct.player].cards[min(playerAct.info)]
+                #If DISCARD, discard card while raising its power cost by 2
+                elif playerAct.type == PlayerActionType.DISCARD:
+                    self.players[playerAct.player].cards[playerAct.info].powerCost += 2
+                    self.discardPile += self.players[playerAct.player].cards[playerAct.info]
+                    #Delete the card from their hand
+                    del self.players[playerAct.player].cards[playerAct.info]
 
         return valid
     def actionValid(self, playerAct: PlayerAction) -> bool:
@@ -344,6 +355,8 @@ class PWars:
                 oppoMainCard: Card = self.recentPlay[0]
                 if (not oppoMainCard.tag.beat(mainCard.tag)) or \
                 (mainCard.effect.symbolPoint() < oppoMainCard.effect.symbolPoint()): return True
+            #Discard action
+            elif playerAct.type == PlayerActionType.DISCARD: return True
 
         ...
         return False
