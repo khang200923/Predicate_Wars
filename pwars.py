@@ -15,7 +15,7 @@ from predicate import Proof, Statement
 #          - PWars.advance (if changes in game based on player actions happens after game state)
 #          - PWars.action
 #          - PWars.actionValid
-#REMINDER: When adding game action features, update:
+#REMINDER: When adding game state features, update:
 #          - GameStateType variable
 #          - GStateInfoType variable
 #          - PWars.nextGameState
