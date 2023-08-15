@@ -86,6 +86,7 @@ class GameStateType(Enum):
     REMOVERULE = 8
 
     TURN = 9
+    PROVE = 11
 
     RANDPLAYER = 10
 
@@ -94,8 +95,10 @@ GStateInfoType = {
     GameStateType.CREATION: None,
     GameStateType.EDITING: None,
     GameStateType.CLAIMING: None,
+    GameStateType.MAIN: None,
 
     GameStateType.TURN: int,
+    GameStateType.PROVE: None,
 
     GameStateType.RANDPLAYER: int,
 }
@@ -234,10 +237,16 @@ class PWars:
         elif gameStates[0] == GameState(0, GameStateType.CLAIMING) and len(gameStates) == 3 and gameStates[1].type == GameStateType.RANDPLAYER and gameStates[2].type == GameStateType.TURN:
             if GameState.nextTurn(self, gameStates[2]) != GameState(2, GameStateType.TURN, gameStates[1].info): return [GameState.nextTurn(self, gameStates[2])]
             else: return [GameState(0, GameStateType.MAIN), GameState.randPlayer(self, 1)]
-        elif gameStates[0] == GameState(0, GameStateType.MAIN) and len(gameStates) == 2 and gameStates[1].type == GameStateType.RANDPLAYER:
-            return [GameState(2, GameStateType.TURN, gameStates[1].info)]
+        elif gameStates[0] == GameState(0, GameStateType.MAIN) and gameStates[1].type == GameStateType.RANDPLAYER:
+            if len(gameStates) == 2:
+                return [GameState(2, GameStateType.TURN, gameStates[1].info)]
+            elif len(gameStates) == 3 and len(playerActs) == 1:
+                if playerActs[0].type == PlayerActionType.PLAY: return [GameState(3, GameStateType.PROVE)]
+                else: return [GameState.nextTurn(self, gameStates[2])]
+            elif len(gameStates) == 4:
+                return [GameState.nextTurn(self, gameStates[2])]
 
-        raise GameException('W.I.P')
+        raise GameException('Conditions not applied')
     def advance(self):
         """
         Advances to a new game state and returns self.
@@ -260,10 +269,13 @@ class PWars:
                 for i in votesInd:
                     self.players[i].cards.append(Card())
                     self.deck.remove(Card())
-        if newGameStates[0] == GameState(0, GameStateType.MAIN) and newGameStates[1].type == GameStateType.RANDPLAYER and len(newGameStates) == 2:
-            self.remainingPlayers = [True for _ in self.players]
-            self.discardPile = []
-            for player in self.players: player.playInit()
+        if newGameStates[0] == GameState(0, GameStateType.MAIN):
+            if newGameStates[1].type == GameStateType.RANDPLAYER and len(newGameStates) == 2:
+                self.remainingPlayers = [True for _ in self.players]
+                self.discardPile = []
+                for player in self.players: player.playInit()
+            if len(newGameStates) == 4 and newGameStates[3].type == GameStateType.PROVE:
+                ...
 
         return self
     def action(self, playerAct: PlayerAction) -> bool:
@@ -357,23 +369,27 @@ class PWars:
         len(playerAct.info) <= 8 and not any(self.players[playerId].cards[cardId] == Card() for playerId, cardId in playerAct.info): return True
 
         #Main phase
-        if gameStates[0] == GameState(0, GameStateType.MAIN) and \
-        len(gameStates) == 3 and gameStates[2].type == GameStateType.TURN and len(playerActs) == 0 and \
-        playerAct.valid((PlayerActionType.PLAY, PlayerActionType.DISCARD, PlayerActionType.CLAIMPLAY, PlayerActionType.UNREMAIN)) and \
-        self.remaining[playerAct.player]:
-            #Playing action
-            if playerAct.type == PlayerActionType.PLAY:
-                if playerAct.info[0].powerCost > playerAct.info[1].powerCost: return False
-                if self.recentPlay == None: return True
-                mainCard: Card = playerAct.info[0]
-                oppoMainCard: Card = self.recentPlay[0]
-                if (not oppoMainCard.tag.beat(mainCard.tag)) or \
-                (mainCard.effect.symbolPoint() < oppoMainCard.effect.symbolPoint()): return True
-            #Discard and unremain action
-            elif playerAct.type in [PlayerActionType.DISCARD, PlayerActionType.UNREMAIN]: return True
-            #Claim action in main phase
-            if playerAct.type == PlayerActionType.CLAIMPLAY and \
-            len(playerAct.info) <= 8 and not any(self.players[playerId].cards[cardId] == Card() for playerId, cardId in playerAct.info): return True
+        if gameStates[0] == GameState(0, GameStateType.MAIN) and self.remaining[playerAct.player]:
+            #Before proving game state
+            if len(gameStates) == 3 and gameStates[2].type == GameStateType.TURN and len(playerActs) == 0 and \
+            playerAct.valid((PlayerActionType.PLAY, PlayerActionType.DISCARD, PlayerActionType.CLAIMPLAY, PlayerActionType.UNREMAIN)):
+                #Playing action
+                if playerAct.type == PlayerActionType.PLAY:
+                    if playerAct.info[0].powerCost > playerAct.info[1].powerCost: return False
+                    if self.recentPlay == None: return True
+                    mainCard: Card = playerAct.info[0]
+                    oppoMainCard: Card = self.recentPlay[0]
+                    if (not oppoMainCard.tag.beat(mainCard.tag)) or \
+                    (mainCard.effect.symbolPoint() < oppoMainCard.effect.symbolPoint()): return True
+                #Discard and unremain action
+                elif playerAct.type in [PlayerActionType.DISCARD, PlayerActionType.UNREMAIN]: return True
+                #Claim action in main phase
+                if playerAct.type == PlayerActionType.CLAIMPLAY and \
+                len(playerAct.info) <= 8 and not any(self.players[playerId].cards[cardId] == Card() for playerId, cardId in playerAct.info): return True
+            #Proving game state
+            if len(gameStates) == 3 and gameStates[3].type == GameStateType.PROVE and \
+            playerAct.valid(PlayerActionType.PROVE):
+                ...
 
         ...
         return False

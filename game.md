@@ -43,7 +43,7 @@ Go in cycles of remained players, moving clockwise, starting from the latest pla
     - Raise a card's power cost by 2 and discard it into the discard pile, or
     - Claim a card from the deck for twice the power cost (if affordable), or
     - Choose not to remain
-- The player can then [prove](#proving-rules) a predicate game function applied to a player is true or false in the scope of two played cards by the [proving system](#predicate-logic-and-the-proving-system), only if they have enough proving power to do it, then the proving power is subtracted by the number of lines used in the proof.
+- If chose playing, the player can then [prove](#proving-rules) a predicate game function applied to a player is true or false in the scope of two played cards by the [proving system](#predicate-logic-and-the-proving-system), only if they have enough proving power to do it, then the proving power is subtracted by the number of lines used in the proof.
 - If a player loses all health (<= 0), they lose the game and cannot participate in the game in any way.
 #### Phase V: Finalization
 - If there is only one player left, the player in the game wins.
