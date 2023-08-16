@@ -138,7 +138,7 @@ class Statement:
         unLexed = string
         while unLexed != '':
             typeDetect = tuple(re.match(regex, unLexed) for _, regex in symbolsType)
-            if any(x != None for x in typeDetect):
+            if any(typeDetect):
                 typeDetectIndex = tuple(re.match(regex, unLexed).start() if re.match(regex, unLexed) else float('inf') for _, regex in symbolsType)
                 nextTokenMatch = typeDetect[typeDetectIndex.index(min(typeDetectIndex))]
                 nextToken = symbolTrans(nextTokenMatch.group())

@@ -1,10 +1,11 @@
+from collections import Counter
 from copy import deepcopy
 from dataclasses import dataclass, field
 from enum import Enum
 import random
 from typing import Any, Callable, Iterable, List, Literal, Optional, Tuple
 
-from predicate import Proof, Statement
+from predicate import Proof, StateTag, Statement
 
 #REMINDER: Add features in order, in separate commits, one by one...
 #REMINDER: When adding player action features, update:
@@ -144,16 +145,16 @@ class PlayerAction:
             if not self.type in typeReq: return False
         #Specific checks
         if self.type == PlayerActionType.EDIT: return self.info[1] != Card()
-        if self.type == PlayerActionType.TAKEBLANK: return isinstance(self.info, bool)
-        if self.type == PlayerActionType.CLAIM: return isinstance(self.info, list) and all(isinstance(claim, tuple) and len(claim) == 2 and all(isinstance(num, int) for num in claim) for claim in self.info)
+        elif self.type == PlayerActionType.TAKEBLANK: return isinstance(self.info, bool)
+        elif self.type == PlayerActionType.CLAIM: return isinstance(self.info, list) and all(isinstance(claim, tuple) and len(claim) == 2 and all(isinstance(num, int) for num in claim) for claim in self.info)
 
-        if self.type == PlayerActionType.PLAY: return isinstance(self.info, tuple) and len(self.info) == 2 and all(isinstance(x, int) for x in self.info)
-        if self.type == PlayerActionType.DISCARD: return isinstance(self.info, int)
-        if self.type == PlayerActionType.UNREMAIN: return self.info is None
-        if self.type == PlayerActionType.CLAIMPLAY: return isinstance(self.info, list) and all(isinstance(claim, tuple) and len(claim) == 2 and all(isinstance(num, int) for num in claim) for claim in self.info)
-        ...
+        elif self.type == PlayerActionType.PLAY: return isinstance(self.info, tuple) and len(self.info) == 2 and all(isinstance(x, int) for x in self.info)
+        elif self.type == PlayerActionType.DISCARD: return isinstance(self.info, int)
+        elif self.type == PlayerActionType.UNREMAIN: return self.info is None
+        elif self.type == PlayerActionType.CLAIMPLAY: return isinstance(self.info, list) and all(isinstance(claim, tuple) and len(claim) == 2 and all(isinstance(num, int) for num in claim) for claim in self.info)
+        elif self.type == PlayerActionType.PROVE: return isinstance(self.info, tuple) and len(self.info) == 3 and isinstance(self.info[0], (int, None)) and isinstance(self.info[1], Proof) and isinstance(self.info[2], int)
 
-        return True
+        else: raise ValueError('Invalid type')
 
 PActInfoType = {
     PlayerActionType.EDIT: Tuple[int, Card],
@@ -164,7 +165,7 @@ PActInfoType = {
     PlayerActionType.DISCARD: int,
     PlayerActionType.CLAIMPLAY: List[Tuple[int, int]], #[playerID, cardID]
     PlayerActionType.UNREMAIN: None,
-    PlayerActionType.PROVE: Tuple[Proof, int], #(proof, deriveIndex)
+    PlayerActionType.PROVE: Tuple[int | None, Proof, int], #(opposingProofIndex, proof, deriveIndex)
 }
 
 class GameException(Exception): pass
@@ -209,6 +210,19 @@ class PWars:
         """
         latestGameState = next((len(self.history) - index for index, element in enumerate(self.history[::-1]) if isinstance(element, GameState)), -1)
         return tuple(self.history[latestGameState:])
+    def startAxioms(self, opposingProofIndex: int | None) -> Tuple[Statement, ...]:
+        """
+        Return axioms to start infering the proofs in proving game state.
+        Raises error if not in proving game state.
+        """
+        #TODO: Test this method
+        gameStates = self.currentGameStates()
+        playerActs = self.recentPlayerActions()
+        if len(gameStates) == 3 and gameStates[0].type == GameStateType.MAIN and gameStates[3].type == GameStateType.PROVE:
+            if opposingProofIndex == None: return (self.recentPlay[0].effect, self.recentPlay[0].effect)
+            else: return tuple(playerActs[opposingProofIndex].info[1].statements)
+        else:
+            raise GameException("Not in proving game state")
 
     #Main functions
     #REFACTOR: Argh-
@@ -379,6 +393,7 @@ class PWars:
                     if self.recentPlay == None: return True
                     mainCard: Card = playerAct.info[0]
                     oppoMainCard: Card = self.recentPlay[0]
+                    if Card() in (mainCard, oppoMainCard): return False #Make sure not to play blank cards
                     if (not oppoMainCard.tag.beat(mainCard.tag)) or \
                     (mainCard.effect.symbolPoint() < oppoMainCard.effect.symbolPoint()): return True
                 #Discard and unremain action
@@ -389,7 +404,11 @@ class PWars:
             #Proving game state
             if len(gameStates) == 3 and gameStates[3].type == GameStateType.PROVE and \
             playerAct.valid(PlayerActionType.PROVE):
-                ...
-
+                if len(playerActs) == 0 and isinstance(playerAct.info[0], int): return False #First proving player actions cannot reference opposing proofs
+                if playerAct.info[0] > len(playerActs): return False #No reference to nonexistent opposing proofs
+                proof: Proof = playerAct.info[1]
+                axioms = self.startAxioms(playerAct.info[0])
+                proofAxioms = tuple(state for state, tag in zip(proof.statements, proof.stateTags) if tag == StateTag.AXIOM)
+                return axioms == proofAxioms
         ...
         return False
