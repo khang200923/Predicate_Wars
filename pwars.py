@@ -289,7 +289,7 @@ class PWars:
                 self.discardPile = []
                 for player in self.players: player.playInit()
             if len(newGameStates) == 4 and newGameStates[3].type == GameStateType.PROVE:
-                ...
+                ... #Game effects here
 
         return self
     def action(self, playerAct: PlayerAction) -> bool:
