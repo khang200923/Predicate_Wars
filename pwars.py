@@ -189,8 +189,8 @@ class PWars:
     dropPile: List[Card] = field(default_factory=list)
     recentPlay: Optional[Tuple[Card, Card]] = None
     def __post_init__(self):
-        self.players = [Player(self.INITHEALTHMULT * self.INITPLAYER, self.INITPOWER, [Card()] * self.INITCARDPLAYER, self.INITPOTENCY)] * self.INITPLAYER
-        self.deck = [Card()] * self.INITCARDDECK
+        self.players = [Player(self.INITHEALTHMULT * self.INITPLAYER, self.INITPOWER, [Card() for _ in range(self.INITCARDPLAYER)], self.INITPOTENCY) for _ in range(self.INITPLAYER)]
+        self.deck = [Card() for _ in range(self.INITCARDDECK)]
         self.remaining = [False for _ in self.players]
     def currentGameStates(self) -> Tuple[GameState]:
         """
@@ -310,12 +310,12 @@ class PWars:
                 self.players[playerAct.player].editCard(playerAct.info[0], playerAct.info[1])
 
             #On editing phase, edit a card based on the player action
-            elif gameStates == (GameState(2, GameStateType.EDITING, None),):
+            if gameStates == (GameState(0, GameStateType.EDITING, None),):
                 self.players[playerAct.player].editCard(playerAct.info[0], playerAct.info[1])
 
             #On claiming phase, claim any card (not blank) from any player hand and buy it
-            elif gameStates[0] == GameState(2, GameStateType.CLAIMING, None):
-                powerSpent = sum(self.players[playerId].cards[cardId].power for playerId, cardId in playerAct.info)
+            if gameStates[0] == GameState(0, GameStateType.CLAIMING, None):
+                powerSpent = sum(self.players[playerId].cards[cardId].powerCost for playerId, cardId in playerAct.info)
                 if powerSpent <= self.players[playerAct.player].power:
                     for playerId, cardId in sorted(playerAct.info, key=lambda x: x[1], reverse=True): #sorted function prevents deleting elements affecting indexes
                         self.players[playerAct.player].cards.append(self.players[playerId].cards[cardId])
@@ -323,7 +323,7 @@ class PWars:
                     self.players[playerAct.player].power -= powerSpent
 
             #On main phase, ...
-            elif gameStates[0] == GameState(0, GameStateType.MAIN):
+            if gameStates[0] == GameState(0, GameStateType.MAIN):
                 #if PLAY, play the pair of cards
                 if playerAct.type == PlayerActionType.PLAY:
                     self.dropPile += (self.players[playerAct.player].cards[x] for x in playerAct.info)
@@ -341,8 +341,8 @@ class PWars:
                 elif playerAct.type == PlayerActionType.UNREMAIN:
                     self.remaining[playerAct.player] = False
                 #if CLAIMPLAY, claim the card to player for twice the power cost
-                elif playerAct.type == PlayerActionType.CLAIMPLAY:
-                    powerSpent = sum(self.players[playerId].cards[cardId].power for playerId, cardId in playerAct.info) * 2
+                if playerAct.type == PlayerActionType.CLAIMPLAY:
+                    powerSpent = sum(self.players[playerId].cards[cardId].powerCost for playerId, cardId in playerAct.info) * 2
                     if powerSpent <= self.players[playerAct.player].power:
                         for playerId, cardId in sorted(playerAct.info, key=lambda x: x[1], reverse=True): #sorted function prevents deleting elements affecting indexes
                             self.players[playerAct.player].cards.append(self.players[playerId].cards[cardId])
@@ -399,8 +399,8 @@ class PWars:
                 #Discard and unremain action
                 elif playerAct.type in [PlayerActionType.DISCARD, PlayerActionType.UNREMAIN]: return True
                 #Claim action in main phase
-                if playerAct.type == PlayerActionType.CLAIMPLAY and \
-                len(playerAct.info) <= 8 and not any(self.players[playerId].cards[cardId] == Card() for playerId, cardId in playerAct.info): return True
+                if playerAct.type == PlayerActionType.CLAIMPLAY:
+                    return len(playerAct.info) <= 8 and not any(self.players[playerId].cards[cardId] == Card() for playerId, cardId in playerAct.info)
             #Proving game state
             if len(gameStates) == 4 and gameStates[3].type == GameStateType.PROVE and \
             playerAct.valid(PlayerActionType.PROVE):
