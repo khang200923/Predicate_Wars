@@ -556,6 +556,18 @@ game.action(pw.PlayerAction(
 game.advance()
 res = game.currentGameStates()
 test('PWars.currentGameState 6', res[0] == pw.GameState(layer=0, type=pw.GameStateType.CLAIMING, info=None) and res[1].type == pw.GameStateType.RANDPLAYER and res[2].type == pw.GameStateType.TURN and \
-    res[2].info == res[1].info + 1 % game.INITPLAYER, res)
+    res[2].info == (res[1].info + 1) % game.INITPLAYER, res)
+game.advance()
+game.advance()
+game.advance()
+res = game.currentGameStates()
+test('PWars.currentGameState 7', res[0] == pw.GameState(layer=0, type=pw.GameStateType.MAIN, info=None) and res[1].type == pw.GameStateType.RANDPLAYER and res[2].type == pw.GameStateType.TURN and \
+    res[2].info == res[1].info, res)
+game.action(pw.PlayerAction(
+    res[2].info,
+    pw.PlayerActionType.UNREMAIN,
+))
+res2 = game.remaining
+test('PWars.currentGameState 8', res2 == [i != res[2].info for i in range(game.INITPLAYER)], res2)
 
 summary()

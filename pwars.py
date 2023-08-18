@@ -115,7 +115,7 @@ class GameState:
     @staticmethod
     def nextTurn(self: 'PWars', turn: 'GameState') -> 'GameState':
         if turn.type == GameStateType.TURN:
-            return GameState(turn.layer, GameStateType.TURN, turn.info + 1 % len(self.players))
+            return GameState(turn.layer, GameStateType.TURN, (turn.info + 1) % len(self.players))
         else: raise ValueError("Not a Turn")
 
 class PlayerActionType(Enum):
@@ -285,7 +285,7 @@ class PWars:
                     self.deck.remove(Card())
         if newGameStates[0] == GameState(0, GameStateType.MAIN):
             if newGameStates[1].type == GameStateType.RANDPLAYER and len(newGameStates) == 2:
-                self.remainingPlayers = [True for _ in self.players]
+                self.remaining = [True for _ in self.players]
                 self.discardPile = []
                 for player in self.players: player.playInit()
             if len(newGameStates) == 4 and newGameStates[3].type == GameStateType.PROVE:
@@ -402,7 +402,7 @@ class PWars:
                 if playerAct.type == PlayerActionType.CLAIMPLAY and \
                 len(playerAct.info) <= 8 and not any(self.players[playerId].cards[cardId] == Card() for playerId, cardId in playerAct.info): return True
             #Proving game state
-            if len(gameStates) == 3 and gameStates[3].type == GameStateType.PROVE and \
+            if len(gameStates) == 4 and gameStates[3].type == GameStateType.PROVE and \
             playerAct.valid(PlayerActionType.PROVE):
                 if len(playerActs) == 0 and isinstance(playerAct.info[0], int): return False #First proving player actions cannot reference opposing proofs
                 if playerAct.info[0] > len(playerActs): return False #No reference to nonexistent opposing proofs
