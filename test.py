@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Tuple
 import sys
 import os
 import predicate as pd
@@ -13,16 +13,33 @@ totalTest = 0
 try: testIndex = int(sys.argv[1])
 except IndexError: testIndex = None
 
-def test(name: str, bl: bool, failinfo: Any, note: str = ''):
+def testReturn(name: str, bl: bool, failinfo: Any, note: str = '', totalTest = totalTest) -> Tuple[bool, str]:
+    failstr = ': ' + repr(failinfo)
+    testResChoice = {True: 'success', False: 'failure'}
+    if bl:
+        text = f'\033[1m\033[32mTest {name} {testResChoice[bl]}\033[0m'
+    else:
+        text = f'\033[1m\033[31mTest {name} {testResChoice[bl]}\033[0m{failstr}'
+    text += note
+    return (bl, text)
+
+def printTest(result: Tuple[bool, str]) -> None:
     global sucTest, totalTest
     totalTest += 1
-    failstr = ': ' + repr(failinfo)
 
-    if totalTest == testIndex or testIndex == None:
-        if bl:
-            print('{1}. \033[1m\033[32mTest {0} success\033[0m'.format(name, totalTest) + note)
+    if totalTest == testIndex or testIndex is None:
+        if result[0]:
             sucTest += 1
-        else: print('{2}. \033[1m\033[31mTest {0} failure\033[0m{1}'.format(name, failstr, totalTest) + note)
+        print(f'\033[1m\033[34m{totalTest}\033[0m. {result[1]}')
+
+def test(name: str, bl: bool, failinfo: Any, note: str = ''):
+    printTest(testReturn(name, bl, failinfo, note))
+
+def summary() -> None:
+    if testIndex is None:
+        print(f'\n{sucTest}/{totalTest} successful tests')
+    else:
+        print('\n1/1 successful tests')
 
 def summary():
     if testIndex == None: print('\n{0}/{1} successful tests'.format(sucTest, totalTest))
@@ -581,5 +598,20 @@ game.action(pw.PlayerAction(
 ))
 res2 = sum(x - y == 10 for x, y in zip(res2, [player.power for player in game.players])) == 1
 test('PWars.action 2 CLAIMPLAY', res2, False)
+game.advance()
+while game.currentGameStates()[2].info != 0:
+    game.action(pw.PlayerAction(res[2].info, pw.PlayerActionType.DEBUGACT))
+    game.advance()
+res = game.currentGameStates()
+res2 = tuple(game.players[res[2].info].cards)
+res3 = game.action(pw.PlayerAction(
+    res[2].info,
+    pw.PlayerActionType.DISCARD,
+    0
+))
+res4 = game.players[res[2].info].cards == list(res2[1:]) and len(game.discardPile) == 1
+test('PWars.action 3 DISCARD', res4, ('\n'.join(f'{str(a)}' for a in
+                                                     (res3, game.players[res[2].info].cards, res2, game.discardPile, res[2].info)
+)), ' (might fail sometimes)')
 
 summary()

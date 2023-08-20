@@ -133,6 +133,8 @@ class PlayerActionType(Enum):
     ADDRULE = 9
     REMOVERULE = 10
 
+    DEBUGACT = 11
+
 @dataclass
 class PlayerAction:
     player: int
@@ -154,6 +156,7 @@ class PlayerAction:
         elif self.type == PlayerActionType.CLAIMPLAY: return isinstance(self.info, list) and all(isinstance(claim, tuple) and len(claim) == 2 and all(isinstance(num, int) for num in claim) for claim in self.info)
         elif self.type == PlayerActionType.PROVE: return isinstance(self.info, tuple) and len(self.info) == 3 and isinstance(self.info[0], (int, None)) and isinstance(self.info[1], Proof) and isinstance(self.info[2], int)
 
+        elif self.type == PlayerActionType.DEBUGACT: return True
         else: raise ValueError('Invalid type')
 
 PActInfoType = {
@@ -166,6 +169,8 @@ PActInfoType = {
     PlayerActionType.CLAIMPLAY: List[Tuple[int, int]], #[playerID, cardID]
     PlayerActionType.UNREMAIN: None,
     PlayerActionType.PROVE: Tuple[int | None, Proof, int], #(opposingProofIndex, proof, deriveIndex)
+
+    PlayerActionType.DEBUGACT: Any
 }
 
 class GameException(Exception): pass
@@ -259,7 +264,6 @@ class PWars:
                 else: return [GameState.nextTurn(self, gameStates[2])]
             elif len(gameStates) == 4:
                 return [GameState.nextTurn(self, gameStates[2])]
-
         raise GameException('Conditions not applied')
     def advance(self):
         """
@@ -334,7 +338,7 @@ class PWars:
                 #if DISCARD, discard card while raising its power cost by 2
                 elif playerAct.type == PlayerActionType.DISCARD:
                     self.players[playerAct.player].cards[playerAct.info].powerCost += 2
-                    self.discardPile += self.players[playerAct.player].cards[playerAct.info]
+                    self.discardPile.append(self.players[playerAct.player].cards[playerAct.info])
                     #Delete the card from their hand
                     del self.players[playerAct.player].cards[playerAct.info]
                 #if UNREMAIN, leave the main phase
@@ -360,6 +364,7 @@ class PWars:
         playerActs = self.recentPlayerActions()
 
         if len(gameStates) == 0: return False
+        if playerAct.valid(PlayerActionType.DEBUGACT): return True
 
         #Initial gameplay
         if gameStates == (GameState(0, GameStateType.INITIAL, None),) and \
@@ -379,7 +384,7 @@ class PWars:
         if gameStates[0] == GameState(0, GameStateType.CLAIMING, None) and \
         len(gameStates) == 3 and gameStates[2].type == GameStateType.TURN and \
         all(playerAct.valid(PlayerActionType.CLAIM) for playerAct in playerActs + (playerAct,)) and \
-        len(playerActs) == 0 and playerAct.player == gameStates[2].info and """playerAct.type == PlayerActionType.CLAIM (TODO: Check if the quoted part is actually important)""" and \
+        len(playerActs) == 0 and playerAct.player == gameStates[2].info and \
         len(playerAct.info) <= 8 and not any(self.players[playerId].cards[cardId] == Card() for playerId, cardId in playerAct.info): return True
 
         #Main phase

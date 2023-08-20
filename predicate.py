@@ -107,7 +107,7 @@ def symbolTypeCalc(symbol: str) -> str | None: return next((name for name, cond 
 
 def symbolTrans(symbol: str) -> Tuple[str, ...] | None:
     symType = symbolTypeCalc(symbol)
-    if symType == None:
+    if symType is None:
         return None
     if symType == 'var':
         return (symType, str(ord(symbol.lower()) - ord('a') + 1))
@@ -136,7 +136,7 @@ class Statement:
         """
         tokens = []
         unLexed = string
-        while unLexed != '':
+        while unLexed:
             typeDetect = tuple(re.match(regex, unLexed) for _, regex in symbolsType)
             if any(typeDetect):
                 typeDetectIndex = tuple(re.match(regex, unLexed).start() if re.match(regex, unLexed) else float('inf') for _, regex in symbolsType)
@@ -146,13 +146,13 @@ class Statement:
                     tokens.append(nextToken)
                 unLexed = unLexed[nextTokenMatch.end():]
             else:
-                raise ValueError("Invalid string")
+                raise ValueError("Invalid string at '{}'".format(unLexed))
         return Statement(tuple(tokens))
 
     def __str__(self) -> str:
         res = ''
         for symType, *symVal in self:
-            if symType == None:
+            if symType is None:
                 pass
             elif symType == 'var':
                 res += chr(int(symVal[0]) - 1 + ord('a'))
@@ -317,7 +317,7 @@ class Statement:
                 paramsLeft = self[2:-1]
                 while len(paramsLeft) > 0:
                     paramEndIndex = next((index for index in range(len(paramsLeft) + 1) if Statement(paramsLeft[:index]).wellformedobj() and not (index < len(paramsLeft) and not paramsLeft[index] == ('comma',))), None)
-                    if paramEndIndex == None: return Statement(paramsLeft).wellformedobj()
+                    if paramEndIndex is None: return Statement(paramsLeft).wellformedobj()
                     paramsLeft = paramsLeft[paramEndIndex+1:]
                 return True
 
@@ -532,7 +532,7 @@ class Statement:
             paramsLeft = self[2:-1]
             while len(paramsLeft) > 0:
                 paramEndIndex = next((index for index in range(len(paramsLeft) + 1) if Statement(paramsLeft[:index]).wellformedobj() and not (index < len(paramsLeft) and not paramsLeft[index] == ('comma',))), None)
-                if paramEndIndex == None: return Statement(paramsLeft).wellformedobj()
+                if paramEndIndex is None: return Statement(paramsLeft).wellformedobj()
                 paramsLeft = paramsLeft[paramEndIndex+1:]
             return True
 
