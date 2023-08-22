@@ -331,8 +331,8 @@ class PWars:
             if gameStates[0] == GameState(0, GameStateType.MAIN):
                 #if PLAY, play the pair of cards
                 if playerAct.type == PlayerActionType.PLAY:
-                    self.dropPile += (player.cards[x] for x in playerAct.info)
-                    self.recentPlay = (player.cards[x] for x in playerAct.info)
+                    self.dropPile += tuple(player.cards[x] for x in playerAct.info)
+                    self.recentPlay = tuple(player.cards[x] for x in playerAct.info)
                     #Ensure deleting the right indexes
                     del player.cards[max(playerAct.info)]
                     del player.cards[min(playerAct.info)]
@@ -399,6 +399,7 @@ class PWars:
                     mainCard: Card = player.cards[playerAct.info[0]]
 
                     if Card() in (mainCard, player.cards[playerAct.info[1]]): return False #Make sure not to play blank cards
+                    if mainCard.effect.symbolPoint() > player.cards[playerAct.info[1]].effect.symbolPoint(): return False
                     if self.recentPlay != None:
                         oppoMainCard: Card = self.recentPlay[0]
                         if mainCard.powerCost > oppoMainCard.powerCost: return False

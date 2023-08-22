@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Any, Tuple
 import sys
 import os
@@ -616,26 +617,37 @@ if not res3: game.action(pw.PlayerAction(res[2].info, pw.PlayerActionType.DEBUGA
 game.advance()
 res = game.currentGameStates()
 assert res[2].info == 1, ':('
-game.players[res[2].info].cards = [pw.Card(blank=True,
-                                           tag=pw.CardTag.PAPER,
-                                           powerCost=10,
-                                           effect=pd.Statement.lex("""
-                                                                   (forall(x)([PLAYER](x) imply [ATK](x, 10)))
-                                                                   """)
-                                           ),
-                                   pw.Card(blank=True,
-                                           tag=pw.CardTag.PAPER,
-                                           powerCost=7,
-                                           effect=pd.Statement.lex("""
-                                                                   tT
-                                                                   """)
-                                           )
-                                  ]
+cards =    [pw.Card(blank=True,
+                    tag=pw.CardTag.PAPER,
+                    powerCost=10,
+                    effect=pd.Statement.lex("""
+                                            (forall(x)([PLAYER](x) imply [ATK](x, 10)))
+                                            """)
+                    ),
+            pw.Card(blank=True,
+                    tag=pw.CardTag.PAPER,
+                    powerCost=7,
+                    effect=pd.Statement.lex("""
+                                            tT
+                                            """)
+                    )
+            ]
+game.players[res[2].info].cards = deepcopy(cards)
+res2 = game.action(pw.PlayerAction(
+    1,
+    pw.PlayerActionType.PLAY,
+    (0, 1)
+))
+test('PWars.action 4 PLAY', not res2, True)
 res2 = game.action(pw.PlayerAction(
     1,
     pw.PlayerActionType.PLAY,
     (1, 0)
 ))
-test('PWars.action 4 PLAY', res2, False)
+test('PWars.action 5 PLAY', res2, False)
+test('PWars.action 6 PLAY', game.recentPlay == tuple(cards[::-1]), game.recentPlay)
+game.advance()
+res = game.currentGameStates()
+test('PWars.action 7 PLAY', len(res) == 4 and res[3].type == pw.GameStateType.PROVE, res)
 
 summary()
