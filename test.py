@@ -20,7 +20,7 @@ def testReturn(name: str, bl: bool, failinfo: Any, note: str = '', totalTest = t
         text = f'\033[1m\033[32mTest {name} {testResChoice[bl]}\033[0m'
     else:
         text = f'\033[1m\033[31mTest {name} {testResChoice[bl]}\033[0m{failstr}'
-    text += note
+    text += f'\033[1m\033[36m{note}\033[0m'
     return (bl, text)
 
 def printTest(result: Tuple[bool, str]) -> None:
@@ -602,6 +602,7 @@ game.advance()
 while game.currentGameStates()[2].info != 0:
     game.action(pw.PlayerAction(res[2].info, pw.PlayerActionType.DEBUGACT))
     game.advance()
+game.remaining = [True, True, True]
 res = game.currentGameStates()
 res2 = tuple(game.players[res[2].info].cards)
 res3 = game.action(pw.PlayerAction(
@@ -610,8 +611,31 @@ res3 = game.action(pw.PlayerAction(
     0
 ))
 res4 = game.players[res[2].info].cards == list(res2[1:]) and len(game.discardPile) == 1
-test('PWars.action 3 DISCARD', res4, ('\n'.join(f'{str(a)}' for a in
-                                                     (res3, game.players[res[2].info].cards, res2, game.discardPile, res[2].info)
-)), ' (might fail sometimes)')
+test('PWars.action 3 DISCARD', res4, False)
+if not res3: game.action(pw.PlayerAction(res[2].info, pw.PlayerActionType.DEBUGACT)) #Skip action in case of failure
+game.advance()
+res = game.currentGameStates()
+assert res[2].info == 1, ':('
+game.players[res[2].info].cards = [pw.Card(blank=True,
+                                           tag=pw.CardTag.PAPER,
+                                           powerCost=10,
+                                           effect=pd.Statement.lex("""
+                                                                   (forall(x)([PLAYER](x) imply [ATK](x, 10)))
+                                                                   """)
+                                           ),
+                                   pw.Card(blank=True,
+                                           tag=pw.CardTag.PAPER,
+                                           powerCost=7,
+                                           effect=pd.Statement.lex("""
+                                                                   tT
+                                                                   """)
+                                           )
+                                  ]
+res2 = game.action(pw.PlayerAction(
+    1,
+    pw.PlayerActionType.PLAY,
+    (1, 0)
+))
+test('PWars.action 4 PLAY', res2, False)
 
 summary()

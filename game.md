@@ -39,7 +39,7 @@ Each player has proving power (public) which can only be used for this round, de
 Go in cycles of remained players, moving clockwise, starting from the latest player, ends when there is only 1 remaining:
 - The player remains if they still have cards left, or not choosing to not remain
 - The player can:
-    - Play two paired cards (one that has smaller symbol count is called *main* card, the other is called *secondary* card having larger symbol count) and apply its effects (if there is no card played yet, or the previous *main* card tag doesn't beat your *main* card's, or the previous *main* card has more symbol count than yours) and put them in the drop pile, or
+    - Play two paired cards (one that has smaller symbol count is called *main* card, the other is called *secondary* card having larger symbol count) and apply its effects (if the player doesn't play a blank card; and if there is no card played yet, or the previous *main* card tag doesn't beat the player's *main* card's, or the previous *main* card has more symbol count than the player) and put them in the drop pile, or
     - Raise a card's power cost by 2 and discard it into the discard pile, or
     - Claim a card from the deck for twice the power cost (if affordable), or
     - Choose not to remain

@@ -308,50 +308,51 @@ class PWars:
             playerActs = self.recentPlayerActions()
             self.history.append(playerAct)
             gameStates = self.currentGameStates()
+            player = self.players[playerAct.player]
 
             #On initial gameplay, edit a card based on the player action
             if gameStates == (GameState(0, GameStateType.INITIAL),):
-                self.players[playerAct.player].editCard(playerAct.info[0], playerAct.info[1])
+                player.editCard(playerAct.info[0], playerAct.info[1])
 
             #On editing phase, edit a card based on the player action
             if gameStates == (GameState(0, GameStateType.EDITING, None),):
-                self.players[playerAct.player].editCard(playerAct.info[0], playerAct.info[1])
+                player.editCard(playerAct.info[0], playerAct.info[1])
 
             #On claiming phase, claim any card (not blank) from any player hand and buy it
             if gameStates[0] == GameState(0, GameStateType.CLAIMING, None):
                 powerSpent = sum(self.players[playerId].cards[cardId].powerCost for playerId, cardId in playerAct.info)
-                if powerSpent <= self.players[playerAct.player].power:
+                if powerSpent <= player.power:
                     for playerId, cardId in sorted(playerAct.info, key=lambda x: x[1], reverse=True): #sorted function prevents deleting elements affecting indexes
-                        self.players[playerAct.player].cards.append(self.players[playerId].cards[cardId])
+                        player.cards.append(self.players[playerId].cards[cardId])
                         del self.players[playerId].cards[cardId]
-                    self.players[playerAct.player].power -= powerSpent
+                    player.power -= powerSpent
 
             #On main phase, ...
             if gameStates[0] == GameState(0, GameStateType.MAIN):
                 #if PLAY, play the pair of cards
                 if playerAct.type == PlayerActionType.PLAY:
-                    self.dropPile += (self.players[playerAct.player].cards[x] for x in playerAct.info)
-                    self.recentPlay = (self.players[playerAct.player].cards[x] for x in playerAct.info)
+                    self.dropPile += (player.cards[x] for x in playerAct.info)
+                    self.recentPlay = (player.cards[x] for x in playerAct.info)
                     #Ensure deleting the right indexes
-                    del self.players[playerAct.player].cards[max(playerAct.info)]
-                    del self.players[playerAct.player].cards[min(playerAct.info)]
+                    del player.cards[max(playerAct.info)]
+                    del player.cards[min(playerAct.info)]
                 #if DISCARD, discard card while raising its power cost by 2
                 elif playerAct.type == PlayerActionType.DISCARD:
-                    self.players[playerAct.player].cards[playerAct.info].powerCost += 2
-                    self.discardPile.append(self.players[playerAct.player].cards[playerAct.info])
+                    player.cards[playerAct.info].powerCost += 2
+                    self.discardPile.append(player.cards[playerAct.info])
                     #Delete the card from their hand
-                    del self.players[playerAct.player].cards[playerAct.info]
+                    del player.cards[playerAct.info]
                 #if UNREMAIN, leave the main phase
                 elif playerAct.type == PlayerActionType.UNREMAIN:
                     self.remaining[playerAct.player] = False
                 #if CLAIMPLAY, claim the card to player for twice the power cost
                 if playerAct.type == PlayerActionType.CLAIMPLAY:
                     powerSpent = sum(self.players[playerId].cards[cardId].powerCost for playerId, cardId in playerAct.info) * 2
-                    if powerSpent <= self.players[playerAct.player].power:
+                    if powerSpent <= player.power:
                         for playerId, cardId in sorted(playerAct.info, key=lambda x: x[1], reverse=True): #sorted function prevents deleting elements affecting indexes
-                            self.players[playerAct.player].cards.append(self.players[playerId].cards[cardId])
+                            player.cards.append(self.players[playerId].cards[cardId])
                             del self.players[playerId].cards[cardId]
-                        self.players[playerAct.player].power -= powerSpent
+                        player.power -= powerSpent
 
         return valid
     def actionValid(self, playerAct: PlayerAction) -> bool:
@@ -362,6 +363,7 @@ class PWars:
         #TODO: Test this method
         gameStates = self.currentGameStates()
         playerActs = self.recentPlayerActions()
+        player = self.players[playerAct.player]
 
         if len(gameStates) == 0: return False
         if playerAct.valid(PlayerActionType.DEBUGACT): return True
@@ -394,13 +396,15 @@ class PWars:
             playerAct.valid((PlayerActionType.PLAY, PlayerActionType.DISCARD, PlayerActionType.CLAIMPLAY, PlayerActionType.UNREMAIN)):
                 #Playing action
                 if playerAct.type == PlayerActionType.PLAY:
-                    if playerAct.info[0].powerCost > playerAct.info[1].powerCost: return False
-                    if self.recentPlay == None: return True
-                    mainCard: Card = playerAct.info[0]
-                    oppoMainCard: Card = self.recentPlay[0]
-                    if Card() in (mainCard, oppoMainCard): return False #Make sure not to play blank cards
-                    if (not oppoMainCard.tag.beat(mainCard.tag)) or \
-                    (mainCard.effect.symbolPoint() < oppoMainCard.effect.symbolPoint()): return True
+                    mainCard: Card = player.cards[playerAct.info[0]]
+
+                    if Card() in (mainCard, player.cards[playerAct.info[1]]): return False #Make sure not to play blank cards
+                    if self.recentPlay != None:
+                        oppoMainCard: Card = self.recentPlay[0]
+                        if mainCard.powerCost > oppoMainCard.powerCost: return False
+                        if (not oppoMainCard.tag.beat(mainCard.tag)) or \
+                        (mainCard.effect.symbolPoint() < oppoMainCard.effect.symbolPoint()): return True
+                    else: return True
                 #Discard and unremain action
                 elif playerAct.type in [PlayerActionType.DISCARD, PlayerActionType.UNREMAIN]: return True
                 #Claim action in main phase
