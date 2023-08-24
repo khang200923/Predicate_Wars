@@ -14,7 +14,7 @@ totalTest = 0
 try: testIndex = int(sys.argv[1])
 except IndexError: testIndex = None
 
-def testReturn(name: str, bl: bool, failinfo: Any, note: str = '', totalTest = totalTest) -> Tuple[bool, str]:
+def testReturn(name: str, bl: bool, failinfo: Any, note: str = '') -> Tuple[bool, str]:
     failstr = ': ' + repr(failinfo)
     testResChoice = {True: 'success', False: 'failure'}
     if bl:
