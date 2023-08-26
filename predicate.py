@@ -1,10 +1,13 @@
+"""
+Provides essential classes and methods for creating and proving predicate logic statements.
+"""
 from copy import deepcopy
 from dataclasses import dataclass, field
 from enum import Enum
 import math
 import random
 import re
-from typing import Any, Callable, List, Sequence, Set, Tuple
+from typing import Any, Callable, List, Optional, Sequence, Set, Tuple
 
 def _mappableDict(dct: dict) -> bool:
     """
@@ -22,7 +25,7 @@ def _checkSubSeq(subseq: Sequence, seq: Sequence) -> bool: #From https://stackov
         while True:
             i = seq.index(subseq[0], i + 1, n - m + 1)
             if subseq == seq[i:i + m]:
-               return True
+                return True
     except ValueError:
         return False
 
@@ -36,7 +39,7 @@ def _subSeqIndexes(subseq: Sequence, seq: Sequence) -> Tuple[int]: #From https:/
         while True:
             i = seq.index(subseq[0], i + 1, n - m + 1)
             if subseq == seq[i:i + m]:
-               matches.append(i)
+                matches.append(i)
     except ValueError:
         return tuple(matches)
 
@@ -65,11 +68,14 @@ def _seqFormOptionalsIndexes(seq: Sequence, start: Sequence, end: Sequence, mid:
     return None
 
 def _smallestMissingInteger(sequence: Sequence[int], ground=0, default=0) -> int:
-    if len(sequence) == 0: return default
+    if len(sequence) == 0:
+        return default
     elements = sorted(set(sequence))
-    if elements[0] - ground >= 1: return ground
+    if elements[0] - ground >= 1:
+        return ground
     for element, change in ((elements[i], elements[i+1] - elements[i]) for i in range(len(elements)-1)):
-        if change != 1: return element + 1
+        if change != 1:
+            return element + 1
     return max(elements) + 1
 
 
@@ -81,9 +87,9 @@ predAFuncNames = ['[CLAIM]', '[ATK]', '[HEAL]', '[ADDPOWER]', '[SUBPOWER]']
 varDetector = r'([a-z](_[0-9]+)?)|([0-9]+)'
 
 symbolsType = (
-    ('gameFuncName', '|'.join([x.replace("[", "\[").replace("]", "\]") for x in gameFuncNames])),
-    ('predGFuncName', '|'.join([x.replace("[", "\[").replace("]", "\]") for x in predGFuncNames])),
-    ('predAFuncName', '|'.join([x.replace("[", "\[").replace("]", "\]") for x in predAFuncNames])),
+    ('gameFuncName', '|'.join([x.replace("[", r"\[").replace("]", r"\]") for x in gameFuncNames])),
+    ('predGFuncName', '|'.join([x.replace("[", r"\[").replace("]", r"\]") for x in predGFuncNames])),
+    ('predAFuncName', '|'.join([x.replace("[", r"\[").replace("]", r"\]") for x in predAFuncNames])),
     ('distVar', r'[a-z]_[0-9]+'),
     ('distPred', r'[A-Z]_[0-9]+'),
     ('truth', r't[TF]'),
@@ -103,7 +109,8 @@ symbolsType = (
 varSymbols = ('distVar', 'var')
 predSymbols = ('distPred', 'pred')
 
-def symbolTypeCalc(symbol: str) -> str | None: return next((name for name, cond in symbolsType if re.match('^{}$'.format(cond), symbol)), None)
+def symbolTypeCalc(symbol: str) -> str | None:
+    return next((name for name, cond in symbolsType if re.match('^{}$'.format(cond), symbol)), None)
 
 def symbolTrans(symbol: str) -> Tuple[str, ...] | None:
     symType = symbolTypeCalc(symbol)
@@ -127,6 +134,9 @@ def symbolTrans(symbol: str) -> Tuple[str, ...] | None:
 
 @dataclass
 class Statement:
+    """
+    A statement in predicate logic
+    """
     statement: Tuple[Tuple, ...]
 
     @staticmethod
@@ -187,23 +197,27 @@ class Statement:
     def __len__(self):
         return len(self.statement)
 
-    def eq(self, statement: 'Statement', startingMaps = {}) -> Tuple[bool, dict[Tuple, Tuple]]:
+    def eq(self, statement: 'Statement', startingMaps = None) -> Tuple[bool, dict[Tuple, Tuple]]:
         """
         Check if two statements are functionally equivalent
         """
+        if startingMaps == None: startingMaps = {}
         assert isinstance(statement, Statement), 'must compare with a valid instance of class "Statement"'
         maps = deepcopy(startingMaps)
         for sym1, sym2 in zip(self, statement):
-            if len(sym1) != len(sym2): return (False, maps)
+            if len(sym1) != len(sym2):
+                return (False, maps)
             if (sym1[0] in varSymbols and sym2[0] in varSymbols) or \
             (sym1[0] in predSymbols and sym2[0] in predSymbols):
                 if sym1 in maps:
-                    if maps[sym1] != sym2: return (False, maps)
+                    if maps[sym1] != sym2:
+                        return (False, maps)
                     else: continue
                 else:
                     maps[sym1] = sym2
                     continue
-            elif sym1 != sym2: return (False, maps)
+            elif sym1 != sym2:
+                return (False, maps)
         return (_mappableDict(maps), maps)
 
     def syms(self) -> Set[Tuple[str]]:
@@ -216,7 +230,8 @@ class Statement:
                 syms.add(sym)
         return syms
 
-    def __eq__(self, statement: 'Statement', maps = {}) -> bool:
+    def __eq__(self, statement: 'Statement', maps = None) -> bool:
+        if maps is None: maps = {}
         return self.eq(statement, maps)[0]
 
     def __add__(self, statement: 'Statement') -> 'Statement':
@@ -662,15 +677,20 @@ class ProofBase:
     """
     statements: List[Statement] = field(default_factory=list)
     stateTags: List[StateTag] = field(default_factory=list)
-    inferences: List[Tuple[InferType, int, int, Statement, int] | None] = field(default_factory=list) #[(inferType, premise1index, premise2index, object, conclusionIndex)...]
+                #[(inferType, premise1index, premise2index, object, conclusionIndex)...]
+    inferences: List[Tuple[InferType, int, int, Statement, int] | None] = field(default_factory=list)
 
-    def convert(strAxioms: Tuple[str], inferences: List[Tuple[InferType | None, int, int | None, Statement, int | str]] = []) -> 'ProofBase': #[(inferType, premise1index, premise2index, object, conclusionIndex | conclusion)...]
+    @staticmethod
+    def convert(strAxioms: Tuple[str], inferences: Optional[List[Tuple[InferType | None, int, int | None, Statement, int | str]]] = None) -> 'ProofBase':
+                                                   #[(inferType, premise1index, premise2index, object, conclusionIndex | conclusion)...]
         """
         Convert from strings of axioms to proof.
         """
+        if inferences is None:
+            inferences = []
         states = [Statement.lex(state) for state in strAxioms]
         proof = ProofBase(states, [StateTag.AXIOM for _ in states], [None for _ in states])
-        for index, (inferType, premise1Index, premise2Index, object, conclusionI) in enumerate(inferences):
+        for index, (_, premise1Index, premise2Index, object, conclusionI) in enumerate(inferences):
             if isinstance(conclusionI, int):
                 proof = proof.infer(premise1Index, premise2Index, Statement.lex(object), conclusionI)
             elif isinstance(conclusionI, str):
@@ -1215,10 +1235,14 @@ class ProofBase:
                         res[start:end] = (('number', str(int(num1) % int(num2))),)
                         conclusions.append(Statement(tuple(res)))
                         continue
-                    raise 'brah'
+                    raise InferenceError('Wrong operator; impossible.')
             case InferType.Comparison: #Holy complexity
-                occurences = (( premise1[i+1][1 % len(premise1[i+1])], premise1[i+3][1 % len(premise1[i+3])], premise1[i+2][1 % len(premise1[i+2])], i, i+5 ) for i in range(len(premise1) - 4) if \
-                              premise1[i] == ('bracket', '(') and premise1[i+4] == ('bracket', ')') and premise1[i+2][0] == 'compare')
+                occurences = \
+                    (
+                        (premise1[i+1][1 % len(premise1[i+1])], premise1[i+3][1 % len(premise1[i+3])], premise1[i+2][1 % len(premise1[i+2])], i, i+5)
+                        for i in range(len(premise1) - 4) if \
+                            premise1[i] == ('bracket', '(') and premise1[i+4] == ('bracket', ')') and premise1[i+2][0] == 'compare'
+                    )
                 mapper = {True: 'tT', False: 'tF'}
                 for num1, num2, connect, start, end in occurences:
                     if connect == '>':
@@ -1292,7 +1316,12 @@ class Proof(ProofBase):
     """
     subproofs: List[ProofBase] = field(default_factory=list)
 
-    def convert(strAxioms: Tuple[str], subProofs: Tuple[Tuple[ str, Tuple[Tuple[int, int | None, str, int | Statement], ...] ]] = ()) -> 'Proof':
+    def convert(
+            strAxioms: Tuple[str],
+            subProofs:
+                      Tuple[Tuple[ str, Tuple[Tuple[int, int | None, str, int | Statement], ...] ]]
+                      = ()
+                ) -> 'Proof':
         states = [Statement.lex(state) for state in strAxioms]
         proof = Proof(states, [StateTag.AXIOM for _ in states], [None for _ in states], subproofs=list(
             ProofBase.convert((axiom,),
@@ -1301,28 +1330,43 @@ class Proof(ProofBase):
         ))
         return proof
 
-    def inferConclusions(self, inferType: InferType, premise1Index: int, premise2Index: int = None, subProofIndex: int = None, premise4Index: int = None, premise5Index: int = None, object: Statement = Statement(())) -> Tuple[Statement]:
+    def inferConclusions(
+                         self,
+                         inferType: InferType,
+                         premise1Index: int,
+                         premise2Index: int = None,
+                         subProofIndex: int = None,
+                         premise4Index: int = None,
+                         premise5Index: int = None,
+                         object: Statement = Statement(())
+                         ) -> Tuple[Statement]:
         premiseUses = premiseUsesOfInferType[inferType]
         if premiseUses[0]:
             premise1: Statement = self[premise1Index]['state']
-            if not premise1.wellformed(): raise InferenceError('Premise 1 is ill-formed')
+            if not premise1.wellformed():
+                raise InferenceError('Premise 1 is ill-formed')
         if premiseUses[1]:
             premise2: Statement = self[premise2Index]['state']
-            if not premise2.wellformed(): raise InferenceError('Premise 2 is ill-formed')
+            if not premise2.wellformed():
+                raise InferenceError('Premise 2 is ill-formed')
         if premiseUses[2]:
-            if not object.wellformedobj(): raise InferenceError('Object is ill-formed')
+            if not object.wellformedobj():
+                raise InferenceError('Object is ill-formed')
         if premiseUses[3:] == (False, False, False):
             return super().inferConclusions(inferType, premise1Index, premise2Index, object)
         subproof = self.subproofs[subProofIndex]
         if premiseUses[3]:
             premise3: Statement = subproof[0]['state']
-            if not premise3.wellformed(): raise InferenceError('Premise 3 is ill-formed')
+            if not premise3.wellformed():
+                raise InferenceError('Premise 3 is ill-formed')
         if premiseUses[4]:
             premise4: Statement = subproof[premise4Index]['state']
-            if not premise4.wellformed(): raise InferenceError('Premise 4 is ill-formed')
+            if not premise4.wellformed():
+                raise InferenceError('Premise 4 is ill-formed')
         if premiseUses[5]:
             premise5: Statement = subproof[premise5Index]['state']
-            if not premise5.wellformed(): raise InferenceError('Premise 5 is ill-formed')
+            if not premise5.wellformed():
+                raise InferenceError('Premise 5 is ill-formed')
 
         conclusions = []
 

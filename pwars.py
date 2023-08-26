@@ -1,3 +1,6 @@
+"""
+Provides essential classes and methods for the game itself.
+"""
 from dataclasses import dataclass, field
 from enum import Enum
 import random
