@@ -13,7 +13,8 @@ from predicate import Proof, StateTag, Statement
 #          - PlayerActionType variable
 #          - PlayerAction.valid function
 #          - PActInfoType variable
-#          - PWars.nextGameState (if changes in game based on player actions happens after game state & optional)
+#          - PWars.nextGameState
+#            (if changes in game based on player actions happens after game state & optional)
 #          - PWars.advance (if changes in game based on player actions happens after game state)
 #          - PWars.action
 #          - PWars.actionValid
@@ -213,7 +214,12 @@ class PWars:
     dropPile: List[Card] = field(default_factory=list)
     recentPlay: Optional[Tuple[Card, Card]] = None
     def __post_init__(self):
-        self.players = [Player(self.INITHEALTHMULT * self.INITPLAYER, self.INITPOWER, [Card() for _ in range(self.INITCARDPLAYER)], self.INITPOTENCY) for _ in range(self.INITPLAYER)]
+        self.players = [Player(
+            self.INITHEALTHMULT * self.INITPLAYER,
+            self.INITPOWER, [Card() for _ in range(self.INITCARDPLAYER)],
+            self.INITPOTENCY)
+            for _ in range(self.INITPLAYER)
+        ]
         self.deck = [Card() for _ in range(self.INITCARDDECK)]
         self.remaining = [False for _ in self.players]
     def currentGameStates(self) -> Tuple[GameState]:
@@ -230,9 +236,12 @@ class PWars:
         return res
     def recentPlayerActions(self) -> Tuple[PlayerAction]:
         """
-        Return a list of actions taken by each player in order from most recently played action first, since the latest game state.
+        Return a list of actions taken by each player in order from most recently played action first,
+        since the latest game state.
         """
-        latestGameState = next((len(self.history) - index for index, element in enumerate(self.history[::-1]) if isinstance(element, GameState)), -1)
+        latestGameState = next((len(self.history) - index
+                                for index, element in enumerate(self.history[::-1])
+                                if isinstance(element, GameState)), -1)
         return tuple(self.history[latestGameState:])
     def startAxioms(self, opposingProofIndex: int | None) -> Tuple[Statement, ...]:
         """
@@ -242,8 +251,10 @@ class PWars:
         #TODO: Test this method
         gameStates = self.currentGameStates()
         playerActs = self.recentPlayerActions()
-        if len(gameStates) == 3 and gameStates[0].type == GameStateType.MAIN and gameStates[3].type == GameStateType.PROVE:
-            if opposingProofIndex is None: return (self.recentPlay[0].effect, self.recentPlay[0].effect)
+        if len(gameStates) == 3 and gameStates[0].type == GameStateType.MAIN and \
+        gameStates[3].type == GameStateType.PROVE:
+            if opposingProofIndex is None:
+                return (self.recentPlay[0].effect, self.recentPlay[0].effect)
             else: return tuple(playerActs[opposingProofIndex].info[1].statements)
         else:
             raise GameException("Not in proving game state")
@@ -268,9 +279,15 @@ class PWars:
             return [GameState(0, GameStateType.CREATION)]
         elif gameStates == (GameState(0, GameStateType.CREATION),):
             #On creation phase, handle player choices of taking blanks
-            votes = {**{i: False for i in range(len(self.players))}, **{i: bl for i, bl in ((playerAct.player, playerAct.info) for playerAct in playerActs)}}
+            votes = {
+                **{i: False for i in range(len(self.players))},
+                **{i: bl for i, bl in
+                   ((playerAct.player, playerAct.info) for playerAct in playerActs)
+                   }
+            }
             count = len(tuple(0 for i in votes.values() if i))
-            if count > len(tuple(0 for card in self.deck if Card() == card)): return [GameState.randPlayer(self, 1), GameState(0, GameStateType.EDITING)]
+            if count > len(tuple(0 for card in self.deck if Card() == card)):
+                return [GameState.randPlayer(self, 1), GameState(0, GameStateType.EDITING)]
             else: return [GameState(0, GameStateType.EDITING)]
         elif gameStates[0] == GameState(0, GameStateType.EDITING):
             return [GameState(0, GameStateType.CLAIMING), GameState.randPlayer(self, 1)]
@@ -280,15 +297,18 @@ class PWars:
         elif gameStates[0] == GameState(0, GameStateType.CLAIMING) \
             and len(gameStates) == 3 and gameStates[1].type == GameStateType.RANDPLAYER and \
                 gameStates[2].type == GameStateType.TURN:
-            if GameState.nextTurn(self, gameStates[2]) != GameState(2, GameStateType.TURN, gameStates[1].info):
+            if GameState.nextTurn(self, gameStates[2]) \
+            != GameState(2, GameStateType.TURN, gameStates[1].info):
                 return [GameState.nextTurn(self, gameStates[2])]
             else:
                 return [GameState(0, GameStateType.MAIN), GameState.randPlayer(self, 1)]
-        elif gameStates[0] == GameState(0, GameStateType.MAIN) and gameStates[1].type == GameStateType.RANDPLAYER:
+        elif gameStates[0] == GameState(0, GameStateType.MAIN) and \
+        gameStates[1].type == GameStateType.RANDPLAYER:
             if len(gameStates) == 2:
                 return [GameState(2, GameStateType.TURN, gameStates[1].info)]
             elif len(gameStates) == 3 and len(playerActs) == 1:
-                if playerActs[0].type == PlayerActionType.PLAY: return [GameState(3, GameStateType.PROVE)]
+                if playerActs[0].type == PlayerActionType.PLAY:
+                    return [GameState(3, GameStateType.PROVE)]
                 else:
                     return [GameState.nextTurn(self, gameStates[2])]
             elif len(gameStates) == 4:
@@ -312,7 +332,8 @@ class PWars:
                 assert Card() in self.deck, 'Undesired error'
                 self.deck.remove(Card())
             else:
-                votesInd = (i for i, bl in ((playerAct.player, playerAct.info) for playerAct in playerActs) if bl)
+                votesInd = (i for i, bl in ((playerAct.player, playerAct.info)
+                                            for playerAct in playerActs) if bl)
                 for i in votesInd:
                     self.players[i].cards.append(Card())
                     self.deck.remove(Card())
@@ -349,9 +370,11 @@ class PWars:
 
             #On claiming phase, claim any card (not blank) from any player hand and buy it
             if gameStates[0] == GameState(0, GameStateType.CLAIMING, None):
-                powerSpent = sum(self.players[playerId].cards[cardId].powerCost for playerId, cardId in playerAct.info)
+                powerSpent = sum(self.players[playerId].cards[cardId].powerCost
+                                 for playerId, cardId in playerAct.info)
                 if powerSpent <= player.power:
-                    for playerId, cardId in sorted(playerAct.info, key=lambda x: x[1], reverse=True): #sorted function prevents deleting elements affecting indexes
+                    for playerId, cardId in sorted(playerAct.info, key=lambda x: x[1], reverse=True):
+                    #sorted function prevents deleting elements affecting indexes
                         player.cards.append(self.players[playerId].cards[cardId])
                         del self.players[playerId].cards[cardId]
                     player.power -= powerSpent
@@ -376,9 +399,11 @@ class PWars:
                     self.remaining[playerAct.player] = False
                 #if CLAIMPLAY, claim the card to player for twice the power cost
                 if playerAct.type == PlayerActionType.CLAIMPLAY:
-                    powerSpent = sum(self.players[playerId].cards[cardId].powerCost for playerId, cardId in playerAct.info) * 2
+                    powerSpent = sum(self.players[playerId].cards[cardId].powerCost
+                                     for playerId, cardId in playerAct.info) * 2
                     if powerSpent <= player.power:
-                        for playerId, cardId in sorted(playerAct.info, key=lambda x: x[1], reverse=True): #sorted function prevents deleting elements affecting indexes
+                        for playerId, cardId in sorted(playerAct.info, key=lambda x: x[1], reverse=True):
+                        #sorted function prevents deleting elements affecting indexes
                             player.cards.append(self.players[playerId].cards[cardId])
                             del self.players[playerId].cards[cardId]
                         player.power -= powerSpent
@@ -404,7 +429,8 @@ class PWars:
 
         #Creation phase
         if gameStates == (GameState(0, GameStateType.CREATION, None),) and \
-        all(playerAct.valid(PlayerActionType.TAKEBLANK) for playerAct in playerActs + (playerAct,)) and \
+        all(playerAct.valid(PlayerActionType.TAKEBLANK)
+            for playerAct in playerActs + (playerAct,)) and \
         _allUnique(playerActs + (playerAct,), key=lambda x: x.player):
             return True
 
@@ -417,16 +443,24 @@ class PWars:
         #Claiming phase
         if gameStates[0] == GameState(0, GameStateType.CLAIMING, None) and \
         len(gameStates) == 3 and gameStates[2].type == GameStateType.TURN and \
-        all(playerAct.valid(PlayerActionType.CLAIM) for playerAct in playerActs + (playerAct,)) and \
+        all(playerAct.valid(PlayerActionType.CLAIM)
+            for playerAct in playerActs + (playerAct,)) and \
         len(playerActs) == 0 and playerAct.player == gameStates[2].info and \
-        len(playerAct.info) <= 8 and not any(self.players[playerId].cards[cardId] == Card() for playerId, cardId in playerAct.info):
+        len(playerAct.info) <= 8 and not \
+        any(self.players[playerId].cards[cardId] == Card() for playerId, cardId in playerAct.info):
             return True
 
         #Main phase
         if gameStates[0] == GameState(0, GameStateType.MAIN) and self.remaining[playerAct.player]:
             #Before proving game state
-            if len(gameStates) == 3 and gameStates[2].type == GameStateType.TURN and len(playerActs) == 0 and \
-            playerAct.valid((PlayerActionType.PLAY, PlayerActionType.DISCARD, PlayerActionType.CLAIMPLAY, PlayerActionType.UNREMAIN)):
+            if len(gameStates) == 3 and gameStates[2].type == GameStateType.TURN and \
+            len(playerActs) == 0 and \
+            playerAct.valid(
+                (PlayerActionType.PLAY,
+                 PlayerActionType.DISCARD,
+                 PlayerActionType.CLAIMPLAY,
+                 PlayerActionType.UNREMAIN
+                )):
                 #Playing action
                 if playerAct.type == PlayerActionType.PLAY:
                     mainCard: Card = player.cards[playerAct.info[0]]
@@ -443,10 +477,15 @@ class PWars:
                             return True
                     else: return True
                 #Discard and unremain action
-                elif playerAct.type in [PlayerActionType.DISCARD, PlayerActionType.UNREMAIN]: return True
+                elif playerAct.type in [PlayerActionType.DISCARD, PlayerActionType.UNREMAIN]:
+                    return True
                 #Claim action in main phase
                 if playerAct.type == PlayerActionType.CLAIMPLAY:
-                    return len(playerAct.info) <= 8 and not any(self.players[playerId].cards[cardId] == Card() for playerId, cardId in playerAct.info)
+                    return len(playerAct.info) <= 8 and \
+                    not any(
+                        self.players[playerId].cards[cardId] == Card()
+                        for playerId, cardId in playerAct.info
+                    )
             #Proving game state
             if len(gameStates) == 4 and gameStates[3].type == GameStateType.PROVE and \
             playerAct.valid(PlayerActionType.PROVE):
@@ -456,7 +495,10 @@ class PWars:
                 if playerAct.info[0] > len(playerActs): return False
                 proof: Proof = playerAct.info[1]
                 axioms = self.startAxioms(playerAct.info[0])
-                proofAxioms = tuple(state for state, tag in zip(proof.statements, proof.stateTags) if tag == StateTag.AXIOM)
+                proofAxioms = tuple(
+                    state for state, tag in
+                    zip(proof.statements, proof.stateTags) if tag == StateTag.AXIOM
+                )
                 return axioms == proofAxioms
         ...
         return False

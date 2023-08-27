@@ -15,7 +15,8 @@ def _mappableDict(dct: dict) -> bool:
     """
     return len(set(dct.values())) == len(dct.values())
 
-def _checkSubSeq(subseq: Sequence, seq: Sequence) -> bool: #From https://stackoverflow.com/questions/425604/best-way-to-determine-if-a-sequence-is-in-another-sequence
+def _checkSubSeq(subseq: Sequence, seq: Sequence) -> bool:
+    #From https://stackoverflow.com/questions/425604/best-way-to-determine-if-a-sequence-is-in-another-sequence
     """
     Return if the subsequence is in the sequence.
     """
@@ -29,7 +30,8 @@ def _checkSubSeq(subseq: Sequence, seq: Sequence) -> bool: #From https://stackov
     except ValueError:
         return False
 
-def _subSeqIndexes(subseq: Sequence, seq: Sequence) -> Tuple[int]: #From https://stackoverflow.com/questions/425604/best-way-to-determine-if-a-sequence-is-in-another-sequence
+def _subSeqIndexes(subseq: Sequence, seq: Sequence) -> Tuple[int]:
+    #From https://stackoverflow.com/questions/425604/best-way-to-determine-if-a-sequence-is-in-another-sequence
     """
     Return starting indexes of the subsequence in the sequence.
     """
@@ -43,7 +45,13 @@ def _subSeqIndexes(subseq: Sequence, seq: Sequence) -> Tuple[int]: #From https:/
     except ValueError:
         return tuple(matches)
 
-def _checkSeqForm(seq: Sequence, start: Sequence, end: Sequence, mid: Sequence=(), startEndMatch = lambda x, y: x == y) -> bool:
+def _checkSeqForm(
+        seq: Sequence,
+        start: Sequence,
+        end: Sequence,
+        mid: Sequence=(),
+        startEndMatch = lambda x, y: x == y
+    ) -> bool:
     """
     Check the sequence if it is the form of [start..., ?, mid..., ?, end...].
     """
@@ -52,7 +60,14 @@ def _checkSeqForm(seq: Sequence, start: Sequence, end: Sequence, mid: Sequence=(
     if not _checkSubSeq(mid, seq[len(start):-len(end)]): return False
     return True
 
-def _seqFormOptionalsIndexes(seq: Sequence, start: Sequence, end: Sequence, mid: Sequence = (), midcond: Callable[[int], bool] = lambda x: True, startEndMatch = lambda x, y: x == y) -> Tuple[Tuple, ...] | None:
+def _seqFormOptionalsIndexes(
+        seq: Sequence,
+        start: Sequence,
+        end: Sequence,
+        mid: Sequence = (),
+        midcond: Callable[[int], bool] = lambda x: True,
+        startEndMatch = lambda x, y: x == y
+    ) -> Tuple[Tuple, ...] | None:
     """
     Return indexes of optional subsequences in the sequence of the seq form.
     ((subseq1start, subseq2end), ((subseq1end, subseq2start),...)?)
@@ -63,7 +78,11 @@ def _seqFormOptionalsIndexes(seq: Sequence, start: Sequence, end: Sequence, mid:
             return ((len(start), len(seq) - len(end)),)
         else:
             return ((len(start), len(seq) - len(end)),
-                tuple((index + len(start), index + len(start) + len(mid)) for index in _subSeqIndexes(mid, seq[len(start):-len(end)]) if midcond(index + len(start)))
+                tuple(
+                    (index + len(start), index + len(start) + len(mid))
+                    for index in _subSeqIndexes(mid, seq[len(start):-len(end)])
+                    if midcond(index + len(start))
+                )
             )
     return None
 
@@ -128,7 +147,17 @@ def symbolTrans(symbol: str) -> Tuple[str, ...] | None:
         if 'not' in symbol:
             return (symType, 'not')
         return (symType, symbol[1:-1])
-    if symType in ['gameFuncName', 'predGFuncName', 'predAFuncName', 'truth', 'quanti', 'bracket', 'number', 'oper', 'compare']:
+    if symType in [
+        'gameFuncName',
+        'predGFuncName',
+        'predAFuncName',
+        'truth',
+        'quanti',
+        'bracket',
+        'number',
+        'oper',
+        'compare'
+    ]:
         return (symType, symbol)
     return (symType,)
 
@@ -149,7 +178,12 @@ class Statement:
         while unLexed:
             typeDetect = tuple(re.match(regex, unLexed) for _, regex in symbolsType)
             if any(typeDetect):
-                typeDetectIndex = tuple(re.match(regex, unLexed).start() if re.match(regex, unLexed) else float('inf') for _, regex in symbolsType)
+                typeDetectIndex = tuple(
+                    re.match(regex, unLexed).start()
+                    if re.match(regex, unLexed)
+                    else float('inf')
+                    for _, regex in symbolsType
+                )
                 nextTokenMatch = typeDetect[typeDetectIndex.index(min(typeDetectIndex))]
                 nextToken = symbolTrans(nextTokenMatch.group())
                 if nextToken != ('space',):
@@ -176,7 +210,17 @@ class Statement:
                 if 'not' in symVal[0]:
                     res += 'not '
                 else: res += ' {} '.format(symVal[0])
-            elif symType in ['gameFuncName', 'predGFuncName', 'predAFuncName', 'truth', 'quanti', 'bracket', 'number', 'oper', 'compare']:
+            elif symType in [
+                'gameFuncName',
+                'predGFuncName',
+                'predAFuncName',
+                'truth',
+                'quanti',
+                'bracket',
+                'number',
+                'oper',
+                'compare'
+            ]:
                 res += symVal[0]
             elif symType == 'equal':
                 res += '='
@@ -238,17 +282,37 @@ class Statement:
         assert isinstance(statement, Statement), 'must add with a valid instance of class "Statement"'
         return Statement(self.statement + statement.statement)
 
-    def form(self, start: Tuple[Tuple, ...]=(), end: Tuple[Tuple, ...]=(), mid: Tuple[Tuple, ...]=(), startingMaps: dict[Tuple, Tuple]={}, opt1obj: bool = False, opt2obj: bool = False) -> bool:
+    def form(
+            self,
+            start: Tuple[Tuple, ...]=(),
+            end: Tuple[Tuple, ...]=(),
+            mid: Tuple[Tuple, ...]=(),
+            startingMaps: dict[Tuple, Tuple]={},
+            opt1obj: bool = False,
+            opt2obj: bool = False
+        ) -> bool:
         """
         Checks if the statement form fits the statement.
         """
 
         #Check form first
-        if not _checkSeqForm(self, start, end, mid, startEndMatch=lambda x, y: Statement(x) == Statement(y)): return False
+        if not _checkSeqForm(
+            self,
+            start,
+            end,
+            mid,
+            startEndMatch=lambda x, y: Statement(x) == Statement(y)
+        ): return False
 
         #Prepare maps
         maps = deepcopy(startingMaps)
-        startEndIndexes = _seqFormOptionalsIndexes(self, start, end, mid, startEndMatch=lambda x, y: Statement(x) == Statement(y))[0]
+        startEndIndexes = _seqFormOptionalsIndexes(
+            self,
+            start,
+            end,
+            mid,
+            startEndMatch=lambda x, y: Statement(x) == Statement(y)
+        )[0]
         check = Statement(self[:startEndIndexes[0]]).eq(Statement(start), startingMaps=maps)
         if not check[0]: return False
         maps = check[1]
@@ -277,17 +341,37 @@ class Statement:
         #All filters passed - great!
         return True
 
-    def formulasInForm(self, start: Tuple[Tuple, ...]=(), end: Tuple[Tuple, ...]=(), mid: Tuple[Tuple, ...]=(), startingMaps: dict[Tuple, Tuple]={}, opt1obj: bool = False, opt2obj: bool = False) -> Tuple[Tuple['Statement', ...], ...] | None:
+    def formulasInForm(
+            self,
+            start: Tuple[Tuple, ...]=(),
+            end: Tuple[Tuple, ...]=(),
+            mid: Tuple[Tuple, ...]=(),
+            startingMaps: dict[Tuple, Tuple]={},
+            opt1obj: bool = False,
+            opt2obj: bool = False
+        ) -> Tuple[Tuple['Statement', ...], ...] | None:
         """
         Returns all optional formulas (or objs) in statement if it fits with the statement form.
         """
 
         #Check form first
-        if not _checkSeqForm(self, start, end, mid, startEndMatch=lambda x, y: Statement(x) == Statement(y)): return None
+        if not _checkSeqForm(
+            self,
+            start,
+            end,
+            mid,
+            startEndMatch=lambda x, y: Statement(x) == Statement(y)
+        ): return None
 
         #Prepare maps
         maps = deepcopy(startingMaps)
-        startEndIndexes = _seqFormOptionalsIndexes(self, start, end, mid, startEndMatch=lambda x, y: Statement(x) == Statement(y))[0]
+        startEndIndexes = _seqFormOptionalsIndexes(
+            self,
+            start,
+            end,
+            mid,
+            startEndMatch=lambda x, y: Statement(x) == Statement(y)
+        )[0]
         check = Statement(self[:startEndIndexes[0]]).eq(Statement(start), startingMaps=maps)
         if not check[0]: return None
         maps = check[1]
@@ -310,7 +394,13 @@ class Statement:
             , startEndMatch=lambda x, y: Statement(x) == Statement(y))[1]
             for minIndex in minIndexes:
                 if self[minIndex[0] : minIndex[1]] == mid:
-                    return tuple( ( Statement(self[startEndIndexes[0]:minIndex[0]]), Statement(self[minIndex[1]:startEndIndexes[1]]) ) for minIndex in minIndexes)
+                    return tuple(
+                        (
+                            Statement(self[startEndIndexes[0]:minIndex[0]]),
+                            Statement(self[minIndex[1]:startEndIndexes[1]])
+                        )
+                        for minIndex in minIndexes
+                    )
             return None
         else:
             if not getattr(Statement(self[startEndIndexes[0]:startEndIndexes[1]]), opt1wellmethod)():
@@ -331,7 +421,14 @@ class Statement:
             self[0][0] in ('distVar', 'var', 'number', 'gameFuncName'):
                 paramsLeft = self[2:-1]
                 while len(paramsLeft) > 0:
-                    paramEndIndex = next((index for index in range(len(paramsLeft) + 1) if Statement(paramsLeft[:index]).wellformedobj() and not (index < len(paramsLeft) and not paramsLeft[index] == ('comma',))), None)
+                    paramEndIndex = next(
+                        (
+                            index for index in range(len(paramsLeft) + 1)
+                            if Statement(paramsLeft[:index]).wellformedobj() and \
+                            not (index < len(paramsLeft) and not paramsLeft[index] == ('comma',))
+                        ),
+                        None
+                    )
                     if paramEndIndex is None: return Statement(paramsLeft).wellformedobj()
                     paramsLeft = paramsLeft[paramEndIndex+1:]
                 return True
@@ -546,14 +643,26 @@ class Statement:
         self[0][0] in ('predGFuncName', 'predAFuncName', 'distPred', 'pred'):
             paramsLeft = self[2:-1]
             while len(paramsLeft) > 0:
-                paramEndIndex = next((index for index in range(len(paramsLeft) + 1) if Statement(paramsLeft[:index]).wellformedobj() and not (index < len(paramsLeft) and not paramsLeft[index] == ('comma',))), None)
+                paramEndIndex = next(
+                    (
+                        index for index in range(len(paramsLeft) + 1)
+                        if Statement(paramsLeft[:index]).wellformedobj() and \
+                        not (index < len(paramsLeft) and not paramsLeft[index] == ('comma',))
+                    ),
+                    None
+                )
                 if paramEndIndex is None: return Statement(paramsLeft).wellformedobj()
                 paramsLeft = paramsLeft[paramEndIndex+1:]
             return True
 
         return False
 
-    def substitute(self, startingMap: dict[Tuple, Tuple], obj: bool = False, mappableCheck: bool = True) -> 'Statement | None':
+    def substitute(
+            self,
+            startingMap: dict[Tuple, Tuple],
+            obj: bool = False,
+            mappableCheck: bool = True
+        ) -> 'Statement | None':
         """
         Maps each symbol in statement with a map, and return the resulting statement.
         When the result is not well-formed, return None
@@ -569,9 +678,14 @@ class Statement:
             if not res.wellformed(): return None
         return res
 
-    def complexSubstitute(self, startingMap: dict[Tuple, Tuple[Tuple]], obj: bool = False) -> 'Statement | None':
+    def complexSubstitute(
+            self,
+            startingMap: dict[Tuple, Tuple[Tuple]],
+            obj: bool = False
+        ) -> 'Statement | None':
         """
-        Maps each symbol in statement with a map (replacing occurences with one or more elems), and return the resulting statement.
+        Maps each symbol in statement with a map (replacing occurences with one or more elems),
+        and return the resulting statement.
         When the result is not well-formed, return None
         """
         mapPlace = {}
@@ -681,7 +795,10 @@ class ProofBase:
     inferences: List[Tuple[InferType, int, int, Statement, int] | None] = field(default_factory=list)
 
     @staticmethod
-    def convert(strAxioms: Tuple[str], inferences: Optional[List[Tuple[InferType | None, int, int | None, Statement, int | str]]] = None) -> 'ProofBase':
+    def convert(
+        strAxioms: Tuple[str],
+        inferences: Optional[List[Tuple[InferType | None, int, int | None, Statement, int | str]]] = None
+    ) -> 'ProofBase':
                                                    #[(inferType, premise1index, premise2index, object, conclusionIndex | conclusion)...]
         """
         Convert from strings of axioms to proof.
@@ -696,14 +813,24 @@ class ProofBase:
             elif isinstance(conclusionI, str):
                 proof = proof.infer(premise1Index, premise2Index, Statement.lex(object), Statement.lex(conclusionI))
             else:
-                raise TypeError('ProofBase.convert only supports conclusionI param types of int and str, your type is: ' + str(type(conclusionI)) + 'at index ' + str(index))
+                raise TypeError(
+                    f'''ProofBase.convert only supports conclusionI param types of int and str, your type is: {str(type(conclusionI))} at index {str(index)}'''
+                )
         return proof
 
     def __getitem__(self, index: int) -> dict[str, Any]:
         try:
-            return {'state': self.statements[index], 'tag': self.stateTags[index], 'infer': self.inferences[index]}
+            return {
+                'state': self.statements[index],
+                'tag': self.stateTags[index],
+                'infer': self.inferences[index]
+            }
         except IndexError:
-            return {'state': self.statements[index], 'tag': self.stateTags[index], 'infer': None}
+            return {
+                'state': self.statements[index],
+                'tag': self.stateTags[index],
+                'infer': None
+            }
 
     def syms(self) -> Set[Tuple]:
         """
@@ -717,13 +844,19 @@ class ProofBase:
         """
 
         if isinstance(self, Proof): return False
-        return self.stateTags[0] == StateTag.AXIOM and all(tag == StateTag.LEMMA for tag in self.stateTags[1:])
+        return self.stateTags[0] == StateTag.AXIOM and \
+        all(tag == StateTag.LEMMA for tag in self.stateTags[1:])
 
     def symsWithout(self, stateIndex) -> Set[Tuple]:
         """
         Returns vars and preds used in proof, without the statement on specified index.
         """
-        return {sym for state in (state for index, state in enumerate(self.statements) if index != stateIndex) for sym in state.syms()}
+        return {
+            sym
+            for state in
+            (state for index, state in enumerate(self.statements) if index != stateIndex)
+            for sym in state.syms()
+        }
 
     def unusedVarSuggester(self, randomClass = random):
         """
@@ -732,11 +865,24 @@ class ProofBase:
         char = randomClass.randint(1, 26)
         syms = self.syms()
         syms = {sym for sym in syms if sym[0] in ['var', 'distVar'] and sym[1] == str(char)}
-        height = _smallestMissingInteger(tuple(-1 if sym[0] == 'var' else int(sym[2]) for sym in syms), default=-1, ground=-1)
+        height = _smallestMissingInteger(
+            tuple(
+                -1 if sym[0] == 'var' else int(sym[2])
+                for sym in syms
+            ),
+            default=-1,
+            ground=-1
+        )
         if height == -1: return ('var', str(char))
         return ('distVar', str(char), str(height))
 
-    def inferConclusions(self, inferType: InferType, premise1Index: int, premise2Index: int = None, object: Statement = Statement(())) -> Tuple[Statement]:
+    def inferConclusions(
+            self,
+            inferType: InferType,
+            premise1Index: int,
+            premise2Index: int = None,
+            object: Statement = Statement(())
+        ) -> Tuple[Statement]:
         """
         Infers the proof and yields conclusions.
         """
@@ -744,12 +890,15 @@ class ProofBase:
         premiseUses = premiseUsesOfInferType[inferType]
         if premiseUses[0]:
             premise1: Statement = self[premise1Index]['state']
-            if not premise1.wellformed(): raise InferenceError('Premise 1 is ill-formed')
+            if not premise1.wellformed():
+                raise InferenceError('Premise 1 is ill-formed')
         if premiseUses[1]:
             premise2: Statement = self[premise2Index]['state']
-            if not premise2.wellformed(): raise InferenceError('Premise 2 is ill-formed')
+            if not premise2.wellformed():
+                raise InferenceError('Premise 2 is ill-formed')
         if premiseUses[2]:
-            if not object.wellformedobj(): raise InferenceError('Object is ill-formed')
+            if not object.wellformedobj():
+                raise InferenceError('Object is ill-formed')
 
         conclusions = []
 
@@ -865,7 +1014,9 @@ class ProofBase:
                     else:
                         raise InferenceError('Object must be a single-letter variable')
             case InferType.UniversalGenr:
-                if (len(object) == 1 and object[0][0] in ('var', 'distVar')) and not object[0] in self.symsWithout(premise1Index):
+                if len(object) == 1 and \
+                object[0][0] in ('var', 'distVar') and \
+                object[0] not in self.symsWithout(premise1Index):
                     uniqueVars1 = (object[0], self.unusedVarSuggester())
                     for uniqueVar in uniqueVars1:
                         conclusions.append(Statement( (
@@ -1100,7 +1251,10 @@ class ProofBase:
                         bol, maps = Ax.eq(Ay)
                         if bol:
                             y = maps[x]
-                            for z in (sym for sym in self.syms() - By.syms() if sym[0] in ['var', 'distVar']):
+                            for z in (
+                                sym for sym in self.syms() - By.syms()
+                                if sym[0] in ['var', 'distVar']
+                            ):
                                 conclusions.append(
                                     Statement.lex('(exists(') +
                                     Statement((z,)) +
@@ -1135,7 +1289,13 @@ class ProofBase:
                     res = A.complexSubstitute({x: tuple(object)})
                     if res: conclusions.append(res)
             case InferType.Identity:
-                conclusions.append(Statement.lex('(') + object + Statement.lex('=') + object + Statement.lex(')'))
+                conclusions.append(
+                    Statement.lex('(') +
+                    object +
+                    Statement.lex('=') +
+                    object +
+                    Statement.lex(')')
+                )
             case InferType.SymmProp:
                 try: X, Y = premise1.formulasInForm((
                     ('bracket', '('),
@@ -1149,7 +1309,13 @@ class ProofBase:
                 )[0]
                 except TypeError: pass
                 else:
-                    conclusions.append(Statement.lex('(') + Y + Statement.lex('=') + X + Statement.lex(')'))
+                    conclusions.append(
+                        Statement.lex('(') +
+                        Y +
+                        Statement.lex('=') +
+                        X +
+                        Statement.lex(')')
+                    )
             case InferType.TransProp:
                 try: X, Y = premise1.formulasInForm((
                     ('bracket', '('),
@@ -1176,7 +1342,13 @@ class ProofBase:
                     except TypeError: pass
                     else:
                         if tuple(Y2) == tuple(Y):
-                            conclusions.append(Statement.lex('(') + X + Statement.lex('=') + Z + Statement.lex(')'))
+                            conclusions.append(
+                                Statement.lex('(') +
+                                X +
+                                Statement.lex('=') +
+                                Z +
+                                Statement.lex(')')
+                            )
             case InferType.SubsPropEq:
                 try: x, y = premise1.formulasInForm((('bracket', '('),), (('bracket', ')'),), (('equal',),),
                     opt1obj=True,
@@ -1197,8 +1369,19 @@ class ProofBase:
                             Statement.lex('))')
                         )
             case InferType.OpSimplify: #Holy complexity
-                occurences = (( premise1[i+1][1 % len(premise1[i+1])], premise1[i+3][1 % len(premise1[i+3])], premise1[i+2][1 % len(premise1[i+2])], i, i+5 ) for i in range(len(premise1) - 4) if \
-                              premise1[i] == ('bracket', '(') and premise1[i+4] == ('bracket', ')') and premise1[i+2][0] == 'oper')
+                occurences = (
+                    (
+                        premise1[i+1][1 % len(premise1[i+1])],
+                        premise1[i+3][1 % len(premise1[i+3])],
+                        premise1[i+2][1 % len(premise1[i+2])],
+                        i,
+                        i+5
+                    )
+                    for i in range(len(premise1) - 4) if \
+                        premise1[i] == ('bracket', '(') and \
+                        premise1[i+4] == ('bracket', ')') and \
+                        premise1[i+2][0] == 'oper'
+                )
                 for num1, num2, connect, start, end in occurences:
                     if connect == '+':
                         res = list(premise1.statement)
@@ -1239,9 +1422,17 @@ class ProofBase:
             case InferType.Comparison: #Holy complexity
                 occurences = \
                     (
-                        (premise1[i+1][1 % len(premise1[i+1])], premise1[i+3][1 % len(premise1[i+3])], premise1[i+2][1 % len(premise1[i+2])], i, i+5)
+                        (
+                            premise1[i+1][1 % len(premise1[i+1])],
+                            premise1[i+3][1 % len(premise1[i+3])],
+                            premise1[i+2][1 % len(premise1[i+2])],
+                            i,
+                            i+5
+                        )
                         for i in range(len(premise1) - 4) if \
-                            premise1[i] == ('bracket', '(') and premise1[i+4] == ('bracket', ')') and premise1[i+2][0] == 'compare'
+                            premise1[i] == ('bracket', '(') and \
+                            premise1[i+4] == ('bracket', ')') and \
+                            premise1[i+2][0] == 'compare'
                     )
                 mapper = {True: 'tT', False: 'tF'}
                 for num1, num2, connect, start, end in occurences:
@@ -1258,30 +1449,49 @@ class ProofBase:
             case _: raise InferenceError('Unsupported infer type: {}'.format(inferType))
 
         return tuple(conclusions)
-    def inferAllConclusions(self, premise1Index: int, premise2Index: int = None, object: Statement = Statement(())) -> Tuple[Tuple[Statement, InferType]]:
+    def inferAllConclusions(
+            self,
+            premise1Index: int,
+            premise2Index: int = None,
+            object: Statement = Statement(())
+        ) -> Tuple[Tuple[Statement, InferType]]:
         """
         Infers the proof and yields all possilble conclusions.
         """
 
-        premise1Use = premise1Index != None
-        premise2Use = premise2Index != None
+        premise1Use = premise1Index is not None
+        premise2Use = premise2Index is not None
         objectUse = tuple(object) != ()
 
         if premise1Use:
             premise1: Statement = self[premise1Index]['state']
-            if not premise1.wellformed(): raise InferenceError('Premise 1 is ill-formed')
+            if not premise1.wellformed():
+                raise InferenceError('Premise 1 is ill-formed')
         if premise2Use:
             premise2: Statement = self[premise2Index]['state']
-            if not premise2.wellformed(): raise InferenceError('Premise 2 is ill-formed')
+            if not premise2.wellformed():
+                raise InferenceError('Premise 2 is ill-formed')
         if objectUse:
-            if not object.wellformedobj(): raise InferenceError('Object is ill-formed')
-        checkableInferTypes = tuple(iType for iType in InferType if premiseUsesOfInferType[iType] == (premise1Use, premise2Use, objectUse, False, False, False))
+            if not object.wellformedobj():
+                raise InferenceError('Object is ill-formed')
+        checkableInferTypes = tuple(iType
+                                    for iType in InferType
+                                    if premiseUsesOfInferType[iType] ==
+                                    (premise1Use, premise2Use, objectUse, False, False, False)
+                                    )
         conclusion = ()
         for inferType in checkableInferTypes:
-            for conclusionState in self.inferConclusions(inferType, premise1Index, premise2Index, object):
+            for conclusionState in \
+            self.inferConclusions(inferType, premise1Index, premise2Index, object):
                 conclusion += ((conclusionState, inferType),)
         return conclusion
-    def infer(self, premise1Index: int, premise2Index: int = None, object: Statement = Statement(()), conclusionI: int | Statement = 0) -> 'ProofBase':
+    def infer(
+            self,
+            premise1Index: int,
+            premise2Index: int = None,
+            object: Statement = Statement(()),
+            conclusionI: int | Statement = 0
+        ) -> 'ProofBase':
         """
         Infers the proof and returns the result.
         """
@@ -1293,12 +1503,15 @@ class ProofBase:
             state, inferType = conclusions[conclusionI]
             res.inferences += [(inferType, premise1Index, premise2Index, object, conclusionI)]
         elif isinstance(conclusionI, Statement):
-            if not tuple(conclusionI) in tuple(tuple(state) for state, _ in conclusions): raise InferenceError('Invalid conclusion')
+            if tuple(conclusionI) not in tuple(tuple(state) for state, _ in conclusions):
+                raise InferenceError('Invalid conclusion')
             conclusionIndex = tuple(tuple(state) for state, _ in conclusions).index(tuple(conclusionI))
             state, inferType = conclusions[conclusionIndex]
             res.inferences += [(inferType, premise1Index, premise2Index, object, conclusionIndex)]
         else:
-            raise TypeError('ProofBase.infer only supports conclusionI param types of int and Statement, your type is: ' + str(type(conclusionI)))
+            raise TypeError(
+                f'''ProofBase.infer only supports conclusionI param types of int and Statement, your type is: {str(type(conclusionI))}'''
+            )
         assert not isinstance(state, int), 'brah'
         res.statements += [state]
         res.stateTags += [StateTag.LEMMA]
@@ -1307,7 +1520,11 @@ class ProofBase:
         """
         Returns the symbol point of this ProofBase
         """
-        return sum(statement.symbolPoint() if stateTag == StateTag.LEMMA else 0 for statement, stateTag in zip(self.statements, self.stateTags))
+        return sum(
+            statement.symbolPoint()
+            if stateTag == StateTag.LEMMA else 0
+            for statement, stateTag in zip(self.statements, self.stateTags)
+        )
 
 @dataclass
 class Proof(ProofBase):
@@ -1316,6 +1533,7 @@ class Proof(ProofBase):
     """
     subproofs: List[ProofBase] = field(default_factory=list)
 
+    @staticmethod
     def convert(
             strAxioms: Tuple[str],
             subProofs:
@@ -1323,11 +1541,19 @@ class Proof(ProofBase):
                       = ()
                 ) -> 'Proof':
         states = [Statement.lex(state) for state in strAxioms]
-        proof = Proof(states, [StateTag.AXIOM for _ in states], [None for _ in states], subproofs=list(
-            ProofBase.convert((axiom,),
-                tuple( (None, p1index, p2index, object, concI) for p1index, p2index, object, concI in inference)
-            ) for axiom, inference in subProofs
-        ))
+        proof = Proof(
+            states,
+            [StateTag.AXIOM for _ in states],
+            [None for _ in states],
+            subproofs=list(
+                ProofBase.convert((axiom,),
+                    tuple(
+                        (None, p1index, p2index, object, concI)
+                        for p1index, p2index, object, concI in inference
+                    )
+                ) for axiom, inference in subProofs
+            )
+        )
         return proof
 
     def inferConclusions(
