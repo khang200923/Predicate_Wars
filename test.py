@@ -613,7 +613,9 @@ res3 = game.action(pw.PlayerAction(
 ))
 res4 = game.players[res[2].info].cards == list(res2[1:]) and len(game.discardPile) == 1
 test('PWars.action 3 DISCARD', res4, False)
-if not res3: game.action(pw.PlayerAction(res[2].info, pw.PlayerActionType.DEBUGACT)) #Skip action in case of failure
+if not res3:
+    #Skip action in case of failure
+    game.action(pw.PlayerAction(res[2].info, pw.PlayerActionType.DEBUGACT))
 game.advance()
 res = game.currentGameStates()
 assert res[2].info == 1, ':('
@@ -649,5 +651,16 @@ test('PWars.action 6 PLAY', game.recentPlay == tuple(cards[::-1]), game.recentPl
 game.advance()
 res = game.currentGameStates()
 test('PWars.action 7 PLAY', len(res) == 4 and res[3].type == pw.GameStateType.PROVE, res)
+res2 = game.startAxioms(None)
+test('PWars.startAxioms 1 PROVE',
+     res2 in [(cards[0].effect, cards[1].effect), (cards[1].effect, cards[0].effect)],
+     res2
+)
+proof = pd.Proof(game.startAxioms(None))
+res2 = game.action(pw.PlayerAction(
+    1,
+    pw.PlayerActionType.PROVE,
+    (None, proof, 1)
+))
 
 summary()

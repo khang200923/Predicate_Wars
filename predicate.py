@@ -790,9 +790,13 @@ class ProofBase:
     Contains a list of Statements, with no subproof, and a list of inference.
     """
     statements: List[Statement] = field(default_factory=list)
-    stateTags: List[StateTag] = field(default_factory=list)
+    stateTags: List[StateTag] = None
                 #[(inferType, premise1index, premise2index, object, conclusionIndex)...]
     inferences: List[Tuple[InferType, int, int, Statement, int] | None] = field(default_factory=list)
+
+    def __post_init__(self):
+        if self.stateTags is None:
+            self.stateTags = [StateTag.AXIOM for _ in self.statements]
 
     @staticmethod
     def convert(
