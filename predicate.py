@@ -4,6 +4,7 @@ Provides essential classes and methods for creating and proving predicate logic 
 from copy import deepcopy
 from dataclasses import dataclass, field
 from enum import Enum
+from itertools import combinations
 import math
 import random
 import re
@@ -1522,13 +1523,40 @@ class ProofBase:
         return res
     def symbolPoint(self) -> int:
         """
-        Returns the symbol point of this ProofBase
+        Returns the symbol point of this ProofBase.
         """
         return sum(
             statement.symbolPoint()
             if stateTag == StateTag.LEMMA else 0
             for statement, stateTag in zip(self.statements, self.stateTags)
         )
+    def contradictory(self) -> bool:
+        """
+        Returns whether this proof is contradictory by finding pair 'A' and 'not A'.
+        """
+        pairs = combinations(self.statements, 2)
+        for state1, state2 in pairs:
+            state1c = state1.formulasInForm(
+                (
+                    ('bracket', '('),
+                    ('connect', 'not'),
+                ),
+                (
+                    ('bracket', ')'),
+                ),
+            )
+            state2c = state1.formulasInForm(
+                (
+                    ('bracket', '('),
+                    ('connect', 'not'),
+                ),
+                (
+                    ('bracket', ')'),
+                ),
+            )
+            if (state2c and state1 == state2c[0][0]) or (state1c and state2 == state1c[0][0]):
+                return True
+        return False
 
 @dataclass
 class Proof(ProofBase):
