@@ -1545,7 +1545,7 @@ class ProofBase:
                     ('bracket', ')'),
                 ),
             )
-            state2c = state1.formulasInForm(
+            state2c = state2.formulasInForm(
                 (
                     ('bracket', '('),
                     ('connect', 'not'),
@@ -1554,7 +1554,7 @@ class ProofBase:
                     ('bracket', ')'),
                 ),
             )
-            if (state2c and state1 == state2c[0][0]) or (state1c and state2 == state1c[0][0]):
+            if (state2c and tuple(state1) == tuple(state2c[0][0])) or (state1c and tuple(state2) == tuple(state1c[0][0])):
                 return True
         return False
 

@@ -499,6 +499,14 @@ test('Proof.inferConclusions IndProof 2', set(tuple(state) for state in res) ==
     tuple(str(ree) for ree in res)
 )
 
+proof = pd.Proof.convert(('(P and Q)', '(not (P and Q))'),)
+res = proof.contradictory()
+test('Proof.contradictory 1', res, False)
+
+proof = pd.Proof.convert(('(P and Q)', '(not (Q and R))'),)
+res = proof.contradictory()
+test('Proof.contradictory 2', not res, True)
+
 game = pw.PWars().advance()
 test('PWars.advance 1', game.history == [pw.GameState(0, pw.GameStateType.INITIAL, None)], game.history)
 test('PWars.currentGameStates 1', game.currentGameStates() == (pw.GameState(0, pw.GameStateType.INITIAL, None),), game.currentGameStates())
