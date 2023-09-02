@@ -500,13 +500,22 @@ class PWars:
             #Proving game state
             if len(gameStates) == 4 and gameStates[3].type == GameStateType.PROVE and \
             playerAct.valid(PlayerActionType.PROVE):
-                #No reference to nonexistent opposing proofs
-                if playerAct.info[0] is not None and playerAct.info[0] > len(playerActs):
-                    return False
+                proof: Proof = playerAct.info[1]
+                if isinstance(playerAct.info[0], int):
+                    #No reference to nonexistent opposing proofs or to itself
+                    if playerAct.info[0] > len(playerActs):
+                        return False
+                    #Must be contradictory in itself
+                    if not proof.contradictory():
+                        return False
+
                 #Must have subproofs equal to player
                 if playerAct.info[1].subproofs != player.subproofs:
                     return False
-                proof: Proof = playerAct.info[1]
+                #No contradicting proofs first
+                if any(isinstance(playerAct.info[0], int) for playerAct in playerActs):
+                    return False
+
                 axioms = self.startAxioms(playerAct.info[0])
                 proofAxioms = tuple(
                     state for state, tag in
