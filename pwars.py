@@ -501,9 +501,11 @@ class PWars:
             if len(gameStates) == 4 and gameStates[3].type == GameStateType.PROVE and \
             playerAct.valid(PlayerActionType.PROVE):
                 proof: Proof = playerAct.info[1]
+
                 if isinstance(playerAct.info[0], int):
-                    #No reference to nonexistent opposing proofs or to itself
-                    if playerAct.info[0] > len(playerActs):
+                    #No reference to nonexistent/contradicting opposing proofs or to itself
+                    if playerAct.info[0] > len(playerActs) and \
+                    isinstance(playerActs[playerAct.info[0]].info[0], int):
                         return False
                     #Must be contradictory in itself
                     if not proof.contradictory():
@@ -511,9 +513,6 @@ class PWars:
 
                 #Must have subproofs equal to player
                 if playerAct.info[1].subproofs != player.subproofs:
-                    return False
-                #No contradicting proofs first
-                if any(isinstance(playerAct.info[0], int) for playerAct in playerActs):
                     return False
 
                 axioms = self.startAxioms(playerAct.info[0])
