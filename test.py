@@ -670,5 +670,8 @@ res2 = game.action(pw.PlayerAction(
     pw.PlayerActionType.PROVE,
     (None, proof, 1)
 ))
+game.advance()
+res = game.currentGameStates()
+#print(res)
 
 summary()

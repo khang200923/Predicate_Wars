@@ -95,6 +95,7 @@ class GameStateType(Enum):
 
     TURN = 9
     PROVE = 11
+    EFFECT = 12
 
     RANDPLAYER = 10
 
@@ -107,6 +108,7 @@ GStateInfoType = {
 
     GameStateType.TURN: int,
     GameStateType.PROVE: None,
+    GameStateType.EFFECT: None,
 
     GameStateType.RANDPLAYER: int,
 }
@@ -323,7 +325,10 @@ class PWars:
                 else:
                     return [GameState.nextTurn(self, gameStates[2])]
             elif len(gameStates) == 4:
-                return [GameState.nextTurn(self, gameStates[2])]
+                if gameStates[2].type == GameStateType.PROVE:
+                    return [GameState(3, GameStateType.EFFECT)]
+                elif gameStates[2].type == GameStateType.EFFECT:
+                    return [GameState.nextTurn(self, gameStates[2])]
         raise GameException('Conditions not applied')
     def advance(self):
         """
