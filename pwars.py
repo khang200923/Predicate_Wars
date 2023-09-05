@@ -5,9 +5,9 @@ from dataclasses import dataclass, field
 from enum import Enum
 import random
 import types
-from typing import Any, Callable, Iterable, List, Optional, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 
-from predicate import Proof, ProofBase, StateTag, Statement
+from predicate import Proof, ProofBase, StateTag, Statement, baseRules
 
 #REMINDER: Add features in order, in separate commits, one by one...
 #REMINDER: When adding player action features, update:
@@ -227,6 +227,7 @@ class PWars:
     discardPile: List[Card] = field(default_factory=list)
     dropPile: List[Card] = field(default_factory=list)
     recentPlay: Optional[Tuple[Card, Card]] = None
+    rules: Dict[int, Statement] = field(default_factory=dict)
     def __post_init__(self):
         self.players = [Player(
             self.INITHEALTHMULT * self.INITPLAYER,
@@ -268,10 +269,12 @@ class PWars:
         if len(gameStates) == 4 and gameStates[0].type == GameStateType.MAIN and \
         gameStates[3].type == GameStateType.PROVE:
             if opposingProofIndex is None:
-                return (self.recentPlay[0].effect, self.recentPlay[1].effect)
-            else: return tuple(playerActs[opposingProofIndex].info[1].statements)
+                res = (self.recentPlay[0].effect, self.recentPlay[1].effect)
+            else: res = tuple(playerActs[opposingProofIndex].info[1].statements)
         else:
             raise GameException("Not in proving game state")
+        res += tuple(self.rules.values()) + baseRules
+        return res
 
     #Main functions
     def nextGameState(self) -> List[GameState]:
