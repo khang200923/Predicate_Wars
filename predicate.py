@@ -129,6 +129,35 @@ symbolsType = (
 varSymbols = ('distVar', 'var')
 predSymbols = ('distPred', 'pred')
 
+baseRulesWritten = (
+    '''
+    (forall(x)(forall(y)(
+        (
+            ([NUMBER](x) and [NUMBER](y))
+            imply
+            [NUMBER]((x + y))
+        )
+    )))
+    ''',
+    '''
+    (forall(x)(forall(y)(
+        ((x + y) = (y + x))
+    )))
+    ''',
+    '''
+    (forall(x)(forall(y)(
+        ((x + (y + z)) = ((x + y) + z))
+    )))
+    ''',
+    '''
+    (forall(x)(
+        [NUMBER](x)
+        imply
+        [NUMBER]((x + 0))
+    ))
+    ''',
+)
+
 def symbolTypeCalc(symbol: str) -> str | None:
     return next((name for name, cond in symbolsType if re.match('^{}$'.format(cond), symbol)), None)
 
@@ -158,6 +187,7 @@ def symbolTrans(symbol: str) -> Tuple[str, ...] | None:
         'number',
         'oper',
         'compare'
+
     ]:
         return (symType, symbol)
     return (symType,)
@@ -719,6 +749,8 @@ class Statement:
             elif symType in ['predAFuncName']: res += 8
             else: res += 1
         return res
+
+baseRules = tuple(Statement.lex(rule) for rule in baseRulesWritten)
 
 class StateTag(Enum):
     AXIOM = 0

@@ -325,9 +325,9 @@ class PWars:
                 else:
                     return [GameState.nextTurn(self, gameStates[2])]
             elif len(gameStates) == 4:
-                if gameStates[2].type == GameStateType.PROVE:
+                if gameStates[3].type == GameStateType.PROVE:
                     return [GameState(3, GameStateType.EFFECT)]
-                elif gameStates[2].type == GameStateType.EFFECT:
+                elif gameStates[3].type == GameStateType.EFFECT:
                     return [GameState.nextTurn(self, gameStates[2])]
         raise GameException('Conditions not applied')
     def advance(self):
