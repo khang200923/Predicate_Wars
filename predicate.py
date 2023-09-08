@@ -153,8 +153,79 @@ baseRulesWritten = (
     (forall(x)(
         [NUMBER](x)
         imply
-        [NUMBER]((x + 0))
+        (x = (x + 0))
     ))
+    ''',
+    '''
+    (forall(x)(forall(y)(
+        (
+            ([NUMBER](x) and [NUMBER](y))
+            imply
+            [NUMBER]((x - y))
+        )
+    )))
+    ''',
+    '''
+    (forall(x)(forall(y)(
+        (
+            ([NUMBER](x) and [NUMBER](y))
+            imply
+            (((x + y) - y) = x)
+        )
+    )))
+    ''',
+    '''
+    (forall(x)(forall(y)(
+        (
+            ([NUMBER](x) and [NUMBER](y))
+            imply
+            [NUMBER]((x * y))
+        )
+    )))
+    ''',
+    '''
+    (forall(x)(forall(y)(
+        ((x * y) = (y * x))
+    )))
+    ''',
+    '''
+    (forall(x)(forall(y)(
+        ((x * (y * z)) = ((x * y) * z))
+    )))
+    ''',
+    '''
+    (forall(x)(
+        [NUMBER](x)
+        imply
+        (x = (x * 1))
+    ))
+    ''',
+    '''
+    (forall(x)(forall(y)(
+        (
+            ([NUMBER](x) and [NUMBER](y))
+            imply
+            [NUMBER]((x / y))
+        )
+    )))
+    ''',
+    '''
+    (forall(x)(forall(y)(
+        (
+            ([NUMBER](x) and [NUMBER](y))
+            imply
+            [NUMBER]((x f/ y))
+        )
+    )))
+    ''',
+    '''
+    (forall(x)(forall(y)(
+        (
+            ([NUMBER](x) and [NUMBER](y))
+            imply
+            [NUMBER]((x c/ y))
+        )
+    )))
     ''',
 )
 
