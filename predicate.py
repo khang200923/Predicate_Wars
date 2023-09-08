@@ -201,6 +201,15 @@ baseRulesWritten = (
     ))
     ''',
     '''
+    (forall(x)(forall(y)(forall(z)(
+        (
+            ([NUMBER](x) and ([NUMBER](y) and [NUMBER](z)))
+            imply
+            ((x * (y + z)) = ((x * y) + (x * z)))
+        )
+    ))))
+    ''',
+    '''
     (forall(x)(forall(y)(
         (
             ([NUMBER](x) and [NUMBER](y))
