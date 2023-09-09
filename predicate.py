@@ -132,6 +132,21 @@ predSymbols = ('distPred', 'pred')
 baseRulesWritten = (
     '''
     (forall(x)(forall(y)(
+        [NUMBER](x) imply (not ([PLAYER](x) or [CARD](x)))
+    )))
+    ''',
+    '''
+    (forall(x)(forall(y)(
+        [PLAYER](x) imply (not ([NUMBER](x) or [CARD](x)))
+    )))
+    ''',
+    '''
+    (forall(x)(forall(y)(
+        [CARD](x) imply (not ([PLAYER](x) or [NUMBER](x)))
+    )))
+    ''',
+    '''
+    (forall(x)(forall(y)(
         (
             ([NUMBER](x) and [NUMBER](y))
             imply
@@ -233,6 +248,24 @@ baseRulesWritten = (
             ([NUMBER](x) and [NUMBER](y))
             imply
             [NUMBER]((x c/ y))
+        )
+    )))
+    ''',
+    '''
+    (forall(x)(forall(y)(
+        (
+            ([NUMBER](x) and [NUMBER](y))
+            imply
+            [NUMBER]((x % y))
+        )
+    )))
+    ''',
+    '''
+    (forall(x)(forall(y)(
+        (
+            ([NUMBER](x) and [NUMBER](y))
+            imply
+            ((x % y) = (x - (x f/ y) * y))
         )
     )))
     ''',
