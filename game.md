@@ -82,26 +82,11 @@ If one of these action function is proven to be true, then the effect is applied
 - \[HEAL\](x, i) for all i, x: Add health of the player x by max number i (max: 15)
 - \[ADDPOWER\](x, i) for all i, x: Add power of the player x by max number i (max: 10)
 - \[SUBPOWER\](x, i) for all i, x: Subtract power of the player x by max number i (max: 8)
+#### Game effect rules:
+(W.I.P)
 #### *Game rule* rules
 - *Rules* of the game are by default, contains 32 empty statements, associated with their potency cost, with index 0 to 31 for reference. They are saved across rounds.
-- *Base rules* are built-in statements that cannot be changed, and are saved across rounds:
-    1. (∀(x)(∀(y)(
-        (\[NUMBER\](x) ∧ \[NUMBER\](y))
-        →
-        \[NUMBER\]((x + y))
-    )))
-    2. (∀(x)(∀(y)(
-        ((x + y) = (y + x))
-    )))
-    3. (∀(x)(∀(y)(∀(z)(
-        (((x + y) + z) = (x + (y + z)))
-    ))))
-    4. (∀(x)(
-        \[NUMBER\](x)
-        →
-        ((x + 0) = x)
-    ))
-    5. () **(WIP)**
+- *Base rules* are built-in statements that cannot be changed, and are saved across rounds. [Base rules](baserules.md)
 
 ## Predicate logic and the proving system:
 ### *Statement*

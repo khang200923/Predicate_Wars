@@ -365,6 +365,16 @@ class PWars:
                 ... #Game effects here
 
         return self
+    def applyEffect(
+            self,
+            statement: Statement,
+            chosenPlayer: dict[int, int],
+            chosenCard: dict[int, Tuple[int, int]]
+        ) -> 'PWars':
+        """
+        Apply game effects, then return self.
+        """
+        ...
     def action(self, playerAct: PlayerAction) -> bool:
         """
         Executes an action on this game instance, if it's valid.
