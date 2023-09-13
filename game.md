@@ -77,13 +77,16 @@ Game functions are fixed, meaning they have a predetermined value. Action functi
 - \[CARD\](x): Returns tT if x is a card owned by any player. Returns tF otherwise.
 #### Action function rules:
 If one of these action function is proven to be true, then the effect is applied:
-- \[CLAIM\]() for all i, x: Claim a chosen card of any player for twice its power cost
+- \[CLAIM\](x, i) for all i, x: Claim a chosen card of any player for twice its power cost
 - \[ATK\](x, i) for all i, x: Subtract health of the player x by max number i (max: 20)
 - \[HEAL\](x, i) for all i, x: Add health of the player x by max number i (max: 15)
 - \[ADDPOWER\](x, i) for all i, x: Add power of the player x by max number i (max: 10)
 - \[SUBPOWER\](x, i) for all i, x: Subtract power of the player x by max number i (max: 8)
 #### Game effect rules:
-(W.I.P)
+There are 2 types of game effects, not based on the action function:
+(Action function = **f**, Function arguments = **x**, WFF = **A**)
+- **f**(**x**) - applies game effect to a specific player/card
+- (∀(a)(**A** imply **f**(**x**))) - applies game effect to players/cards satisfying the condition
 #### *Game rule* rules
 - *Rules* of the game are by default, contains 32 empty statements, associated with their potency cost, with index 0 to 31 for reference. They are saved across rounds.
 - *Base rules* are built-in statements that cannot be changed, and are saved across rounds. [Base rules](baserules.md)

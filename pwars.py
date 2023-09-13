@@ -374,6 +374,8 @@ class PWars:
         """
         Apply game effects, then return self.
         """
+        #TODO: Implement this method
+        #TODO: Test this method
         ...
     def action(self, playerAct: PlayerAction) -> bool:
         """
