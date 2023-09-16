@@ -263,7 +263,6 @@ class PWars:
         Return axioms to start infering the proofs in proving game state.
         Raises error if not in proving game state.
         """
-        #TODO: Test this method
         gameStates = self.currentGameStates()
         playerActs = self.recentPlayerActions()
         if len(gameStates) == 4 and gameStates[0].type == GameStateType.MAIN and \
@@ -275,15 +274,65 @@ class PWars:
             raise GameException("Not in proving game state")
         res += tuple(self.rules.values()) + baseRules
         return res
+    def applyEffect(
+            self,
+            statement: Statement,
+            chosenPlayer: dict[int, int],
+            chosenCard: dict[int, Tuple[int, int]]
+        ) -> 'PWars':
+        """
+        Apply game effects, then return self.
+        """
+        #TODO: Implement this method
+        #TODO: Test this method
+        try:
+            gameEff = statement.formulasInForm(
+                start=(
+                    ('bracket', '('),
+                    ('quanti', 'forall'),
+                    ('bracket', '('),
+                    ('var', '0'),
+                    ('bracket', ')'),
+                    ('bracket', '('),
+                ),
+                mid=(
+                    ('bracket', ')'),
+                    ('bracket', ')'),
+                    ('bracket', ')'),
+                ),
+                end=(
+                    ('connect', 'imply'),
+                )
+            )[0][1]
+            if gameEff[0][0] == 'gameFuncName': ... #2nd game effect type (W.I.P)
+        except IndexError:
+            if statement[0][0] == 'gameFuncName': #1st game effect type
+                self.applySpecificEffect(statement, chosenPlayer, chosenCard)
+            else:
+                raise GameException(
+                    'Invalid statement for game effect'
+                )
+        else: raise GameException(
+            'Invalid statement for game effect (seems to be 2nd game effect type)'
+        )
+    def applySpecificEffect(
+            self,
+            statement: Statement,
+            chosenPlayer: dict[int, int],
+            chosenCard: dict[int, Tuple[int, int]]
+        ) -> 'PWars':
+        """
+        Apply specific game effects (apply to a specific player/card), then return self.
+        """
+        #TODO: Implement this method
+        #TODO: Test this method
+        ...
 
     #Main functions
     def nextGameState(self) -> List[GameState]:
         """
         Returns the next game state.
         """
-        #TODO: Implement this method
-        #TODO: Test this method
-
         #Initial gameplay
         if self.history == []:
             return [GameState(0, GameStateType.INITIAL)]
@@ -337,8 +386,6 @@ class PWars:
         """
         Advances to a new game state and returns self.
         """
-        #TODO: Implement this method
-
         oldGameStates = self.currentGameStates()
         playerActs = self.recentPlayerActions()
         nextGameStates = self.nextGameState()
@@ -365,25 +412,11 @@ class PWars:
                 ... #Game effects here
 
         return self
-    def applyEffect(
-            self,
-            statement: Statement,
-            chosenPlayer: dict[int, int],
-            chosenCard: dict[int, Tuple[int, int]]
-        ) -> 'PWars':
-        """
-        Apply game effects, then return self.
-        """
-        #TODO: Implement this method
-        #TODO: Test this method
-        ...
     def action(self, playerAct: PlayerAction) -> bool:
         """
         Executes an action on this game instance, if it's valid.
         Returns whether the action is valid or not.
         """
-        #TODO: Implement this method
-        #TODO: Test this method
         valid = self.actionValid(playerAct)
         if valid:
             playerActs = self.recentPlayerActions()
@@ -444,8 +477,6 @@ class PWars:
         """
         Checks whether the given action is valid.
         """
-        #TODO: Implement this method
-        #TODO: Test this method
         gameStates = self.currentGameStates()
         playerActs = self.recentPlayerActions()
         player = self.players[playerAct.player]

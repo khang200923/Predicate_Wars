@@ -36,12 +36,6 @@ def printTest(result: Tuple[bool, str]) -> None:
 def test(name: str, bl: bool, failinfo: Any, note: str = ''):
     printTest(testReturn(name, bl, failinfo, note))
 
-def summary() -> None:
-    if testIndex is None:
-        print(f'\n{sucTest}/{totalTest} successful tests')
-    else:
-        print('\n1/1 successful tests')
-
 def summary():
     if testIndex == None: print('\n{0}/{1} successful tests'.format(sucTest, totalTest))
     else: print('\n{0}/1 successful tests'.format(sucTest))
