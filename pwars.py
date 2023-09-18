@@ -285,47 +285,6 @@ class PWars:
         """
         #TODO: Implement this method
         #TODO: Test this method
-        try:
-            gameEff = statement.formulasInForm(
-                start=(
-                    ('bracket', '('),
-                    ('quanti', 'forall'),
-                    ('bracket', '('),
-                    ('var', '0'),
-                    ('bracket', ')'),
-                    ('bracket', '('),
-                ),
-                mid=(
-                    ('bracket', ')'),
-                    ('bracket', ')'),
-                    ('bracket', ')'),
-                ),
-                end=(
-                    ('connect', 'imply'),
-                )
-            )[0][1]
-            if gameEff[0][0] == 'gameFuncName': ... #2nd game effect type (W.I.P)
-        except IndexError:
-            if statement[0][0] == 'gameFuncName': #1st game effect type
-                self.applySpecificEffect(statement, chosenPlayer, chosenCard)
-            else:
-                raise GameException(
-                    'Invalid statement for game effect'
-                )
-        else: raise GameException(
-            'Invalid statement for game effect (seems to be 2nd game effect type)'
-        )
-    def applySpecificEffect(
-            self,
-            statement: Statement,
-            chosenPlayer: dict[int, int],
-            chosenCard: dict[int, Tuple[int, int]]
-        ) -> 'PWars':
-        """
-        Apply specific game effects (apply to a specific player/card), then return self.
-        """
-        #TODO: Implement this method
-        #TODO: Test this method
         ...
 
     #Main functions
