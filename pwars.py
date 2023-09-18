@@ -285,7 +285,12 @@ class PWars:
         """
         #TODO: Implement this method
         #TODO: Test this method
-        ...
+        if statement[0][0] == 'gameFuncName':
+            ...
+        else:
+            raise GameException(
+                'Invalid statement for game effect'
+            )
 
     #Main functions
     def nextGameState(self) -> List[GameState]:
