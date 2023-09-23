@@ -300,7 +300,6 @@ def symbolTrans(symbol: str) -> Tuple[str, ...] | None:
         'number',
         'oper',
         'compare'
-
     ]:
         return (symType, symbol)
     return (symType,)
@@ -862,6 +861,24 @@ class Statement:
             elif symType in ['predAFuncName']: res += 8
             else: res += 1
         return res
+
+    def formatActionFunctionParam(self) -> Tuple:
+        """
+        Format statement as if it is a param of the action function.
+        """
+        #TODO: Implement this method
+        #TODO: Test this method
+        if len(self) == 1 and self[0][0] == 'number':
+            return ('number', self[0][1])
+        if len(self) == 4:
+            if self[0][0] == '[randPlayer]' and self[2][0] == 'number':
+                return ('randPlayer', self[2][1])
+            if self[0][0] == '[randCard]' and self[2][0] == 'number':
+                return ('randCard', self[2][1])
+            if self[0][0] == '[chosenPlayer]' and self[2][0] == 'number':
+                return ('chosenPlayer', self[2][1])
+            if self[0][0] == '[chosenCard]' and self[2][0] == 'number':
+                return ('chosenCard', self[2][1])
 
 baseRules = tuple(Statement.lex(rule) for rule in baseRulesWritten)
 

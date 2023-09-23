@@ -300,11 +300,17 @@ class PWars:
                 if paramEndIndex is None: return Statement(paramsLeft).wellformedobj()
                 params.append(paramsLeft[:paramEndIndex])
                 paramsLeft = paramsLeft[paramEndIndex+1:]
+            paramFormatted = [
+                Statement(param).formatActionFunctionParam()
+                for param in params
+            ]
             ...
         else:
-            raise GameException(
-                'Invalid statement for game effect'
-            )
+            if ...: ...  #W.I.P
+            else:
+                raise GameException(
+                    'Invalid statement for game effect'
+                )
 
     #Main functions
     def nextGameState(self) -> List[GameState]:

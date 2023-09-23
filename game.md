@@ -85,11 +85,17 @@ If one of these action function is proven to be true, then the effect is applied
 #### *Game rule* rules
 - *Rules* of the game are by default, contains 32 empty statements, associated with their potency cost, with index 0 to 31 for reference. They are saved across rounds.
 - [*Base rules*](baserules.md) are built-in statements that cannot be changed, and are saved across rounds.
+#### Game effect rules
+There are 2 types of game effects, not based on the action function:
+- Specific: an *deterministic* action function
+- Conditional: (∀(x)(**C** imply **F**)) where:
+    - **C** is a *deterministic WFF*
+    - **F** is a *deterministic* action function
 
 ## Predicate logic and the proving system:
 ### *Statement*
 A *statement* is an ordered list of *symbols*, which consists of:
-- Variables: lowercase letters ('x', 'y', 'z', ...) (symbol point each: 1)
+- Variables (pure): lowercase letters ('x', 'y', 'z', ...) (symbol point each: 1)
 - Predicates: uppercase letters ('P', 'Q', 'R', ...) (symbol point each: 1)
 - Truth value (predicate): 'tT', 'tF' (symbol point each: 0)
 - Quantifiers: '∀', '∃' (symbol point each: 2)
@@ -100,8 +106,8 @@ A *statement* is an ordered list of *symbols*, which consists of:
 - Equality: '=' (symbol point each: 1)
 - Comma: ',' (symbol point each: 0)
 - Number (variable, cannot be function name): 0, 1, 2, 3, 4, ... (symbol point each: 1)
-- Distinct variables (variable): ('x_0', 'x_1', ..., 'y_0', 'y_1', ...) (symbol point each: 2)
-- Distinct predicates (predicate): ('P_0', 'P_1', ..., 'Q_0', 'Q_1', ...) (symbol point each: 2)
+- Distinct variables (pure variable): ('x_0', 'x_1', ..., 'y_0', 'y_1', ...) (symbol point each: 2)
+- Distinct predicates (pure predicate): ('P_0', 'P_1', ..., 'Q_0', 'Q_1', ...) (symbol point each: 2)
 - Functions (variable, cannot be function name): lowercase character or distinct variable or \[gameFunctionName...\] + '(' + optional( + variable + repeated(',' + variables)) + ')'
 - Predicate functions (predicate): uppercase character or distinct predicate or \[PREDICATEGAMEFUNCTIONNAME...\] + '(' + optional( variable + repeated(',' + variables)) + ')'
 - Game function names: '\[randPlayer\]', '\[randCard\]', '\[chosenPlayer\]', '\[chosenCard\]', '\[playerOfChosenCard\]', '\[health\]', '\[power\]', '\[potency\]', '\[symbolPoint\]', '\[powerCost\]' (symbol point each: 4)
@@ -144,9 +150,9 @@ A *proof* X is *inferred* from another *proof* Y having a *subproof* Z that has 
 
 A *proof* has a symbol point of the total symbol points of the *symbols* of all the \[Lemma\]-tagged statements in the *proof* (excluding the *subproofs*)
 ### *WFF* (*Well-formed formula*)
-A *statement* is a *WFF* if a statement is a predicate, a predicate function wrapped by brackets, or one of these ordered set of symbols:
+A *statement* is a *WFF* if a statement is a predicate, a predicate function, or one of these ordered set of symbols:
 
-(here **A** and **B** are *WFF*s, every *variable/predicate* symbols referenced can be all replaced from a single *variable/predicate* *symbol* to another *variable/predicate* *symbol/function*)
+(here **A** and **B** are *WFF*s, every *variable/predicate* symbols referenced can be all replaced from a single *variable/predicate* *symbol* to a *WFF/WFO* respectively)
 - Forall syntax: (∀(x)**A**)
 - Exists syntax: (∃(x)**A**)
 - Not syntax: (¬**A**)
@@ -154,3 +160,13 @@ A *statement* is a *WFF* if a statement is a predicate, a predicate function wra
 - Or syntax: (**A**∨**B**)
 - Imply syntax: (**A**→**B**)
 - Equal syntax: (x=y)
+### *WFO* (*Well-formed object*)
+A *statement* is a *WFO* if a statement is a variable, or a function with its parameters being *WFO*s.
+### *Deterministic statement*
+A *WFO* can be *deterministic* if:
+- It is a variable but not a *pure* variable
+- It is a game function with only *deterministic WFOs* as its parameters
+
+A *WFF* can be *deterministic* if:
+- It is a predicate but not a *pure* predicate
+- It is a predicate game/action function with only *deterministic WFOs* as its parameters
