@@ -122,19 +122,19 @@ symbolsType = (
     ('gameFuncName', '|'.join([x.replace("[", r"\[").replace("]", r"\]") for x in gameFuncNames])),
     ('predGFuncName', '|'.join([x.replace("[", r"\[").replace("]", r"\]") for x in predGFuncNames])),
     ('predAFuncName', '|'.join([x.replace("[", r"\[").replace("]", r"\]") for x in predAFuncNames])),
-    ('distVar', r'[a-z]_[0-9]+'),
-    ('distPred', r'[A-Z]_[0-9]+'),
-    ('truth', r't[TF]'),
+    ('distVar', r'[a-z]_[0-9]+'), #pure var
+    ('distPred', r'[A-Z]_[0-9]+'), #pure pred
+    ('truth', r't[TF]'), #pred
     ('quanti', r'forall|exists'),
     ('connect', r'not\s|\sand\s|\sor\s|\simply\s'),
     ('oper', r'[+\-*/%]|f/|c/'),
     ('compare', r'[<>]'),
-    ('var', r'[a-z]'),
-    ('pred', r'[A-Z]'),
+    ('var', r'[a-z]'), #pure var
+    ('pred', r'[A-Z]'), #pure pred
     ('equal', r'='),
     ('comma', r','),
     ('bracket', r'[\(\)]'),
-    ('number', r'[0-9]+'),
+    ('number', r'[0-9]+'), #var
     ('space', r'\s'),
 )
 
@@ -891,6 +891,18 @@ class Statement:
                 return ('chosenPlayer', self[2][1])
             if self[0][0] == '[chosenCard]' and self[2][0] == 'number':
                 return ('chosenCard', self[2][1])
+
+    def deterministic(self, obj: bool = False) -> bool:
+        """
+        Checks if the statement is deterministic or not.
+        Needs to be WFF/WFO else this will raise an error.
+        """
+        #TODO: Implement this method
+        #TODO: Test this method
+        if obj and not self.wellformedobj(): raise ValueError('Not a well-formed object')
+        if (not obj) and not self.wellformed(): raise ValueError('Not a well-formed formula')
+        ...
+
 
 baseRules = tuple(Statement.lex(rule) for rule in baseRulesWritten)
 
