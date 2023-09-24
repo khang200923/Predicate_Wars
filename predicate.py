@@ -98,6 +98,18 @@ def _smallestMissingInteger(sequence: Sequence[int], ground=0, default=0) -> int
             return element + 1
     return max(elements) + 1
 
+def _doOperator(a: str, b: str, oper: str) -> str | None:
+    match oper:
+        case '+': res = int(a) + int(b)
+        case '-': res = int(a) - int(b)
+        case '*': res = int(a) * int(b)
+        case '/': res = round(int(a) / int(b))
+        case 'f/': res = math.floor(int(a) / int(b))
+        case 'c/': res = math.ceil(int(a) / int(b))
+        case '%': res = int(a) % int(b)
+        case _: return None
+    return str(res)
+
 
 #Export constants and functions
 gameFuncNames = ['[randPlayer]', '[randCard]', '[chosenPlayer]', '[chosenCard]', '[playerOfChosenCard]', '[health]', '[power]', '[potency]', '[symbolPoint]', '[powerCost]']
@@ -1535,7 +1547,7 @@ class ProofBase:
                             y +
                             Statement.lex('))')
                         )
-            case InferType.OpSimplify: #Holy complexity
+            case InferType.OpSimplify: #Holy complexity (reduced)
                 occurences = (
                     (
                         premise1[i+1][1 % len(premise1[i+1])],
@@ -1550,42 +1562,13 @@ class ProofBase:
                         premise1[i+2][0] == 'oper'
                 )
                 for num1, num2, connect, start, end in occurences:
-                    if connect == '+':
+                    resOp = _doOperator(num1, num2, connect)
+
+                    if resOp is not None:
                         res = list(premise1.statement)
-                        res[start:end] = (('number', str(int(num1) + int(num2))),)
-                        conclusions.append(Statement(tuple(res)))
-                        continue
-                    if connect == '-':
-                        res = list(premise1.statement)
-                        res[start:end] = (('number', str(int(num1) - int(num2))),)
-                        conclusions.append(Statement(tuple(res)))
-                        continue
-                    if connect == '*':
-                        res = list(premise1.statement)
-                        res[start:end] = (('number', str(int(num1) * int(num2))),)
-                        conclusions.append(Statement(tuple(res)))
-                        continue
-                    if connect == '/':
-                        res = list(premise1.statement)
-                        res[start:end] = (('number', str( round(int(num1) / int(num2)) )),)
-                        conclusions.append(Statement(tuple(res)))
-                        continue
-                    if connect == 'f/':
-                        res = list(premise1.statement)
-                        res[start:end] = (('number', str( math.floor(int(num1) / int(num2)) )),)
-                        conclusions.append(Statement(tuple(res)))
-                        continue
-                    if connect == 'c/':
-                        res = list(premise1.statement)
-                        res[start:end] = (('number', str( math.ceil(int(num1) / int(num2)) )),)
-                        conclusions.append(Statement(tuple(res)))
-                        continue
-                    if connect == '%':
-                        res = list(premise1.statement)
-                        res[start:end] = (('number', str(int(num1) % int(num2))),)
-                        conclusions.append(Statement(tuple(res)))
-                        continue
-                    raise InferenceError('Wrong operator; impossible.')
+                        res[start:end] = (('number', resOp),)
+                        conclusions.append(Statement(res))
+                    else: raise InferenceError('Wrong operator; impossible.')
             case InferType.Comparison: #Holy complexity
                 occurences = \
                     (
