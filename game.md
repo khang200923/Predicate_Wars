@@ -1,4 +1,4 @@
-## About
+## About:
 Predicate Wars is a competitive Python card game about using predicate logic, reasoning, and strategic planning to your advantage. It includes creating your own cards out of logical symbols, showcase your cards at the right time, utilize effective reasoning techniques, and so much more.
 
 ## Requirements:
@@ -12,7 +12,7 @@ Predicate Wars is a competitive Python card game about using predicate logic, re
 - Player **stats**:
     - **Health** (default: total players * 50) (public)
     - **Power** (default: 100) (public)
-    - **Owned cards** (default: 2 blank cards) (only game function type count used in the effect and RPS tag is public)
+    - **Owned cards** (default: 2 blank cards) (only game function type symbol count used in the effect and RPS tag is public)
     - **Proving potency** (default: 128) (public)
 
 ## Rules:
@@ -22,7 +22,7 @@ Predicate Wars is a competitive Python card game about using predicate logic, re
 - Players [edit](#card-editing-rules) their cards if they want to, each one subtracts the players' power by twice the edited card's symbol costs.
 ### Gameplay phases each round:
 #### Phase I: Creation
-- Each player chooses to take a blank card or not, during this other players decisions are private.
+- Each player chooses to take a blank card from the deck or not, during this other players decisions are private.
 - The cards in the deck goes visible to all players, then gets hidden again.
 - If the amount of blank cards on the deck is larger than to equal to the number of players that chooses to take the blank cards, then each of the players take one blank card.
 - If the amount of blank cards on the deck is smaller than the number of players that chooses to take the blank cards, then a random player takes one blank card.
