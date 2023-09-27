@@ -300,17 +300,29 @@ class PWars:
                 if paramEndIndex is None: return Statement(paramsLeft).wellformedobj()
                 params.append(paramsLeft[:paramEndIndex])
                 paramsLeft = paramsLeft[paramEndIndex+1:]
-            paramFormatted = [
+            paramFormatted = tuple(
                 Statement(param).formatActionFunctionParam()
                 for param in params
-            ]
-            ...
+            )
+            self.applySpecificEffect(paramFormatted, chosenPlayer, chosenCard)
         else:
             if ...: ...  #W.I.P
             else:
                 raise GameException(
                     'Invalid statement for game effect'
                 )
+
+    def applySpecificEffect(
+            params: Tuple[Tuple],
+            chosenPlayer: dict[int, int],
+            chosenCard: dict[int, Tuple[int, int]]
+        ) -> 'PWars':
+        """
+        Apply a game effect to a specific player/card, then return self.
+        """
+        #TODO: Implement this method
+        #TODO: Test this method
+        ...
 
     #Main functions
     def nextGameState(self) -> List[GameState]:
