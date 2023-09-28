@@ -306,7 +306,7 @@ class PWars:
             )
             self.applySpecificEffect(paramFormatted, chosenPlayer, chosenCard)
         else:
-            if ...: ...  #W.I.P
+            if statement.deterministic(): ...  #W.I.P
             else:
                 raise GameException(
                     'Invalid statement for game effect'

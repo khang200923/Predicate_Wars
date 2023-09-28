@@ -172,3 +172,11 @@ A *WFO* can be *deterministic* if:
 A *WFF* can be *deterministic* if:
 - It is a predicate but not a *pure* predicate
 - It is a predicate game/action function with only *deterministic WFOs* as its parameters
+### *Simple statement*
+A *deterministic WFO* can be *simple* if:
+- It is a variable but not a *pure* variable
+- It is a game function with only variables that are not *pure* as its parameters
+
+A *deterministic WFF* can be *simple* if:
+- It is a predicate but not a *pure* predicate
+- It is a predicate game/action function with only variables that are not *pure* as its parameters
