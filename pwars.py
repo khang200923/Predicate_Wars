@@ -289,6 +289,7 @@ class PWars:
             paramsLeft = statement[2:-1]
             params = []
             while len(paramsLeft) > 0:
+                #Function param getter
                 paramEndIndex = next(
                     (
                         index for index in range(len(paramsLeft) + 1)
@@ -405,7 +406,7 @@ class PWars:
                 self.discardPile = []
                 for player in self.players: player.playInit()
             if len(newGameStates) == 4 and newGameStates[3].type == GameStateType.PROVE:
-                ... #Game effects here
+                ... #TODO: Implement game effects here
 
         return self
     def action(self, playerAct: PlayerAction) -> bool:
