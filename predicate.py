@@ -811,6 +811,30 @@ class Statement:
             return True
 
         return False
+    def functionArgs(self) -> Tuple['Statement']:
+        """
+        Returns all arguments of a well-formed function.
+        Throws error if not a well-formed function.
+        """
+        #TODO: Test this method
+        if not (self.wellformed() or self.wellformedobj()):
+            return ValueError('Not a well-formed statement')
+        if not (len(self) >= 3 and self[0][0] in ['distVar', 'distPred', 'var', 'pred'] and self[1] == ('bracket', '(')):
+            return ValueError('Not a well-formed function')
+        paramsLeft = self[2:-1]
+        params = []
+        while len(paramsLeft) > 0:
+            #Function param getter
+            paramEndIndex = next(
+                (
+                    index for index in range(len(paramsLeft) + 1)
+                    if Statement(paramsLeft[:index]).wellformedobj() and \
+                    not (index < len(paramsLeft) and not paramsLeft[index] == ('comma',))
+                ),
+                None
+            )
+            if paramEndIndex is None: return Statement(paramsLeft).wellformedobj()
+            params.append(paramsLeft[:paramEndIndex])
 
     def substitute(
             self,
