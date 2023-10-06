@@ -187,6 +187,26 @@ test('Statement.complexSubstitute 4', res == pd.Statement.lex('P(x())'), str(res
 res = pd.Statement.lex('([ATK](P(x)) and (forall(y_1)( Q_3(y_1, 5) )))').symbolPoint()
 test('Statement.symbolPoint', res == 8+1+1+1+2+2+2+2+1, res)
 
+res = pd.Statement.lex('f(455, 4333, (76 + 5))').functionArgs()
+test('Statement.functionArgs 1',
+     res == tuple(pd.Statement.lex(arg) for arg in ('455', '4333', '(76 + 5)')),
+     str(res)
+)
+res = pd.Statement.lex('G(455, x, (76 + 5))').functionArgs()
+test('Statement.functionArgs 2',
+     res == tuple(pd.Statement.lex(arg) for arg in ('455', 'x', '(76 + 5)')),
+     str(res)
+)
+try:
+    pd.Statement.lex('(4 + 5)').functionArgs()
+except ValueError:
+    res = True
+except Exception:
+    res = False
+else:
+    res = False
+test('Statement.functionArgs 3', res, False)
+
 proof = pd.ProofBase.convert(('P', '(Q(y) imply R(x))', '(A(y) and B(z))'))
 res = proof.syms()
 test('ProofBase.syms', set(res) == {('pred', '16'), ('pred', '17'), ('pred', '18'), ('pred', '1'), ('pred', '2'), ('var', '24'), ('var', '25'), ('var', '26')}, res)

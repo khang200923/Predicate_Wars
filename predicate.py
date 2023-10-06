@@ -818,9 +818,9 @@ class Statement:
         """
         #TODO: Test this method
         if not (self.wellformed() or self.wellformedobj()):
-            return ValueError('Not a well-formed statement')
+            raise ValueError('Not a well-formed statement')
         if not (len(self) >= 3 and self[0][0] in ['distVar', 'distPred', 'var', 'pred'] and self[1] == ('bracket', '(')):
-            return ValueError('Not a well-formed function')
+            raise ValueError('Not a well-formed function')
         paramsLeft = self[2:-1]
         params = []
         while len(paramsLeft) > 0:
@@ -835,6 +835,8 @@ class Statement:
             )
             if paramEndIndex is None: return Statement(paramsLeft).wellformedobj()
             params.append(paramsLeft[:paramEndIndex])
+            paramsLeft = paramsLeft[paramEndIndex+1:]
+        return tuple((Statement(param) for param in params))
 
     def substitute(
             self,
