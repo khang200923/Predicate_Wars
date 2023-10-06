@@ -286,23 +286,9 @@ class PWars:
         #TODO: Implement this method
         #TODO: Test this method
         if statement[0][0] == 'gameFuncName':
-            paramsLeft = statement[2:-1]
-            params = []
-            while len(paramsLeft) > 0:
-                #Function param getter
-                paramEndIndex = next(
-                    (
-                        index for index in range(len(paramsLeft) + 1)
-                        if Statement(paramsLeft[:index]).wellformedobj() and \
-                        not (index < len(paramsLeft) and not paramsLeft[index] == ('comma',))
-                    ),
-                    None
-                )
-                if paramEndIndex is None: return Statement(paramsLeft).wellformedobj()
-                params.append(paramsLeft[:paramEndIndex])
-                paramsLeft = paramsLeft[paramEndIndex+1:]
+            params = statement.functionArgs()
             paramFormatted = tuple(
-                Statement(param).formatActionFunctionParam()
+                param.formatActionFunctionParam()
                 for param in params
             )
             self.applySpecificEffect(paramFormatted, chosenPlayer, chosenCard)
