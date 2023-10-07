@@ -923,11 +923,11 @@ class Statement:
         Checks if the statement is deterministic or not.
         Needs to be WFF/WFO else this will raise an error.
         """
-        #TODO: Implement this method
         #TODO: Test this method
         if obj and not self.wellformedobj(): raise ValueError('Not a well-formed object')
         if (not obj) and not self.wellformed(): raise ValueError('Not a well-formed formula')
-        ...
+        if self.simple(obj): return True
+        return all(param.deterministic(True) for param in self.functionArgs())
 
     def simple(self, obj: bool = False) -> bool:
         """

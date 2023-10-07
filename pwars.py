@@ -300,6 +300,7 @@ class PWars:
                 )
 
     def applySpecificEffect(
+            self,
             params: Tuple[Tuple],
             chosenPlayer: dict[int, int],
             chosenCard: dict[int, Tuple[int, int]]
