@@ -937,15 +937,20 @@ class Statement:
         #TODO: Test this method
         if obj:
             if not self.wellformedobj(): raise ValueError('Not a well-formed object')
+            print(tuple(self))
+            print(len(self))
+            print(self[0][0])
+            print(self[2::2])
             if len(self) == 1 and self[0][0] == 'number': return True
             if len(self) >= 3 and self[0][0] == 'gameFuncName' and self[1] == ('bracket', '(') and \
-            all(sym[0][0] == 'number' for sym in self[2::2]):
+            all(sym[0] == 'number' for sym in self[2::2]):
                 return True
-        if not self.wellformed(): raise ValueError('Not a well-formed formula')
-        if len(self) == 1 and self[0][0] == 'truth': return True
-        if len(self) >= 3 and self[0][0] in ['predGFuncName', 'predAFuncName'] and self[1] == ('bracket', '(') and \
-        all(sym[0][0] == 'number' for sym in self[2::2]):
-            return True
+        else:
+            if not self.wellformed(): raise ValueError('Not a well-formed formula')
+            if len(self) == 1 and self[0][0] == 'truth': return True
+            if len(self) >= 3 and self[0][0] in ['predGFuncName', 'predAFuncName'] and self[1] == ('bracket', '(') and \
+            all(sym[0] == 'number' for sym in self[2::2]):
+                return True
         return False
 
 baseRules = tuple(Statement.lex(rule) for rule in baseRulesWritten)

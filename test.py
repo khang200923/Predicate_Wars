@@ -207,6 +207,24 @@ else:
     res = False
 test('Statement.functionArgs 3', res, False)
 
+res = pd.Statement.lex('2222222222222222222222222222222222').simple(obj=True)
+test('Statement.simple 1', res, False)
+
+res = pd.Statement.lex('[randPlayer](6, 5)').simple(obj=True)
+test('Statement.simple 2', res, False)
+
+res = pd.Statement.lex('[randPlayer](g, 5)').simple(obj=True)
+test('Statement.simple 3', not res, True)
+
+res = pd.Statement.lex('tT').simple()
+test('Statement.simple 4', res, False)
+
+res = pd.Statement.lex('[PLAYER](4)').simple()
+test('Statement.simple 5', res, False)
+
+res = pd.Statement.lex('[PLAYER](i)').simple()
+test('Statement.simple 6', not res, True)
+
 proof = pd.ProofBase.convert(('P', '(Q(y) imply R(x))', '(A(y) and B(z))'))
 res = proof.syms()
 test('ProofBase.syms', set(res) == {('pred', '16'), ('pred', '17'), ('pred', '18'), ('pred', '1'), ('pred', '2'), ('var', '24'), ('var', '25'), ('var', '26')}, res)
