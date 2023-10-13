@@ -927,14 +927,14 @@ class Statement:
         if obj and not self.wellformedobj(): raise ValueError('Not a well-formed object')
         if (not obj) and not self.wellformed(): raise ValueError('Not a well-formed formula')
         if self.simple(obj): return True
-        return all(param.deterministic(True) for param in self.functionArgs())
+        if all(param.deterministic(True) for param in self.functionArgs()): return True
+        return False
 
     def simple(self, obj: bool = False) -> bool:
         """
         Checks if the statement is simple or not.
         Needs to be WFF/WFO else this will raise an error.
         """
-        #TODO: Test this method
         if obj:
             if not self.wellformedobj(): raise ValueError('Not a well-formed object')
             if len(self) == 1 and self[0][0] == 'number': return True

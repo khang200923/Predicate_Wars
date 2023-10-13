@@ -210,20 +210,32 @@ test('Statement.functionArgs 3', res, False)
 res = pd.Statement.lex('2222222222222222222222222222222222').simple(obj=True)
 test('Statement.simple 1', res, False)
 
-res = pd.Statement.lex('[randPlayer](6, 5)').simple(obj=True)
+res = pd.Statement.lex('[randPlayer](6, 5)').simple(obj=True) #For the sake of testing
 test('Statement.simple 2', res, False)
 
 res = pd.Statement.lex('[randPlayer](g, 5)').simple(obj=True)
 test('Statement.simple 3', not res, True)
 
+res = pd.Statement.lex('(4 + 5)').simple(obj=True)
+test('Statement.simple 4', res, True)
+
+res = pd.Statement.lex('(x + 5)').simple(obj=True)
+test('Statement.simple 5', not res, True)
+
 res = pd.Statement.lex('tT').simple()
-test('Statement.simple 4', res, False)
+test('Statement.simple 6', res, False)
 
 res = pd.Statement.lex('[PLAYER](4)').simple()
-test('Statement.simple 5', res, False)
+test('Statement.simple 7', res, False)
 
 res = pd.Statement.lex('[PLAYER](i)').simple()
-test('Statement.simple 6', not res, True)
+test('Statement.simple 8', not res, True)
+
+res = pd.Statement.lex('(5 < 3)').simple()
+test('Statement.simple 9', res, True)
+
+res = pd.Statement.lex('(5 < (4 + 5))').simple()
+test('Statement.simple 10', not res, True)
 
 proof = pd.ProofBase.convert(('P', '(Q(y) imply R(x))', '(A(y) and B(z))'))
 res = proof.syms()
