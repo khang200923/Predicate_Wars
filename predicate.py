@@ -951,6 +951,10 @@ class Statement:
                 return True
             if len(self) == 5 and self[1][0] == 'number' and self[2][0] == 'compare' and self[3][0] == 'number':
                 return True
+            if len(self) == 5 and self[1][0] == 'number' and self[2][0] == 'equal' and self[3][0] == 'number':
+                return True
+            if len(self) == 5 and self[1][0] == 'truth' and self[2][0] == 'connect' and self[3][0] == 'truth':
+                return True
         return False
 
 baseRules = tuple(Statement.lex(rule) for rule in baseRulesWritten)

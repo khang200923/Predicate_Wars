@@ -173,7 +173,8 @@ A *WFO* can be *deterministic* if:
 A *WFF* can be *deterministic* if:
 - It is a predicate but not a *pure* predicate
 - It is a predicate game/action function with only *deterministic WFOs* as its parameters
-- It is a comparator with *deterministic WFOs* as its parameters
+- It is a comparator/equality with *deterministic WFOs* as its parameters
+- It is a connective with *deterministic WFFs* as its parameters
 ### *Simple statement*
 A *WFO* can be *simple* if:
 - It is a variable but not a *pure* variable
@@ -183,4 +184,5 @@ A *WFO* can be *simple* if:
 A *WFF* can be *simple* if:
 - It is a predicate but not a *pure* predicate
 - It is a predicate game/action function with only variables that are not *pure* as its parameters
-- It is a comparator with only variables that are not *pure* as its parameters
+- It is a comparator/equality with only variables that are not *pure* as its parameters
+- It is a connective with only predicate that are not *pure* as its parameters
