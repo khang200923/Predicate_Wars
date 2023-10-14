@@ -138,8 +138,11 @@ symbolsType = (
     ('space', r'\s'),
 )
 
-varSymbols = ('distVar', 'var')
-predSymbols = ('distPred', 'pred')
+varSymbols = ('distVar', 'var', 'gameFuncName')
+predSymbols = ('distPred', 'pred', 'predGFuncName', 'predAFuncName')
+varFuncSymbols = ('distVar', 'var', 'number', 'gameFuncName')
+predFuncSymbols = ('distPred', 'pred', 'predGFuncName', 'predAFuncName')
+unPureVar = ('number', 'truth')
 
 baseRulesWritten = (
     '''
