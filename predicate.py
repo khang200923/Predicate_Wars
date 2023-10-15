@@ -115,6 +115,10 @@ def _doOperator(a: str, b: str, oper: str) -> str | None:
 gameFuncNames = ['[randPlayer]', '[randCard]', '[chosenPlayer]', '[chosenCard]', '[playerOfChosenCard]', '[health]', '[power]', '[potency]', '[symbolPoint]', '[powerCost]']
 predGFuncNames = ['[NUMBER]', '[PLAYER]', '[CARD]']
 predAFuncNames = ['[CLAIM]', '[ATK]', '[HEAL]', '[ADDPOWER]', '[SUBPOWER]']
+truths = ['tT', 'tF']
+quantis = ['forall', 'exists']
+connects = ['not', 'and', 'or', 'imply']
+opers = ['+', '-', '*', '/', '%', 'f/', 'c/']
 
 varDetector = r'([a-z](_[0-9]+)?)|([0-9]+)'
 
@@ -142,7 +146,8 @@ varSymbols = ('distVar', 'var', 'gameFuncName')
 predSymbols = ('distPred', 'pred', 'predGFuncName', 'predAFuncName')
 varFuncSymbols = ('distVar', 'var', 'number', 'gameFuncName')
 predFuncSymbols = ('distPred', 'pred', 'predGFuncName', 'predAFuncName')
-unPureVar = ('number', 'truth')
+unPureVar = ('number')
+unPurePred = ('truth')
 
 baseRulesWritten = (
     '''
