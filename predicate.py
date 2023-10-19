@@ -964,6 +964,14 @@ class Statement:
             if len(self) == 5 and self[1][0] == 'truth' and self[2][0] == 'connect' and self[3][0] == 'truth':
                 return True
         return False
+    def operatorArgs(self)-> Tuple['Statement', 'Statement']:
+        """
+        Returns args of operator/connective/equality statement.
+        Returns None if not operator/connective/equality statement.
+        """
+        #TODO: Implement this method
+        #TODO: Test this method
+        ...
 
 baseRules = tuple(Statement.lex(rule) for rule in baseRulesWritten)
 
