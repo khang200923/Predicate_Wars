@@ -969,9 +969,34 @@ class Statement:
         Returns args of operator/connective/equality statement.
         Returns None if not operator/connective/equality statement.
         """
-        #TODO: Implement this method
         #TODO: Test this method
-        ...
+        res = self.formulasInForm((
+            ('bracket', '('),
+        ), (
+            ('bracket', '('),
+        ), (
+            ('equal',),
+        ))
+        if res is not None: return res
+        for op in opers:
+            res = self.formulasInForm((
+                ('bracket', '('),
+            ), (
+                ('bracket', '('),
+            ), (
+                ('oper', op),
+            ))
+            if res is not None: return res
+        for con in connects:
+            res = self.formulasInForm((
+                ('bracket', '('),
+            ), (
+                ('bracket', '('),
+            ), (
+                ('connect', con),
+            ))
+            if res is not None: return res
+        return None
 
 baseRules = tuple(Statement.lex(rule) for rule in baseRulesWritten)
 
