@@ -820,15 +820,15 @@ class Statement:
             return True
 
         return False
-    def functionArgs(self) -> Tuple['Statement']:
+    def functionArgs(self) -> Tuple['Statement'] | None:
         """
         Returns all arguments of a well-formed function.
         Throws error if not a well-formed function.
         """
         if not (self.wellformed() or self.wellformedobj()):
-            raise ValueError('Not a well-formed statement')
+            return None
         if not (len(self) >= 3 and self[0][0] in ['distVar', 'distPred', 'var', 'pred'] and self[1] == ('bracket', '(')):
-            raise ValueError('Not a well-formed function')
+            return None
         paramsLeft = self[2:-1]
         params = []
         while len(paramsLeft) > 0:
@@ -926,36 +926,48 @@ class Statement:
             if self[0][0] == '[chosenCard]' and self[2][0] == 'number':
                 return ('chosenCard', self[2][1])
 
-    def deterministic(self, obj: bool = False) -> bool:
+    def deterministic(self, obj: bool | None = False) -> bool:
         """
         Checks if the statement is deterministic or not.
         Needs to be WFF/WFO else this will raise an error.
         """
-        #TODO: Implement this method
-        #TODO: Test this method
-        if obj and not self.wellformedobj(): raise ValueError('Not a well-formed object')
-        if (not obj) and not self.wellformed(): raise ValueError('Not a well-formed formula')
+        if obj is None:
+            if not (self.wellformedobj() or self.wellformed()): raise ValueError('Not a well-formed object/formula')
+        else:
+            if obj and not self.wellformedobj(): raise ValueError('Not a well-formed object')
+            if (not obj) and not self.wellformed(): raise ValueError('Not a well-formed formula')
         if self.simple(obj): return True
-        if all(param.deterministic(True) for param in self.functionArgs()): return True
+        if self.functionArgs():
+            if obj and not self[0][0] == 'gameFuncName': return False
+            if (not obj) and not self[0][0] in ('predGFuncName', 'predAFuncName'): return False
+            if all(param.deterministic(True) for param in self.functionArgs()):
+                return True
+        if self.operatorArgs() and \
+        all(param.deterministic(None) for param in self.operatorArgs()):
+            return True
         return False
 
-    def simple(self, obj: bool = False) -> bool:
+    def simple(self, obj: bool | None = False) -> bool:
         """
         Checks if the statement is simple or not.
         Needs to be WFF/WFO else this will raise an error.
         """
-        if obj:
-            if not self.wellformedobj(): raise ValueError('Not a well-formed object')
+        if obj is None:
+            if not (self.wellformedobj() or self.wellformed()): raise ValueError('Not a well-formed object/formula')
+        else:
+            if obj and not self.wellformedobj(): raise ValueError('Not a well-formed object')
+            if (not obj) and not self.wellformed(): raise ValueError('Not a well-formed formula')
+
+        if obj or obj is None:
             if len(self) == 1 and self[0][0] == 'number': return True
             if len(self) >= 3 and self[0][0] == 'gameFuncName' and self[1] == ('bracket', '(') and \
             all(sym[0] == 'number' for sym in self[2::2]):
                 return True
             if len(self) == 5 and self[1][0] == 'number' and self[2][0] == 'oper' and self[3][0] == 'number':
                 return True
-        else:
-            if not self.wellformed(): raise ValueError('Not a well-formed formula')
+        if (not obj) or obj is None:
             if len(self) == 1 and self[0][0] == 'truth': return True
-            if len(self) >= 3 and self[0][0] in ['predGFuncName', 'predAFuncName'] and self[1] == ('bracket', '(') and \
+            if len(self) >= 3 and self[0][0] in ('predGFuncName', 'predAFuncName') and self[1] == ('bracket', '(') and \
             all(sym[0] == 'number' for sym in self[2::2]):
                 return True
             if len(self) == 5 and self[1][0] == 'number' and self[2][0] == 'compare' and self[3][0] == 'number':

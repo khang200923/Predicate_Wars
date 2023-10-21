@@ -202,15 +202,9 @@ test('Statement.functionArgs 2',
      res == tuple(pd.Statement.lex(arg) for arg in ('455', 'x', '(76 + 5)')),
      str(res)
 )
-try:
-    pd.Statement.lex('(4 + 5)').functionArgs()
-except ValueError:
-    res = True
-except Exception:
-    res = False
-else:
-    res = False
-test('Statement.functionArgs 3', res, False)
+
+res = pd.Statement.lex('(4 + 5)').functionArgs()
+test('Statement.functionArgs 3', res is None, res)
 
 res = pd.Statement.lex('2222222222222222222222222222222222').simple(obj=True)
 test('Statement.simple 1', res, False)
@@ -250,6 +244,30 @@ test('Statement.simple 12', res, False)
 
 res = pd.Statement.lex('(tT or P)').simple()
 test('Statement.simple 13', not res, True)
+
+res = pd.Statement.lex('[PLAYER](4)').deterministic()
+test('Statement.deterministic 1', res, False)
+
+res = pd.Statement.lex('(4 = 5)').deterministic()
+test('Statement.deterministic 2', res, False)
+
+res = pd.Statement.lex('((4 + 5) = 5)').deterministic()
+test('Statement.deterministic 3', res, False)
+
+res = pd.Statement.lex('((4 + 9) / (1 + (1 + (2 + 3))))').deterministic(obj=True)
+test('Statement.deterministic 4', res, False)
+
+res = pd.Statement.lex('(tT and (tT imply tF))').deterministic()
+test('Statement.deterministic 5', res, False)
+
+res = pd.Statement.lex('[chosenPlayer](x)').deterministic(obj=True)
+test('Statement.deterministic 6', not res, True)
+
+res = pd.Statement.lex('f(3, 4, 5)').deterministic(obj=True)
+test('Statement.deterministic 7', not res, True)
+
+res = pd.Statement.lex('[chosenPlayer](f(3, 4, 5))').deterministic(obj=True)
+test('Statement.deterministic 8', not res, True)
 
 res = pd.Statement.lex('((5 + 6) = 4)').operatorArgs()
 if res is None: res = ('err',)
