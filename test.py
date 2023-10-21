@@ -11,6 +11,7 @@ os.system('color')
 
 sucTest = 0
 totalTest = 0
+failedTests = []
 try: testIndex = int(sys.argv[1])
 except IndexError: testIndex = None
 
@@ -31,14 +32,18 @@ def printTest(result: Tuple[bool, str]) -> None:
     if totalTest == testIndex or testIndex is None:
         if result[0]:
             sucTest += 1
+        else:
+            failedTests.append(totalTest)
         print(f'\033[1m\033[34m{totalTest}\033[0m. {result[1]}')
 
 def test(name: str, bl: bool, failinfo: Any, note: str = ''):
     printTest(testReturn(name, bl, failinfo, note))
 
 def summary():
-    if testIndex == None: print('\n{0}/{1} successful tests'.format(sucTest, totalTest))
-    else: print('\n{0}/1 successful tests'.format(sucTest))
+    if testIndex == None:
+        print(f'\n\033[1m\033[32m{sucTest}\033[0m/{totalTest} successful tests; failed [\033[1m\033[31m{repr(failedTests)[1:-1]}\033[0m]')
+    else:
+        print(f'\n{sucTest}/1 successful test')
 
 test('_checkSubSeq true 1', pd._checkSubSeq((1, 2, 5, 6), (2, 3, 1, 2, 5, 6, 'e')), False)
 
@@ -65,7 +70,7 @@ res = pd._seqFormOptionalsIndexes((4,7,4,2,7,'er',4,3,9,9,9), (4,7,4), (9,9,9), 
 test('_seqFormOptionalsIndexes 2', res == ((3, 8), ((4, 6),)), res)
 
 res = pd._seqFormOptionalsIndexes((4,7,4,2,7,4,'er',3,9,9,9), (4,7,4), (9,9,9), (7,'er'))
-test('_seqFormOptionalsIndexes 3', res == None, res)
+test('_seqFormOptionalsIndexes 3', res is None, res)
 
 statements = tuple(pd.Statement.lex(x) for x in (
     """
@@ -245,6 +250,38 @@ test('Statement.simple 12', res, False)
 
 res = pd.Statement.lex('(tT or P)').simple()
 test('Statement.simple 13', not res, True)
+
+res = pd.Statement.lex('((5 + 6) = 4)').operatorArgs()
+if res is None: res = ('err',)
+test('Statement.operatorArgs 1', res == (pd.Statement.lex('(5 + 6)'), pd.Statement.lex('4')), tuple(str(ree) for ree in res))
+
+res = pd.Statement.lex('((5 f/ 6) + 4)').operatorArgs()
+if res is None: res = ('err',)
+test('Statement.operatorArgs 2', res == (pd.Statement.lex('(5 f/ 6)'), pd.Statement.lex('4')), tuple(str(ree) for ree in res))
+
+res = pd.Statement.lex('((5 + 22) f/ 4)').operatorArgs()
+if res is None: res = ('err',)
+test('Statement.operatorArgs 3', res == (pd.Statement.lex('(5 + 22)'), pd.Statement.lex('4')), tuple(str(ree) for ree in res))
+
+res = pd.Statement.lex('(tT or P(1, 2))').operatorArgs()
+if res is None: res = ('err',)
+test('Statement.operatorArgs 4', res == (pd.Statement.lex('tT'), pd.Statement.lex('P(1, 2)')), tuple(str(ree) for ree in res))
+
+res = pd.Statement.lex('(F_265 imply T(1, 2))').operatorArgs()
+if res is None: res = ('err',)
+test('Statement.operatorArgs 5', res == (pd.Statement.lex('F_265'), pd.Statement.lex('T(1, 2)')), tuple(str(ree) for ree in res))
+
+res = pd.Statement.lex('(x > 5)').operatorArgs()
+if res is None: res = ('err',)
+test('Statement.operatorArgs 6', res == (pd.Statement.lex('x'), pd.Statement.lex('5')), tuple(str(ree) for ree in res))
+
+res = pd.Statement.lex('((x + 1) < 5)').operatorArgs()
+if res is None: res = ('err',)
+test('Statement.operatorArgs 7', res == (pd.Statement.lex('(x + 1)'), pd.Statement.lex('5')), tuple(str(ree) for ree in res))
+
+res = pd.Statement.lex('P(1, 2)').operatorArgs()
+if res is None: res = ('right',)
+test('Statement.operatorArgs 8', res == ('right',), tuple(str(ree) for ree in res))
 
 proof = pd.ProofBase.convert(('P', '(Q(y) imply R(x))', '(A(y) and B(z))'))
 res = proof.syms()

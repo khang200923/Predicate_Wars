@@ -119,6 +119,7 @@ truths = ['tT', 'tF']
 quantis = ['forall', 'exists']
 connects = ['not', 'and', 'or', 'imply']
 opers = ['+', '-', '*', '/', '%', 'f/', 'c/']
+compares = ['<', '>']
 
 varDetector = r'([a-z](_[0-9]+)?)|([0-9]+)'
 
@@ -404,12 +405,12 @@ class Statement:
     def __len__(self):
         return len(self.statement)
 
-    def eq(self, statement: 'Statement', startingMaps = None) -> Tuple[bool, dict[Tuple, Tuple]]:
+    def eq(self, statement: 'Statement', startingMaps = None) -> Tuple[bool, dict[Tuple, Tuple] | None]:
         """
         Check if two statements are functionally equivalent
         """
         if startingMaps == None: startingMaps = {}
-        assert isinstance(statement, Statement), 'must compare with a valid instance of class "Statement"'
+        if not isinstance(statement, Statement): return (False, None)
         maps = deepcopy(startingMaps)
         for sym1, sym2 in zip(self, statement):
             if len(sym1) != len(sym2):
@@ -824,7 +825,6 @@ class Statement:
         Returns all arguments of a well-formed function.
         Throws error if not a well-formed function.
         """
-        #TODO: Test this method
         if not (self.wellformed() or self.wellformedobj()):
             raise ValueError('Not a well-formed statement')
         if not (len(self) >= 3 and self[0][0] in ['distVar', 'distPred', 'var', 'pred'] and self[1] == ('bracket', '(')):
@@ -931,6 +931,7 @@ class Statement:
         Checks if the statement is deterministic or not.
         Needs to be WFF/WFO else this will raise an error.
         """
+        #TODO: Implement this method
         #TODO: Test this method
         if obj and not self.wellformedobj(): raise ValueError('Not a well-formed object')
         if (not obj) and not self.wellformed(): raise ValueError('Not a well-formed formula')
@@ -964,38 +965,52 @@ class Statement:
             if len(self) == 5 and self[1][0] == 'truth' and self[2][0] == 'connect' and self[3][0] == 'truth':
                 return True
         return False
-    def operatorArgs(self)-> Tuple['Statement', 'Statement']:
+    def operatorArgs(self)-> Tuple['Statement', 'Statement'] | None:
         """
-        Returns args of operator/connective/equality statement.
-        Returns None if not operator/connective/equality statement.
+        Returns args of operator/connective/comparative/equality statement.
+        Returns None if not operator/connective/comparative/equality statement.
         """
-        #TODO: Test this method
         res = self.formulasInForm((
             ('bracket', '('),
         ), (
-            ('bracket', '('),
+            ('bracket', ')'),
         ), (
             ('equal',),
-        ))
-        if res is not None: return res
+        ),
+        opt1obj=True,
+        opt2obj=True)
+        if res is not None: return res[0]
         for op in opers:
             res = self.formulasInForm((
                 ('bracket', '('),
             ), (
-                ('bracket', '('),
+                ('bracket', ')'),
             ), (
                 ('oper', op),
-            ))
-            if res is not None: return res
+            ),
+            opt1obj=True,
+            opt2obj=True)
+            if res is not None: return res[0]
         for con in connects:
             res = self.formulasInForm((
                 ('bracket', '('),
             ), (
-                ('bracket', '('),
+                ('bracket', ')'),
             ), (
                 ('connect', con),
             ))
-            if res is not None: return res
+            if res is not None: return res[0]
+        for com in compares:
+            res = self.formulasInForm((
+                ('bracket', '('),
+            ), (
+                ('bracket', ')'),
+            ), (
+                ('compare', com),
+            ),
+            opt1obj=True,
+            opt2obj=True)
+            if res is not None: return res[0]
         return None
 
 baseRules = tuple(Statement.lex(rule) for rule in baseRulesWritten)
