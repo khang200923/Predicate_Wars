@@ -30,6 +30,12 @@ def _allUnique(iter: Iterable, key: Callable = lambda x: x) -> bool:
     seenKeys = list()
     return not any(key(i) in seenKeys or seenKeys.append(key(i)) for i in iter)
 
+def _mergeItersWithDelimiter(iters: Iterable[Iterable], delimiter: Any):
+    for i, itera in enumerate(iters):
+        if i > 0: yield delimiter
+        for elem in itera:
+            yield elem
+
 class CardTag(Enum):
     ROCK = 0
     PAPER = 1
@@ -56,8 +62,6 @@ class Card:
         self.effect = effect
         self.creator = creator
         self.blank = False
-
-
 
 @dataclass
 class Player:
@@ -293,12 +297,11 @@ class PWars:
             )
             self.applySpecificEffect(paramFormatted, chosenPlayer, chosenCard)
         else:
-            if statement.deterministic(): ...  #W.I.P
+            if statement.deterministic(): ...  #TODO: W.I.P
             else:
                 raise GameException(
                     'Invalid statement for game effect'
                 )
-
     def applySpecificEffect(
             self,
             params: Tuple[Tuple],
@@ -311,6 +314,28 @@ class PWars:
         #TODO: Implement this method
         #TODO: Test this method
         ...
+    def calcStatement(self, state: Statement, obj: bool | None = False):
+        """
+        Calculate deterministic WFF/WFO.
+        Throw error if not WFF/WFO.
+        Return None if not deterministic.
+        """
+        if obj is None:
+            if not (self.wellformedobj() or self.wellformed()): raise ValueError('Not a well-formed object/formula')
+        else:
+            if obj and not self.wellformedobj(): raise ValueError('Not a well-formed object')
+            if (not obj) and not self.wellformed(): raise ValueError('Not a well-formed formula')
+
+        if state.simple(obj):
+            return self.calcSimple(state, obj)
+        else:
+            res = state.functionArgs()
+            if res is not None:
+                return Statement(state[0]) + Statement.lex('(') + \
+                Statement(_mergeItersWithDelimiter(res, Statement.lex(','))) + \
+                Statement.lex(')')
+            res = state.operatorArgs()
+            if res is not None: ... #TODO: W.I.P
 
     #Main functions
     def nextGameState(self) -> List[GameState]:

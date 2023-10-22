@@ -1024,6 +1024,13 @@ class Statement:
             opt2obj=True)
             if res is not None: return res[0]
         return None
+    def operatorSymbol(self)-> Tuple['Statement', 'Statement'] | None:
+        """
+        Returns operator symbol of operator/connective/comparative/equality statement.
+        Returns None if not operator/connective/comparative/equality statement.
+        """
+        #TODO: Implement this method
+        #TODO: Test this method
 
 baseRules = tuple(Statement.lex(rule) for rule in baseRulesWritten)
 
