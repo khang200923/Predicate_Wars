@@ -4,10 +4,10 @@ Predicate Wars is a competitive Python card game about using predicate logic, re
 ## Requirements:
 - 2-16 **players**
 - **Deck** with 128 **blank cards** (by default) that when [edited](#card-editing-rules) should have:
-    - Rock-paper-scissors **tag** (publicly seen)
-    - **Power cost** number (publicly seen)
-    - **Effect** (written in [predicate logic](#predicate-logic-and-the-proving-system) in the form of a statement)
-    - **Symbol point** of the effect
+    - Rock-paper-scissors **tag** (public)
+    - **Power cost** number (public)
+    - **Effect** (written in [predicate logic](#predicate-logic-and-the-proving-system) in the form of a statement) (private)
+    - **Symbol point** of the effect (private)
     - **Card's creator identifier** (private)
 - Player **stats**:
     - **Health** (default: total players * 50) (public)
@@ -51,9 +51,9 @@ Go in cycles of remained players, moving clockwise, starting from the latest pla
 - If there is only one player left, the player in the game wins.
 - Insert the discard pile and the drop pile to the deck again.
 - Top [half of the number of players, floor-wise] remaining players receive 4 more proving potency. Except the last remaining player, who receives 8 more proving potency.
-- Each player, if desired, buys a *proper subproof* to use in their proofs, which costs twice the symbol point of the *proof* to the proving potency.
-- Each player in a cycle of players, moving clockwise, if desired, buys a *well-formed rule* to use in all proofs, which costs thrice the symbol point of the *rule* to the proving potency, or a cost higher than that chosen by the player (i.e. the potency cost of the *rule*), iff there are less than 32 *rules*.
-- Each player in a cycle of players, moving clockwise, if desired, removes a *well-formed rule*, which costs the potency cost of the *rule*.
+- Each player, if desired, buys a *proper subproof* to use in their *proofs*, which costs twice the symbol point of the *proof* to the proving potency.
+- Each player in a cycle of players, moving clockwise, if desired, buys a *well-formed rule* to use in all *proofs*, which costs thrice the symbol point of the *rule* to the proving potency, or a cost higher than that chosen by the player (i.e. the potency cost of the *rule*), iff there are less than 32 *rules*.
+- Each player in a cycle of players, moving clockwise, if desired, removes a chosen *well-formed rule*, which costs the potency cost of the *rule*.
 - Start a new round.
 ### Card editing rules:
 When a player edits a card, they add/change tag, power cost (smaller or equal to their current power) and effect (written in [predicate logic](#predicate-logic-and-the-proving-system) syntax). They must add/change their identifier onto the card.
@@ -152,18 +152,21 @@ A *proof* X is *inferred* from another *proof* Y having a *subproof* Z that has 
 
 A *proof* has a symbol point of the total symbol points of the *symbols* of all the \[Lemma\]-tagged statements in the *proof* (excluding the *subproofs*)
 ### *WFF* (*Well-formed formula*)
-A *statement* is a *WFF* if a statement is a predicate, a predicate function, or one of these ordered set of symbols:
+A *statement* is a *WFF* if a statement is a predicate, a predicate function with its parameters being *WFO*s, or one of these ordered set of symbols:
 
 (here **A** and **B** are *WFF*s, every *variable/predicate* symbols referenced can be all replaced from a single *variable/predicate* *symbol* to a *WFF/WFO* respectively)
 - Forall syntax: (∀(x)**A**)
 - Exists syntax: (∃(x)**A**)
 - Not syntax: (¬**A**)
-- And syntax: (**A**∧**B**)
-- Or syntax: (**A**∨**B**)
-- Imply syntax: (**A**→**B**)
-- Equal syntax: (x=y)
+- Connective syntax: (**A****con****B**) where **con** is a connective (except the 'not')
+- Comparative syntax: (x**com**y) where **com** is a comparator
+- Equality syntax: (x=y)
 ### *WFO* (*Well-formed object*)
-A *statement* is a *WFO* if a statement is a variable, or a function with its parameters being *WFO*s.
+A *statement* is a *WFO* if a statement is a variable, or a function with its parameters being *WFO*s. or one of these ordered set of symbols:
+
+(here **A** and **B** are *WFF*s, every *variable/predicate* symbols referenced can be all replaced from a single *variable/predicate* *symbol* to a *WFF/WFO* respectively)
+- Operator syntax: (x**op**y) where **op** is an operator
+
 ### *Deterministic statement*
 A *WFO* can be *deterministic* if:
 - It is a variable but not a *pure* variable
