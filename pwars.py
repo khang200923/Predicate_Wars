@@ -321,10 +321,10 @@ class PWars:
         Return None if not deterministic.
         """
         if obj is None:
-            if not (self.wellformedobj() or self.wellformed()): raise ValueError('Not a well-formed object/formula')
+            if not (state.wellformedobj() or state.wellformed()): raise ValueError('Not a well-formed object/formula')
         else:
-            if obj and not self.wellformedobj(): raise ValueError('Not a well-formed object')
-            if (not obj) and not self.wellformed(): raise ValueError('Not a well-formed formula')
+            if obj and not state.wellformedobj(): raise ValueError('Not a well-formed object')
+            if (not obj) and not state.wellformed(): raise ValueError('Not a well-formed formula')
 
         if state.simple(obj):
             return self.calcSimple(state, obj)
