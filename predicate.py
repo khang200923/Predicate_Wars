@@ -1029,8 +1029,45 @@ class Statement:
         Returns operator symbol of operator/connective/comparative/equality statement.
         Returns None if not operator/connective/comparative/equality statement.
         """
-        #TODO: Implement this method
         #TODO: Test this method
+        if self.form((
+            ('bracket', '('),
+        ), (
+            ('bracket', ')'),
+        ), (
+            ('equal',),
+        ),
+        opt1obj=True,
+        opt2obj=True): return ('equal',)
+        for op in opers:
+            if self.form((
+                ('bracket', '('),
+            ), (
+                ('bracket', ')'),
+            ), (
+                ('oper', op),
+            ),
+            opt1obj=True,
+            opt2obj=True): return ('oper', op)
+        for con in connects:
+            if self.form((
+                ('bracket', '('),
+            ), (
+                ('bracket', ')'),
+            ), (
+                ('connect', con),
+            )): return ('connect', con)
+        for com in compares:
+            if self.form((
+                ('bracket', '('),
+            ), (
+                ('bracket', ')'),
+            ), (
+                ('compare', com),
+            ),
+            opt1obj=True,
+            opt2obj=True): ('compare', com)
+        return None
 
 baseRules = tuple(Statement.lex(rule) for rule in baseRulesWritten)
 
