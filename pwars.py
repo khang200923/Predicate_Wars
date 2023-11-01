@@ -337,6 +337,19 @@ class PWars:
             res = state.operatorArgs()
             if res is not None: ... #TODO: W.I.P
 
+    def calcSimple(self, state: Statement, obj: bool | None = False):
+        """
+        Calculate simple WFF/WFO.
+        Throw error if not WFF/WFO.
+        Return None if not simple.
+        """
+        if obj is None:
+            if not (state.wellformedobj() or state.wellformed()): raise ValueError('Not a well-formed object/formula')
+        else:
+            if obj and not state.wellformedobj(): raise ValueError('Not a well-formed object')
+            if (not obj) and not state.wellformed(): raise ValueError('Not a well-formed formula')
+        ...
+
     #Main functions
     def nextGameState(self) -> List[GameState]:
         """
