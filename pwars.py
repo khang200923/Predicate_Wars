@@ -314,17 +314,24 @@ class PWars:
         #TODO: Implement this method
         #TODO: Test this method
         ...
+
+        return self
+
     def calcStatement(self, state: Statement, obj: bool | None = False):
         """
         Calculate deterministic WFF/WFO.
         Throw error if not WFF/WFO.
         Return None if not deterministic.
         """
+        #TODO: Test this method
         if obj is None:
             if not (state.wellformedobj() or state.wellformed()): raise ValueError('Not a well-formed object/formula')
         else:
             if obj and not state.wellformedobj(): raise ValueError('Not a well-formed object')
             if (not obj) and not state.wellformed(): raise ValueError('Not a well-formed formula')
+
+        if not state.deterministic(obj):
+            return None
 
         if state.simple(obj):
             return self.calcSimple(state, obj)
@@ -335,7 +342,14 @@ class PWars:
                 Statement(_mergeItersWithDelimiter(res, Statement.lex(','))) + \
                 Statement.lex(')')
             res = state.operatorArgs()
-            if res is not None: ... #TODO: W.I.P
+            if res is not None:
+                return \
+                    Statement.lex('(') + \
+                    self.calcStatement(res[0], obj=None) + \
+                    state.operatorSymbol() + \
+                    self.calcStatement(res[1], obj=None) + \
+                    Statement.lex(')')
+            raise ValueError('Impossible error.')
 
     def calcSimple(self, state: Statement, obj: bool | None = False):
         """
@@ -343,6 +357,8 @@ class PWars:
         Throw error if not WFF/WFO.
         Return None if not simple.
         """
+        #TODO: Implement this method
+        #TODO: Test this method
         if obj is None:
             if not (state.wellformedobj() or state.wellformed()): raise ValueError('Not a well-formed object/formula')
         else:

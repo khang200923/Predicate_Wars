@@ -1024,7 +1024,7 @@ class Statement:
             opt2obj=True)
             if res is not None: return res[0]
         return None
-    def operatorSymbol(self)-> Tuple['Statement', 'Statement'] | None:
+    def operatorSymbol(self)-> Tuple[str, ...] | None:
         """
         Returns operator symbol of operator/connective/comparative/equality statement.
         Returns None if not operator/connective/comparative/equality statement.
@@ -1056,7 +1056,9 @@ class Statement:
                 ('bracket', ')'),
             ), (
                 ('connect', con),
-            )): return ('connect', con)
+            ),
+            opt1obj=False,
+            opt2obj=False): return ('connect', con)
         for com in compares:
             if self.form((
                 ('bracket', '('),
@@ -1066,7 +1068,7 @@ class Statement:
                 ('compare', com),
             ),
             opt1obj=True,
-            opt2obj=True): ('compare', com)
+            opt2obj=True): return ('compare', com)
         return None
 
 baseRules = tuple(Statement.lex(rule) for rule in baseRulesWritten)

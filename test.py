@@ -301,6 +301,18 @@ res = pd.Statement.lex('P(1, 2)').operatorArgs()
 if res is None: res = ('right',)
 test('Statement.operatorArgs 8', res == ('right',), tuple(str(ree) for ree in res))
 
+res = pd.Statement.lex('(5 = 4)').operatorSymbol()
+test('Statement.operatorSymbol 1', res == ('equal',), res)
+
+res = pd.Statement.lex('((4 + 3) + x)').operatorSymbol()
+test('Statement.operatorSymbol 2', res == ('oper', '+'), res)
+
+res = pd.Statement.lex('((2 - 3) > 4)').operatorSymbol()
+test('Statement.operatorSymbol 3', res == ('compare', '>'), res)
+
+res = pd.Statement.lex('(P imply (P and Q))').operatorSymbol()
+test('Statement.operatorSymbol 4', res == ('connect', 'imply'), res)
+
 proof = pd.ProofBase.convert(('P', '(Q(y) imply R(x))', '(A(y) and B(z))'))
 res = proof.syms()
 test('ProofBase.syms', set(res) == {('pred', '16'), ('pred', '17'), ('pred', '18'), ('pred', '1'), ('pred', '2'), ('var', '24'), ('var', '25'), ('var', '26')}, res)
