@@ -7,7 +7,7 @@ import random
 import types
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 
-from predicate import Proof, ProofBase, StateTag, Statement, baseRules
+from predicate import Proof, ProofBase, StateTag, Statement, baseRules, _doOperator
 
 #REMINDER: Add features in order, in separate commits, one by one...
 #REMINDER: When adding player action features, update:
@@ -321,7 +321,7 @@ class PWars:
         """
         Calculate deterministic WFF/WFO.
         Throw error if not WFF/WFO.
-        Return None if not deterministic.
+        Return None if not deterministic or is an action function.
         """
         #TODO: Test this method
         if obj is None:
@@ -332,6 +332,8 @@ class PWars:
 
         if not state.deterministic(obj):
             return None
+
+        if state[0][0] == 'predAFuncName': return None
 
         if state.simple(obj):
             return self.calcSimple(state, obj)
@@ -355,7 +357,7 @@ class PWars:
         """
         Calculate simple WFF/WFO.
         Throw error if not WFF/WFO.
-        Return None if not simple.
+        Return None if not simple or is an action function.
         """
         #TODO: Implement this method
         #TODO: Test this method
@@ -364,7 +366,13 @@ class PWars:
         else:
             if obj and not state.wellformedobj(): raise ValueError('Not a well-formed object')
             if (not obj) and not state.wellformed(): raise ValueError('Not a well-formed formula')
-        ...
+
+        if state[0][0] == 'predAFuncName': return None
+
+        res = state.operatorArgs()
+        if res is not None:
+            num1, num2, oper = res[0][0][1], res[1][0][1], state.operatorSymbol()
+            return Statement((('number', _doOperator(num1, num2, oper)),))
 
     #Main functions
     def nextGameState(self) -> List[GameState]:
