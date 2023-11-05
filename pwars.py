@@ -292,7 +292,7 @@ class PWars:
         if statement[0][0] == 'gameFuncName':
             params = statement.functionArgs()
             paramFormatted = tuple(
-                param.formatActionFunctionParam()
+                param.formatActionFunctionParam(self)
                 for param in params
             )
             self.applySpecificEffect(paramFormatted, chosenPlayer, chosenCard)
@@ -373,6 +373,9 @@ class PWars:
         if res is not None:
             num1, num2, oper = res[0][0][1], res[1][0][1], state.operatorSymbol()
             return Statement((('number', _doOperator(num1, num2, oper)),))
+        res = state.functionArgs()
+        if res is not None:
+            ...
 
     #Main functions
     def nextGameState(self) -> List[GameState]:

@@ -10,6 +10,8 @@ import random
 import re
 from typing import Any, Callable, List, Optional, Sequence, Set, Tuple
 
+from pwars import PWars
+
 def _mappableDict(dct: dict) -> bool:
     """
     Returns if dict values don't overlap.
@@ -908,12 +910,16 @@ class Statement:
             else: res += 1
         return res
 
-    def formatActionFunctionParam(self) -> Tuple:
+    def formatActionFunctionParam(self, pwars: PWars) -> Tuple:
         """
         Format statement as if it is a param of the action function.
+        Return None if not deterministic.
         """
         #TODO: Implement this method
         #TODO: Test this method
+        if not self.deterministic(): return None
+        if not self.simple(): return pwars.calcStatement(self).formatActionFunctionParam(pwars)
+
         if len(self) == 1 and self[0][0] == 'number':
             return ('number', self[0][1])
         if len(self) == 4:
@@ -1029,7 +1035,6 @@ class Statement:
         Returns operator symbol of operator/connective/comparative/equality statement.
         Returns None if not operator/connective/comparative/equality statement.
         """
-        #TODO: Test this method
         if self.form((
             ('bracket', '('),
         ), (
