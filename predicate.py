@@ -822,7 +822,7 @@ class Statement:
             return True
 
         return False
-    def functionArgs(self) -> Tuple['Statement'] | None:
+    def functionArgs(self) -> Tuple['Statement', ...] | None:
         """
         Returns all arguments of a well-formed function.
         Throws error if not a well-formed function.

@@ -375,7 +375,14 @@ class PWars:
             return Statement((('number', _doOperator(num1, num2, oper)),))
         res = state.functionArgs()
         if res is not None:
-            ...
+            return self.calcFunction(state[0], res)
+
+    def calcFunction(self, name: Tuple, args: Tuple[Statement, ...]):
+        """
+        Calculates simple function based on name and arguments.
+        """
+        #TODO: Implement this method
+        #TODO: Test this method
 
     #Main functions
     def nextGameState(self) -> List[GameState]:
