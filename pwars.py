@@ -232,6 +232,7 @@ class PWars:
     dropPile: List[Card] = field(default_factory=list)
     recentPlay: Optional[Tuple[Card, Card]] = None
     rules: Dict[int, Statement] = field(default_factory=dict)
+
     def __post_init__(self):
         self.players = [Player(
             self.INITHEALTHMULT * self.INITPLAYER,
@@ -241,6 +242,7 @@ class PWars:
         ]
         self.deck = [Card() for _ in range(self.INITCARDDECK)]
         self.remaining = [False for _ in self.players]
+
     def currentGameStates(self) -> Tuple[GameState]:
         """
         Get current game states, with layers.
@@ -253,6 +255,7 @@ class PWars:
                 highestLayer = state.layer
                 res = (state, ) + res
         return res
+
     def recentPlayerActions(self) -> Tuple[PlayerAction]:
         """
         Return a list of actions taken by each player in order from most recently played action first,
@@ -262,6 +265,7 @@ class PWars:
                                 for index, element in enumerate(self.history[::-1])
                                 if isinstance(element, GameState)), -1)
         return tuple(self.history[latestGameState:])
+
     def startAxioms(self, opposingProofIndex: int | None) -> Tuple[Statement, ...]:
         """
         Return axioms to start infering the proofs in proving game state.
@@ -278,6 +282,30 @@ class PWars:
             raise GameException("Not in proving game state")
         res += tuple(self.rules.values()) + baseRules
         return res
+
+    def formatActionFunctionParam(self, state: Statement) -> Tuple:
+        """
+        Format statement as if it is a param of the action function.
+        Return None if not deterministic.
+        """
+        #TODO: Implement this method
+        #TODO: Test this method
+        if not state.deterministic(): return None
+        if not state.simple():
+            return self.formatActionFunctionParam(self.calcStatement(state))
+
+        if len(state) == 1 and state[0][0] == 'number':
+            return ('number', state[0][1])
+        if len(state) == 4:
+            if state[0][0] == '[randPlayer]' and state[2][0] == 'number':
+                return ('randPlayer', state[2][1])
+            if state[0][0] == '[randCard]' and state[2][0] == 'number':
+                return ('randCard', state[2][1])
+            if state[0][0] == '[chosenPlayer]' and state[2][0] == 'number':
+                return ('chosenPlayer', state[2][1])
+            if state[0][0] == '[chosenCard]' and state[2][0] == 'number':
+                return ('chosenCard', state[2][1])
+
     def applyEffect(
             self,
             statement: Statement,
@@ -292,7 +320,7 @@ class PWars:
         if statement[0][0] == 'gameFuncName':
             params = statement.functionArgs()
             paramFormatted = tuple(
-                param.formatActionFunctionParam(self)
+                self.formatActionFunctionParam(param)
                 for param in params
             )
             self.applySpecificEffect(paramFormatted, chosenPlayer, chosenCard)
@@ -302,6 +330,7 @@ class PWars:
                 raise GameException(
                     'Invalid statement for game effect'
                 )
+
     def applySpecificEffect(
             self,
             params: Tuple[Tuple],
@@ -438,6 +467,7 @@ class PWars:
                 elif gameStates[3].type == GameStateType.EFFECT:
                     return [GameState.nextTurn(self, gameStates[2])]
         raise GameException('Conditions not applied')
+
     def advance(self):
         """
         Advances to a new game state and returns self.
@@ -468,6 +498,7 @@ class PWars:
                 ... #TODO: Implement game effects here
 
         return self
+
     def action(self, playerAct: PlayerAction) -> bool:
         """
         Executes an action on this game instance, if it's valid.
@@ -529,6 +560,7 @@ class PWars:
                         player.power -= powerSpent
 
         return valid
+
     def actionValid(self, playerAct: PlayerAction) -> bool:
         """
         Checks whether the given action is valid.
