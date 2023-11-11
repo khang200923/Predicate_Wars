@@ -7,7 +7,7 @@ import random
 import types
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 
-from predicate import Proof, ProofBase, StateTag, Statement, baseRules, _doOperator
+from predicate import Proof, ProofBase, StateTag, Statement, baseRules, _doOperator, gameFuncNames, predGFuncNames
 
 #REMINDER: Add features in order, in separate commits, one by one...
 #REMINDER: When adding player action features, update:
@@ -334,8 +334,10 @@ class PWars:
     def applySpecificEffect(
             self,
             params: Tuple[Tuple],
-            chosenPlayer: dict[int, int],
-            chosenCard: dict[int, Tuple[int, int]]
+            chosenPlayer: dict[int, int] = dict(),
+            chosenCard: dict[int, Tuple[int, int]] = dict(),
+            randomPlayer: dict[int, int] = dict(),
+            randomCard: dict[int, Tuple[int, int]] = dict()
         ) -> 'PWars':
         """
         Apply a game effect to a specific player/card, then return self.
@@ -346,7 +348,13 @@ class PWars:
 
         return self
 
-    def calcStatement(self, state: Statement, obj: bool | None = False):
+    def calcStatement(
+            self, state: Statement, obj: bool | None = False,
+            chosenPlayer: dict[int, int] = dict(),
+            chosenCard: dict[int, Tuple[int, int]] = dict(),
+            randomPlayer: dict[int, int] = dict(),
+            randomCard: dict[int, Tuple[int, int]] = dict()
+    ):
         """
         Calculate deterministic WFF/WFO.
         Throw error if not WFF/WFO.
@@ -365,7 +373,7 @@ class PWars:
         if state[0][0] == 'predAFuncName': return None
 
         if state.simple(obj):
-            return self.calcSimple(state, obj)
+            return self.calcSimple(state, obj, chosenPlayer, chosenCard, randomPlayer, randomCard)
         else:
             res = state.functionArgs()
             if res is not None:
@@ -382,7 +390,13 @@ class PWars:
                     Statement.lex(')')
             raise ValueError('Impossible error.')
 
-    def calcSimple(self, state: Statement, obj: bool | None = False):
+    def calcSimple(
+        self, state: Statement, obj: bool | None = False,
+        chosenPlayer: dict[int, int] = dict(),
+        chosenCard: dict[int, Tuple[int, int]] = dict(),
+        randomPlayer: dict[int, int] = dict(),
+        randomCard: dict[int, Tuple[int, int]] = dict()
+    ):
         """
         Calculate simple WFF/WFO.
         Throw error if not WFF/WFO.
@@ -403,14 +417,25 @@ class PWars:
             return Statement((('number', _doOperator(num1, num2, oper)),))
         res = state.functionArgs()
         if res is not None:
-            return self.calcFunction(state[0], tuple(state[0] for state in res))
+            return self.calcFunction(
+                state[0], tuple(state[0] for state in res),
+                chosenPlayer, chosenCard, randomPlayer, randomCard
+            )
 
-    def calcFunction(self, name: Tuple, args: Tuple[Tuple, ...]):
+    def calcFunction(
+        self, name: Tuple, args: Tuple[Tuple, ...],
+        chosenPlayer: dict[int, int] = dict(),
+        chosenCard: dict[int, Tuple[int, int]] = dict(),
+        randomPlayer: dict[int, int] = dict(),
+        randomCard: dict[int, Tuple[int, int]] = dict()
+    ):
         """
         Calculates simple function based on name and arguments.
         """
         #TODO: Implement this method
         #TODO: Test this method
+        ...
+
 
     #Main functions
     def nextGameState(self) -> List[GameState]:
