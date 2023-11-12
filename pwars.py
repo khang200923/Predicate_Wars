@@ -434,7 +434,23 @@ class PWars:
         """
         #TODO: Implement this method
         #TODO: Test this method
-        ...
+        match name:
+            case '[randPlayer]':
+                if args[0][0] == 'number':
+                    num = int(args[0][1])
+                    return randomPlayer[num]
+            case '[randCard]':
+                if args[0][0] == 'number':
+                    num = int(args[0][1])
+                    return randomCard[num]
+            case '[chosenPlayer]':
+                if args[0][0] == 'number':
+                    num = int(args[0][1])
+                    return chosenPlayer[num]
+            case '[chosenCard]':
+                if args[0][0] == 'number':
+                    num = int(args[0][1])
+                    return chosenCard[num]
 
 
     #Main functions
