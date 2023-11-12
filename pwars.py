@@ -349,11 +349,12 @@ class PWars:
         return self
 
     def calcStatement(
-            self, state: Statement, obj: bool | None = False,
-            chosenPlayer: dict[int, int] = dict(),
-            chosenCard: dict[int, Tuple[int, int]] = dict(),
-            randomPlayer: dict[int, int] = dict(),
-            randomCard: dict[int, Tuple[int, int]] = dict()
+        self, state: Statement, obj: bool | None = False,
+        chosenPlayer: dict[int, int] = dict(),
+        chosenCard: dict[int, Tuple[int, int]] = dict(),
+        randomPlayer: dict[int, int] = dict(),
+        randomCard: dict[int, Tuple[int, int]] = dict(),
+        conversion: bool = True,
     ):
         """
         Calculate deterministic WFF/WFO.
@@ -373,21 +374,30 @@ class PWars:
         if state[0][0] == 'predAFuncName': return None
 
         if state.simple(obj):
-            return self.calcSimple(state, obj, chosenPlayer, chosenCard, randomPlayer, randomCard)
+            return self.calcSimple(state, obj, chosenPlayer, chosenCard, randomPlayer, randomCard).convert(conversion)
         else:
             res = state.functionArgs()
             if res is not None:
-                return Statement(state[0]) + Statement.lex('(') + \
-                Statement(_mergeItersWithDelimiter(res, Statement.lex(','))) + \
-                Statement.lex(')')
+                return Statement(Statement(state[0]) + Statement.lex('(') + \
+                Statement(
+                    _mergeItersWithDelimiter(
+                        (self.calcStatement(
+                            arg, obj,
+                            chosenPlayer, chosenCard, randomPlayer, randomCard,
+                            conversion=False
+                        ) for arg in res),
+                        Statement.lex(',')
+                    )
+                ) + \
+                Statement.lex(')')).convert(conversion)
             res = state.operatorArgs()
             if res is not None:
-                return \
+                return Statement(
                     Statement.lex('(') + \
-                    self.calcStatement(res[0], obj=None) + \
+                    self.calcStatement(res[0], obj, chosenPlayer, chosenCard, randomPlayer, randomCard, conversion=False) + \
                     state.operatorSymbol() + \
-                    self.calcStatement(res[1], obj=None) + \
-                    Statement.lex(')')
+                    self.calcStatement(res[1], obj, chosenPlayer, chosenCard, randomPlayer, randomCard, conversion=False) + \
+                    Statement.lex(')')).convert(conversion)
             raise ValueError('Impossible error.')
 
     def calcSimple(
@@ -395,7 +405,8 @@ class PWars:
         chosenPlayer: dict[int, int] = dict(),
         chosenCard: dict[int, Tuple[int, int]] = dict(),
         randomPlayer: dict[int, int] = dict(),
-        randomCard: dict[int, Tuple[int, int]] = dict()
+        randomCard: dict[int, Tuple[int, int]] = dict(),
+        conversion: bool = True,
     ):
         """
         Calculate simple WFF/WFO.
@@ -438,19 +449,19 @@ class PWars:
             case '[randPlayer]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
-                    return randomPlayer[num]
+                    return ('player', randomPlayer[num])
             case '[randCard]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
-                    return randomCard[num]
+                    return ('card', randomCard[num])
             case '[chosenPlayer]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
-                    return chosenPlayer[num]
+                    return ('player', chosenPlayer[num])
             case '[chosenCard]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
-                    return chosenCard[num]
+                    return ('card', chosenCard[num])
 
 
     #Main functions
