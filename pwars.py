@@ -1,6 +1,7 @@
 """
 Provides essential classes and methods for the game itself.
 """
+from copy import deepcopy
 from dataclasses import dataclass, field
 from enum import Enum
 import random
@@ -449,19 +450,35 @@ class PWars:
             case '[randPlayer]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
-                    return ('player', randomPlayer[num])
+                    return Statement(('player', randomPlayer[num]))
             case '[randCard]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
-                    return ('card', randomCard[num])
+                    return Statement(('card', randomCard[num]))
             case '[chosenPlayer]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
-                    return ('player', chosenPlayer[num])
+                    return Statement(('player', chosenPlayer[num]))
             case '[chosenCard]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
-                    return ('card', chosenCard[num])
+                    return Statement(('card', chosenCard[num]))
+
+    def convert(self, state, convert: bool = True) -> 'Statement':
+        """
+        Expand special symbols of the statement to normal ones.
+        """
+        #TODO: Implement this method
+        #TODO: Test this method
+        res = deepcopy(state)
+
+        i = 0
+        while i < len(res):
+            sym = res[i]
+#           match sym[0]:
+#               ...
+
+        return res
 
 
     #Main functions

@@ -1054,22 +1054,6 @@ class Statement:
             opt2obj=True): return ('compare', com)
         return None
 
-    def convert(self, convert: bool = True) -> 'Statement':
-        """
-        Expand special symbols of the statement to normal ones.
-        """
-        #TODO: Implement this method
-        #TODO: Test this method
-        res = deepcopy(self)
-
-        i = 0
-        while i < len(res):
-            sym = res[i]
-#           match sym[0]:
-#               ...
-
-        return res
-
 baseRules = tuple(Statement.lex(rule) for rule in baseRulesWritten)
 
 class StateTag(Enum):
