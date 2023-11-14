@@ -375,30 +375,31 @@ class PWars:
         if state[0][0] == 'predAFuncName': return None
 
         if state.simple(obj):
-            return self.calcSimple(state, obj, chosenPlayer, chosenCard, randomPlayer, randomCard).convert(conversion)
+            return self.convert(self.calcSimple(state, obj, chosenPlayer, chosenCard, randomPlayer, randomCard), conversion)
         else:
             res = state.functionArgs()
             if res is not None:
-                return Statement(Statement(state[0]) + Statement.lex('(') + \
-                Statement(
-                    _mergeItersWithDelimiter(
-                        (self.calcStatement(
-                            arg, obj,
-                            chosenPlayer, chosenCard, randomPlayer, randomCard,
-                            conversion=False
-                        ) for arg in res),
-                        Statement.lex(',')
-                    )
-                ) + \
-                Statement.lex(')')).convert(conversion)
+                return self.convert(
+                    Statement(Statement(state[0]) + Statement.lex('(') + \
+                    Statement(
+                        _mergeItersWithDelimiter(
+                            (self.calcStatement(
+                                arg, obj,
+                                chosenPlayer, chosenCard, randomPlayer, randomCard,
+                                conversion=False
+                            ) for arg in res),
+                            Statement.lex(',')
+                        )
+                    ) + \
+                    Statement.lex(')')), conversion)
             res = state.operatorArgs()
             if res is not None:
-                return Statement(
+                return self.convert(Statement(
                     Statement.lex('(') + \
                     self.calcStatement(res[0], obj, chosenPlayer, chosenCard, randomPlayer, randomCard, conversion=False) + \
                     state.operatorSymbol() + \
                     self.calcStatement(res[1], obj, chosenPlayer, chosenCard, randomPlayer, randomCard, conversion=False) + \
-                    Statement.lex(')')).convert(conversion)
+                    Statement.lex(')')), conversion)
             raise ValueError('Impossible error.')
 
     def calcSimple(
