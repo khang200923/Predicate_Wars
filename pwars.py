@@ -215,6 +215,13 @@ class GameException(Exception):
     pass
 
 @dataclass
+class CalcInstance:
+    chosenPlayer: dict[int, int] = dict(),
+    chosenCard: dict[int, Tuple[int, int]] = dict(),
+    randomPlayer: dict[int, int] = dict(),
+    randomCard: dict[int, Tuple[int, int]] = dict(),
+
+@dataclass
 class PWars:
     """
     A game of Predicate Wars.
@@ -351,10 +358,7 @@ class PWars:
 
     def calcStatement(
         self, state: Statement, obj: bool | None = False,
-        chosenPlayer: dict[int, int] = dict(),
-        chosenCard: dict[int, Tuple[int, int]] = dict(),
-        randomPlayer: dict[int, int] = dict(),
-        randomCard: dict[int, Tuple[int, int]] = dict(),
+        calcInstance: CalcInstance = CalcInstance(),
         conversion: bool = True,
     ):
         """
@@ -375,7 +379,7 @@ class PWars:
         if state[0][0] == 'predAFuncName': return None
 
         if state.simple(obj):
-            return self.convert(self.calcSimple(state, obj, chosenPlayer, chosenCard, randomPlayer, randomCard), conversion)
+            return self.convert(self.calcSimple(state, obj, calcInstance), conversion)
         else:
             res = state.functionArgs()
             if res is not None:
@@ -385,7 +389,7 @@ class PWars:
                         _mergeItersWithDelimiter(
                             (self.calcStatement(
                                 arg, obj,
-                                chosenPlayer, chosenCard, randomPlayer, randomCard,
+                                calcInstance,
                                 conversion=False
                             ) for arg in res),
                             Statement.lex(',')
@@ -396,18 +400,15 @@ class PWars:
             if res is not None:
                 return self.convert(Statement(
                     Statement.lex('(') + \
-                    self.calcStatement(res[0], obj, chosenPlayer, chosenCard, randomPlayer, randomCard, conversion=False) + \
+                    self.calcStatement(res[0], obj, calcInstance, conversion=False) + \
                     state.operatorSymbol() + \
-                    self.calcStatement(res[1], obj, chosenPlayer, chosenCard, randomPlayer, randomCard, conversion=False) + \
+                    self.calcStatement(res[1], obj, calcInstance, conversion=False) + \
                     Statement.lex(')')), conversion)
             raise ValueError('Impossible error.')
 
     def calcSimple(
         self, state: Statement, obj: bool | None = False,
-        chosenPlayer: dict[int, int] = dict(),
-        chosenCard: dict[int, Tuple[int, int]] = dict(),
-        randomPlayer: dict[int, int] = dict(),
-        randomCard: dict[int, Tuple[int, int]] = dict(),
+        calcInstance: CalcInstance = CalcInstance(),
         conversion: bool = True,
     ):
         """
@@ -431,22 +432,22 @@ class PWars:
         res = state.functionArgs()
         if res is not None:
             return self.calcFunction(
-                state[0], tuple(state[0] for state in res),
-                chosenPlayer, chosenCard, randomPlayer, randomCard
+                state[0], tuple(state[0] for state in res), calcInstance
             )
 
     def calcFunction(
         self, name: Tuple, args: Tuple[Tuple, ...],
-        chosenPlayer: dict[int, int] = dict(),
-        chosenCard: dict[int, Tuple[int, int]] = dict(),
-        randomPlayer: dict[int, int] = dict(),
-        randomCard: dict[int, Tuple[int, int]] = dict()
+        calcInstance: CalcInstance = CalcInstance(),
     ):
         """
         Calculates simple function based on name and arguments.
         """
         #TODO: Implement this method
         #TODO: Test this method
+        chosenPlayer, chosenCard, randomPlayer, randomCard = \
+            calcInstance.chosenPlayer, calcInstance.chosenCard, \
+            calcInstance.randomPlayer, calcInstance.randomCard
+
         match name:
             case '[randPlayer]':
                 if args[0][0] == 'number':
