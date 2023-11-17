@@ -379,7 +379,7 @@ class PWars:
         if state[0][0] == 'predAFuncName': return None
 
         if state.simple(obj):
-            return self.convert(self.calcSimple(state, obj, calcInstance), conversion)
+            return self.convert(self.calcSimple(state, obj, calcInstance), calcInstance, conversion)
         else:
             res = state.functionArgs()
             if res is not None:
@@ -395,7 +395,7 @@ class PWars:
                             Statement.lex(',')
                         )
                     ) + \
-                    Statement.lex(')')), conversion)
+                    Statement.lex(')')), calcInstance, conversion)
             res = state.operatorArgs()
             if res is not None:
                 return self.convert(Statement(
@@ -403,7 +403,7 @@ class PWars:
                     self.calcStatement(res[0], obj, calcInstance, conversion=False) + \
                     state.operatorSymbol() + \
                     self.calcStatement(res[1], obj, calcInstance, conversion=False) + \
-                    Statement.lex(')')), conversion)
+                    Statement.lex(')')), calcInstance, conversion)
             raise ValueError('Impossible error.')
 
     def calcSimple(
@@ -466,7 +466,7 @@ class PWars:
                     num = int(args[0][1])
                     return Statement(('card', chosenCard[num]))
 
-    def convert(self, state, convert: bool = True) -> 'Statement':
+    def convert(self, state, calcInstance: CalcInstance = CalcInstance(), convert: bool = True) -> 'Statement':
         """
         Expand special symbols of the statement to normal ones.
         """
