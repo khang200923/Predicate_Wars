@@ -356,8 +356,9 @@ class PWars:
 
         return self
 
+    @staticmethod
     def calcStatement(
-        self, state: Statement, obj: bool | None = False,
+        state: Statement, obj: bool | None = False,
         calcInstance: CalcInstance = CalcInstance(),
         conversion: bool = True,
     ):
@@ -379,15 +380,15 @@ class PWars:
         if state[0][0] == 'predAFuncName': return None
 
         if state.simple(obj):
-            return self.convert(self.calcSimple(state, obj, calcInstance), calcInstance, conversion)
+            return PWars.convert(PWars.calcSimple(state, obj, calcInstance), calcInstance, conversion)
         else:
             res = state.functionArgs()
             if res is not None:
-                return self.convert(
+                return PWars.convert(
                     Statement(Statement(state[0]) + Statement.lex('(') + \
                     Statement(
                         _mergeItersWithDelimiter(
-                            (self.calcStatement(
+                            (PWars.calcStatement(
                                 arg, obj,
                                 calcInstance,
                                 conversion=False
@@ -398,16 +399,17 @@ class PWars:
                     Statement.lex(')')), calcInstance, conversion)
             res = state.operatorArgs()
             if res is not None:
-                return self.convert(Statement(
+                return PWars.convert(Statement(
                     Statement.lex('(') + \
-                    self.calcStatement(res[0], obj, calcInstance, conversion=False) + \
+                    PWars.calcStatement(res[0], obj, calcInstance, conversion=False) + \
                     state.operatorSymbol() + \
-                    self.calcStatement(res[1], obj, calcInstance, conversion=False) + \
+                    PWars.calcStatement(res[1], obj, calcInstance, conversion=False) + \
                     Statement.lex(')')), calcInstance, conversion)
             raise ValueError('Impossible error.')
 
+    @staticmethod
     def calcSimple(
-        self, state: Statement, obj: bool | None = False,
+        state: Statement, obj: bool | None = False,
         calcInstance: CalcInstance = CalcInstance(),
         conversion: bool = True,
     ):
@@ -431,12 +433,13 @@ class PWars:
             return Statement((('number', _doOperator(num1, num2, oper)),))
         res = state.functionArgs()
         if res is not None:
-            return self.calcFunction(
+            return PWars.calcFunction(
                 state[0], tuple(state[0] for state in res), calcInstance
             )
 
+    @staticmethod
     def calcFunction(
-        self, name: Tuple, args: Tuple[Tuple, ...],
+        name: Tuple, args: Tuple[Tuple, ...],
         calcInstance: CalcInstance = CalcInstance(),
     ):
         """
@@ -466,7 +469,8 @@ class PWars:
                     num = int(args[0][1])
                     return Statement(('card', chosenCard[num]))
 
-    def convert(self, state, calcInstance: CalcInstance = CalcInstance(), convert: bool = True) -> 'Statement':
+    @staticmethod
+    def convert(state, calcInstance: CalcInstance = CalcInstance(), convert: bool = True) -> 'Statement':
         """
         Expand special symbols of the statement to normal ones.
         """
