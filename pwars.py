@@ -222,6 +222,7 @@ class CalcInstance:
     randomCard: dict[int, Tuple[int, int]] = field(default_factory=dict)
     cardsOfPlayers: dict[int, Set[int]] = field(default_factory=dict)
     playerObjs: dict[int, Player] = field(default_factory=dict)
+    cardObjs: dict[int, Card] = field(default_factory=dict)
 
 @dataclass
 class PWars:
@@ -484,6 +485,16 @@ class PWars:
                 if args[0][0] == 'number':
                     num = int(args[0][1])
                     return cI.playerObjs[num].potency
+            case '[symbolPoint]':
+                if args[0][0] == 'number':
+                    num = int(args[0][1])
+                    if cI.cardObjs[num].effect is None: return 0
+                    else: return cI.cardObjs[num].effect.symbolPoint()
+            case '[powerCost]':
+                if args[0][0] == 'number':
+                    num = int(args[0][1])
+                    if cI.cardObjs[num].effect is None: return 0
+                    else: return cI.cardObjs[num].powerCost
 
     @staticmethod
     def convert(state, calcInstance: CalcInstance = CalcInstance(), convert: bool = True) -> 'Statement':
