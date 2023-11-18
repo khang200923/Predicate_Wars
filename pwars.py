@@ -472,29 +472,29 @@ class PWars:
             case '[playerOfChosenCard]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
-                    return next(player for player, cards in cI.cardsOfPlayers.values() if num in cards)
+                    return Statement(('player', next(player for player, cards in cI.cardsOfPlayers.values() if num in cards)))
             case '[health]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
-                    return cI.playerObjs[num].health
+                    return Statement(('number', cI.playerObjs[num].health))
             case '[power]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
-                    return cI.playerObjs[num].power
+                    return Statement(('number', cI.playerObjs[num].power))
             case '[potency]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
-                    return cI.playerObjs[num].potency
+                    return Statement(('number', cI.playerObjs[num].potency))
             case '[symbolPoint]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
                     if cI.cardObjs[num].effect is None: return 0
-                    else: return cI.cardObjs[num].effect.symbolPoint()
+                    else: return Statement(('number', cI.cardObjs[num].effect.symbolPoint()))
             case '[powerCost]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
                     if cI.cardObjs[num].effect is None: return 0
-                    else: return cI.cardObjs[num].powerCost
+                    else: return Statement(('number', cI.cardObjs[num].powerCost))
 
     @staticmethod
     def convert(state, calcInstance: CalcInstance = CalcInstance(), convert: bool = True) -> 'Statement':
