@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 import random
 import types
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple
 
 from predicate import Proof, ProofBase, StateTag, Statement, baseRules, _doOperator, gameFuncNames, predGFuncNames
 
@@ -220,6 +220,7 @@ class CalcInstance:
     chosenCard: dict[int, Tuple[int, int]] = dict(),
     randomPlayer: dict[int, int] = dict(),
     randomCard: dict[int, Tuple[int, int]] = dict(),
+    cardsOfPlayers: dict[int, Set[int]] = dict(),
 
 @dataclass
 class PWars:
@@ -447,9 +448,12 @@ class PWars:
         """
         #TODO: Implement this method
         #TODO: Test this method
-        chosenPlayer, chosenCard, randomPlayer, randomCard = \
+        chosenPlayer, chosenCard, \
+        randomPlayer, randomCard, \
+        cardsOfPlayers = \
             calcInstance.chosenPlayer, calcInstance.chosenCard, \
-            calcInstance.randomPlayer, calcInstance.randomCard
+            calcInstance.randomPlayer, calcInstance.randomCard, \
+            calcInstance.cardsOfPlayers
 
         match name:
             case '[randPlayer]':
@@ -468,6 +472,10 @@ class PWars:
                 if args[0][0] == 'number':
                     num = int(args[0][1])
                     return Statement(('card', chosenCard[num]))
+            case '[playerOfChosenCard]':
+                if args[0][0] == 'number':
+                    num = int(args[0][1])
+                    return next(player for player, cards in cardsOfPlayers.values() if num in cards)
 
     @staticmethod
     def convert(state, calcInstance: CalcInstance = CalcInstance(), convert: bool = True) -> 'Statement':
