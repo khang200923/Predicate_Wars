@@ -216,11 +216,12 @@ class GameException(Exception):
 
 @dataclass
 class CalcInstance:
-    chosenPlayer: dict[int, int] = dict(),
-    chosenCard: dict[int, Tuple[int, int]] = dict(),
-    randomPlayer: dict[int, int] = dict(),
-    randomCard: dict[int, Tuple[int, int]] = dict(),
-    cardsOfPlayers: dict[int, Set[int]] = dict(),
+    chosenPlayer: dict[int, int] = field(default_factory=dict)
+    chosenCard: dict[int, Tuple[int, int]] = field(default_factory=dict)
+    randomPlayer: dict[int, int] = field(default_factory=dict)
+    randomCard: dict[int, Tuple[int, int]] = field(default_factory=dict)
+    cardsOfPlayers: dict[int, Set[int]] = field(default_factory=dict)
+    playerObjs: dict[int, Player] = field(default_factory=dict)
 
 @dataclass
 class PWars:
@@ -448,34 +449,41 @@ class PWars:
         """
         #TODO: Implement this method
         #TODO: Test this method
-        chosenPlayer, chosenCard, \
-        randomPlayer, randomCard, \
-        cardsOfPlayers = \
-            calcInstance.chosenPlayer, calcInstance.chosenCard, \
-            calcInstance.randomPlayer, calcInstance.randomCard, \
-            calcInstance.cardsOfPlayers
+        cI = calcInstance #Reduces pain
 
         match name:
             case '[randPlayer]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
-                    return Statement(('player', randomPlayer[num]))
+                    return Statement(('player', cI.randomPlayer[num]))
             case '[randCard]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
-                    return Statement(('card', randomCard[num]))
+                    return Statement(('card', cI.randomCard[num]))
             case '[chosenPlayer]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
-                    return Statement(('player', chosenPlayer[num]))
+                    return Statement(('player', cI.chosenPlayer[num]))
             case '[chosenCard]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
-                    return Statement(('card', chosenCard[num]))
+                    return Statement(('card', cI.chosenCard[num]))
             case '[playerOfChosenCard]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
-                    return next(player for player, cards in cardsOfPlayers.values() if num in cards)
+                    return next(player for player, cards in cI.cardsOfPlayers.values() if num in cards)
+            case '[health]':
+                if args[0][0] == 'number':
+                    num = int(args[0][1])
+                    return cI.playerObjs[num].health
+            case '[power]':
+                if args[0][0] == 'number':
+                    num = int(args[0][1])
+                    return cI.playerObjs[num].power
+            case '[potency]':
+                if args[0][0] == 'number':
+                    num = int(args[0][1])
+                    return cI.playerObjs[num].potency
 
     @staticmethod
     def convert(state, calcInstance: CalcInstance = CalcInstance(), convert: bool = True) -> 'Statement':
