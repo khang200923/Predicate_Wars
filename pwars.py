@@ -495,6 +495,21 @@ class PWars:
                     num = int(args[0][1])
                     if cI.cardObjs[num].effect is None: return 0
                     else: return Statement(('number', cI.cardObjs[num].powerCost))
+            case '[NUMBER]':
+                if args[0][0] == 'number':
+                    return Statement.lex('tT')
+                else:
+                    return Statement.lex('tF')
+            case '[PLAYER]':
+                if args[0][0] == 'player':
+                    return Statement.lex('tT')
+                else:
+                    return Statement.lex('tF')
+            case '[CARD]':
+                if args[0][0] == 'card':
+                    return Statement.lex('tT')
+                else:
+                    return Statement.lex('tF')
 
     @staticmethod
     def convert(state, calcInstance: CalcInstance = CalcInstance(), convert: bool = True) -> 'Statement':
