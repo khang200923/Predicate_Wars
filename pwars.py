@@ -449,7 +449,6 @@ class PWars:
         """
         Calculates simple function based on name and arguments.
         """
-        #TODO: Implement this method
         #TODO: Test this method
         cI = calcInstance #Reduces pain
 
