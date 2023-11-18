@@ -428,7 +428,8 @@ class PWars:
             if obj and not state.wellformedobj(): raise ValueError('Not a well-formed object')
             if (not obj) and not state.wellformed(): raise ValueError('Not a well-formed formula')
 
-        if state[0][0] == 'predAFuncName': return None
+        if (not state.simple()) or state[0][0] == 'predAFuncName':
+            return None
 
         res = state.operatorArgs()
         if res is not None:

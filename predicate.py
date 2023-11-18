@@ -147,7 +147,7 @@ varSymbols = ('distVar', 'var', 'gameFuncName')
 predSymbols = ('distPred', 'pred', 'predGFuncName', 'predAFuncName')
 varFuncSymbols = ('distVar', 'var', 'number', 'gameFuncName')
 predFuncSymbols = ('distPred', 'pred', 'predGFuncName', 'predAFuncName')
-unPureVar = ('number')
+unPureVar = ('number', 'player', 'card')
 unPurePred = ('truth')
 
 #Special symbol types: 'player', 'card'
@@ -943,24 +943,27 @@ class Statement:
             if (not obj) and not self.wellformed(): raise ValueError('Not a well-formed formula')
 
         if obj or obj is None:
-            if len(self) == 1 and self[0][0] == 'number': return True
+            if len(self) == 1 and self[0][0] in unPureVar: return True
             if len(self) >= 3 and self[0][0] == 'gameFuncName' and self[1] == ('bracket', '(') and \
-            all(sym[0] == 'number' for sym in self[2::2]):
+            all(sym[0] in unPureVar for sym in self[2::2]):
                 return True
-            if len(self) == 5 and self[1][0] == 'number' and self[2][0] == 'oper' and self[3][0] == 'number':
+            if len(self) == 5 and self[1][0] in unPureVar and self[2][0] == 'oper' and self[3][0] in unPureVar:
                 return True
         if (not obj) or obj is None:
-            if len(self) == 1 and self[0][0] == 'truth': return True
+            if len(self) == 1 and self[0][0] in unPurePred: return True
             if len(self) >= 3 and self[0][0] in ('predGFuncName', 'predAFuncName') and self[1] == ('bracket', '(') and \
-            all(sym[0] == 'number' for sym in self[2::2]):
+            all(sym[0] in unPureVar for sym in self[2::2]):
                 return True
-            if len(self) == 5 and self[1][0] == 'number' and self[2][0] == 'compare' and self[3][0] == 'number':
+            if len(self) == 5 and self[1][0] in unPureVar and self[2][0] == 'compare' and self[3][0] in unPureVar:
                 return True
-            if len(self) == 5 and self[1][0] == 'number' and self[2][0] == 'equal' and self[3][0] == 'number':
+            if len(self) == 5 and self[1][0] in unPureVar and self[2][0] == 'equal' and self[3][0] in unPureVar:
                 return True
-            if len(self) == 5 and self[1][0] == 'truth' and self[2][0] == 'connect' and self[3][0] == 'truth':
+            if len(self) == 5 and self[1][0] in unPurePred and self[2][0] == 'connect' and self[3][0] in unPurePred:
                 return True
+
         return False
+
+
     def operatorArgs(self)-> Tuple['Statement', 'Statement'] | None:
         """
         Returns args of operator/connective/comparative/equality statement.
