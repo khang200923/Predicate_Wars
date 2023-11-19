@@ -143,12 +143,18 @@ symbolsType = (
     ('space', r'\s'),
 )
 
+specialSymbolsType = (
+    ('player', r'%player:[^%]*%'),
+    ('card', r'%card:[^%]*%')
+)
+
 varSymbols = ('distVar', 'var', 'gameFuncName')
 predSymbols = ('distPred', 'pred', 'predGFuncName', 'predAFuncName')
 varFuncSymbols = ('distVar', 'var', 'number', 'gameFuncName')
 predFuncSymbols = ('distPred', 'pred', 'predGFuncName', 'predAFuncName')
 unPureVar = ('number', 'player', 'card')
 unPurePred = ('truth')
+specialSymbols = ('player', 'card')
 
 #Special symbol types: 'player', 'card'
 
@@ -295,9 +301,15 @@ baseRulesWritten = (
 )
 
 def symbolTypeCalc(symbol: str) -> str | None:
-    return next((name for name, cond in symbolsType if re.match('^{}$'.format(cond), symbol)), None)
+    return next(
+        (
+            name for name, cond in symbolsType + specialSymbolsType
+            if re.match('^{}$'.format(cond), symbol)
+        ),
+        None
+    )
 
-def symbolTrans(symbol: str) -> Tuple[str, ...] | None:
+def symbolTrans(symbol: str, special: bool = False) -> Tuple[str, ...] | None:
     symType = symbolTypeCalc(symbol)
     if symType is None:
         return None
@@ -325,6 +337,9 @@ def symbolTrans(symbol: str) -> Tuple[str, ...] | None:
         'compare'
     ]:
         return (symType, symbol)
+    if symType in specialSymbols and special:
+        assert re.search(r'%[^%:]*:([^%]*)%', symbol) is not None, 'Impossible error.'
+        return (symType, re.search(r'%[^%:]*:([^%]*)%', symbol).group(1))
     return (symType,)
 
 @dataclass
@@ -335,13 +350,27 @@ class Statement:
     statement: Tuple[Tuple, ...]
 
     @staticmethod
-    def lex(string: str) -> 'Statement':
+    def lex(string: str, special: bool = False) -> 'Statement':
         """
         Tokenize statement from string.
         """
         tokens = []
         unLexed = string
         while unLexed:
+            if special:
+                typeDetect = tuple(re.match(regex, unLexed) for _, regex in specialSymbolsType)
+                if any(typeDetect):
+                    typeDetectIndex = tuple(
+                        re.match(regex, unLexed).start()
+                        if re.match(regex, unLexed)
+                        else float('inf')
+                        for _, regex in symbolsType
+                    )
+                    nextTokenMatch = typeDetect[typeDetectIndex.index(min(typeDetectIndex))]
+                    nextToken = symbolTrans(nextTokenMatch.group())
+                    unLexed = unLexed[nextTokenMatch.end():]
+                    continue
+
             typeDetect = tuple(re.match(regex, unLexed) for _, regex in symbolsType)
             if any(typeDetect):
                 typeDetectIndex = tuple(
@@ -392,6 +421,8 @@ class Statement:
                 res += '='
             elif symType == 'comma':
                 res += ','
+            elif symType in specialSymbols:
+                res += f'%{symType}:{symVal}%'
             else:
                 res += '{?}'
         return res

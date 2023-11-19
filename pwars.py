@@ -456,19 +456,19 @@ class PWars:
             case '[randPlayer]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
-                    return Statement(('player', cI.randomPlayer[num]))
+                    return Statement(('player', str(cI.randomPlayer[num])))
             case '[randCard]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
-                    return Statement(('card', cI.randomCard[num]))
+                    return Statement(('card', str(cI.randomCard[num])))
             case '[chosenPlayer]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
-                    return Statement(('player', cI.chosenPlayer[num]))
+                    return Statement(('player', str(cI.chosenPlayer[num])))
             case '[chosenCard]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
-                    return Statement(('card', cI.chosenCard[num]))
+                    return Statement(('card', str(cI.chosenCard[num])))
             case '[playerOfChosenCard]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
@@ -476,25 +476,25 @@ class PWars:
             case '[health]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
-                    return Statement(('number', cI.playerObjs[num].health))
+                    return Statement(('number', str(cI.playerObjs[num].health)))
             case '[power]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
-                    return Statement(('number', cI.playerObjs[num].power))
+                    return Statement(('number', str(cI.playerObjs[num].power)))
             case '[potency]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
-                    return Statement(('number', cI.playerObjs[num].potency))
+                    return Statement(('number', str(cI.playerObjs[num].potency)))
             case '[symbolPoint]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
                     if cI.cardObjs[num].effect is None: return 0
-                    else: return Statement(('number', cI.cardObjs[num].effect.symbolPoint()))
+                    else: return Statement(('number', str(cI.cardObjs[num].effect.symbolPoint())))
             case '[powerCost]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
                     if cI.cardObjs[num].effect is None: return 0
-                    else: return Statement(('number', cI.cardObjs[num].powerCost))
+                    else: return Statement(('number', str(cI.cardObjs[num].powerCost)))
             case '[NUMBER]':
                 if args[0][0] == 'number':
                     return Statement.lex('tT')
