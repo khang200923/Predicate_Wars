@@ -245,6 +245,19 @@ test('Statement.simple 12', res, False)
 res = pd.Statement.lex('(tT or P)').simple()
 test('Statement.simple 13', not res, True)
 
+res = pd.Statement.lex('$player:4$', special=True).simple(obj=True)
+test('Statement.simple 14', res, False)
+
+try:
+    pd.Statement.lex('$player:4$', special=False).simple(obj=True)
+except ValueError:
+    test('Statement.simple 15', True, 'wait what how did this message appear')
+else:
+    test('Statement.simple 15', False, 'no err')
+
+res = pd.Statement.lex('P($player:6$, $card:123$)', special=True).simple()
+test('Statement.simple 15', not res, True)
+
 res = pd.Statement.lex('[PLAYER](4)').deterministic()
 test('Statement.deterministic 1', res, False)
 

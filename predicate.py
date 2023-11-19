@@ -144,13 +144,13 @@ symbolsType = (
 )
 
 specialSymbolsType = (
-    ('player', r'%player:[^%]*%'),
-    ('card', r'%card:[^%]*%')
+    ('player', r'\$player:[^$]*\$'),
+    ('card', r'\$card:[^$]*\$')
 )
 
 varSymbols = ('distVar', 'var', 'gameFuncName')
-predSymbols = ('distPred', 'pred', 'predGFuncName', 'predAFuncName')
-varFuncSymbols = ('distVar', 'var', 'number', 'gameFuncName')
+predSymbols = ('distPred', 'truth', 'pred', 'predGFuncName', 'predAFuncName')
+varFuncSymbols = ('distVar', 'var', 'number', 'gameFuncName', 'player', 'card')
 predFuncSymbols = ('distPred', 'pred', 'predGFuncName', 'predAFuncName')
 unPureVar = ('number', 'player', 'card')
 unPurePred = ('truth')
@@ -338,8 +338,8 @@ def symbolTrans(symbol: str, special: bool = False) -> Tuple[str, ...] | None:
     ]:
         return (symType, symbol)
     if symType in specialSymbols and special:
-        assert re.search(r'%[^%:]*:([^%]*)%', symbol) is not None, 'Impossible error.'
-        return (symType, re.search(r'%[^%:]*:([^%]*)%', symbol).group(1))
+        assert re.search(r'\$[^$:]*:([^$]*)\$', symbol) is not None, 'Impossible error.'
+        return (symType, re.search(r'\$[^$:]*:([^$]*)\$', symbol).group(1))
     return (symType,)
 
 @dataclass
@@ -364,10 +364,11 @@ class Statement:
                         re.match(regex, unLexed).start()
                         if re.match(regex, unLexed)
                         else float('inf')
-                        for _, regex in symbolsType
+                        for _, regex in specialSymbolsType
                     )
                     nextTokenMatch = typeDetect[typeDetectIndex.index(min(typeDetectIndex))]
-                    nextToken = symbolTrans(nextTokenMatch.group())
+                    nextToken = symbolTrans(nextTokenMatch.group(), special=True)
+                    tokens.append(nextToken)
                     unLexed = unLexed[nextTokenMatch.end():]
                     continue
 
@@ -422,7 +423,7 @@ class Statement:
             elif symType == 'comma':
                 res += ','
             elif symType in specialSymbols:
-                res += f'%{symType}:{symVal}%'
+                res += f'${symType}:{symVal}$'
             else:
                 res += '{?}'
         return res
@@ -611,11 +612,11 @@ class Statement:
 
         if len(self) == 0: return False
         if len(self) == 1:
-            return self.statement[0][0] in ('distVar', 'var', 'number', 'gameFuncName')
+            return self.statement[0][0] in varFuncSymbols
         if len(self) > 2:
             #Function syntax
             if self[1] == ('bracket', '(') and self[-1] == ('bracket', ')') and \
-            self[0][0] in ('distVar', 'var', 'number', 'gameFuncName'):
+            self[0][0] in varFuncSymbols:
                 paramsLeft = self[2:-1]
                 while len(paramsLeft) > 0:
                     paramEndIndex = next(
@@ -711,7 +712,7 @@ class Statement:
 
         if len(self) == 0: return False
         if len(self) == 1:
-            return self[0][0] in ('distPred', 'truth', 'pred')
+            return self[0][0] in predSymbols
 
         #For All syntax
         if self.form(
