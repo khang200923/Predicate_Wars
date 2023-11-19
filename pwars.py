@@ -438,14 +438,14 @@ class PWars:
         res = state.functionArgs()
         if res is not None:
             return PWars.calcFunction(
-                state[0], tuple(state[0] for state in res), calcInstance
+                state[0][1], tuple(state[0] for state in res), calcInstance
             )
 
     @staticmethod
     def calcFunction(
-        name: Tuple, args: Tuple[Tuple, ...],
+        name: str, args: Tuple[Tuple, ...],
         calcInstance: CalcInstance = CalcInstance(),
-    ):
+    ) -> Statement:
         """
         Calculates simple function based on name and arguments.
         """
@@ -510,6 +510,8 @@ class PWars:
                     return Statement.lex('tT')
                 else:
                     return Statement.lex('tF')
+            case _:
+                raise ValueError('???') #TODO: Implement this special case
 
     @staticmethod
     def convert(state, calcInstance: CalcInstance = CalcInstance(), convert: bool = True) -> 'Statement':
@@ -528,6 +530,12 @@ class PWars:
 
         return res
 
+    def genCalcInstance(self) -> CalcInstance:
+        """
+        Generate calcInstance based on PWars object, including current game state.
+        """
+        #TODO: Implement this method
+        #TODO: Test this method
 
     #Main functions
     def nextGameState(self) -> List[GameState]:
