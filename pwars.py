@@ -4,11 +4,13 @@ Provides essential classes and methods for the game itself.
 from copy import deepcopy
 from dataclasses import dataclass, field
 from enum import Enum
+import itertools
 import random
 import types
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple
 
 from predicate import Proof, ProofBase, StateTag, Statement, baseRules, _doOperator, gameFuncNames, predGFuncNames
+from utilclasses import LazyDict
 
 #REMINDER: Add features in order, in separate commits, one by one...
 #REMINDER: When adding player action features, update:
@@ -530,12 +532,34 @@ class PWars:
 
         return res
 
-    def genCalcInstance(self) -> CalcInstance:
+    def genCalcInstance(
+        self,
+        chosenPlayer: dict[int, int], chosenCard: dict[int, Tuple[int, int]],
+        randomClass = random
+    ) -> CalcInstance:
         """
         Generate calcInstance based on PWars object, including current game state.
         """
         #TODO: Implement this method
         #TODO: Test this method
+        res = CalcInstance()
+        res.playerObjs = self.players
+        res.cardObjs = list(itertools.chain(player.cards for player in self.players))
+        res.chosenPlayer = chosenPlayer
+        res.chosenCard = chosenCard
+
+        res.randomPlayer = \
+            LazyDict(generation=lambda k: randomClass.choice(i for i, _ in enumerate(res.playerObjs)))
+        res.randomCard = \
+            LazyDict(generation=lambda k: randomClass.choice(i for i, _ in enumerate(res.cardObjs)))
+
+        res.cardsOfPlayers = {}
+        cardStartI, cardEndI = 0, 0
+        for i, player in enumerate(res.playerObjs):
+            cardEndI += len(player.cards)
+            res.cardsOfPlayers[i] = set(range(cardStartI, cardEndI))
+            cardStartI = cardEndI
+
 
     #Main functions
     def nextGameState(self) -> List[GameState]:
