@@ -544,7 +544,7 @@ class PWars:
         #TODO: Test this method
         res = CalcInstance()
         res.playerObjs = self.players
-        res.cardObjs = list(itertools.chain(player.cards for player in self.players))
+        res.cardObjs = list(itertools.chain(*(player.cards for player in self.players)))
         res.chosenPlayer = chosenPlayer
         res.chosenCard = chosenCard
 
@@ -559,6 +559,8 @@ class PWars:
             cardEndI += len(player.cards)
             res.cardsOfPlayers[i] = set(range(cardStartI, cardEndI))
             cardStartI = cardEndI
+
+        return res
 
 
     #Main functions

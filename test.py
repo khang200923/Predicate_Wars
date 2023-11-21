@@ -16,7 +16,10 @@ try: testIndex = int(sys.argv[1])
 except IndexError: testIndex = None
 
 def testReturn(name: str, bl: bool, failinfo: Any, note: str = '') -> Tuple[bool, str]:
-    failstr = ': ' + repr(failinfo)
+    if isinstance(failinfo, str) and failinfo.startswith(':print:'):
+        failstr = ':\n' + str(failinfo)
+    else:
+        failstr = ': ' + repr(failinfo)
     testResChoice = {True: 'success', False: 'failure'}
     if bl:
         text = f'\033[1m\033[32mTest {name} {testResChoice[bl]}\033[0m'
@@ -729,6 +732,19 @@ game.action(pw.PlayerAction(
 ))
 res2 = game.remaining
 test('PWars.currentGameState 8 UNREMAIN', res2 == [i != res[2].info for i in range(game.INITPLAYER)], res2)
+########PWars.genCalcInstance start
+inst = game.genCalcInstance({0: 2, 13: 0}, {1: 3})
+test(
+    'PWars.genCalcInstance',
+    bl=all((
+        inst.playerObjs == game.players,
+        inst.cardObjs == game.players[0].cards + game.players[1].cards + game.players[2].cards,
+        inst.chosenPlayer == {0: 2, 13: 0},
+        inst.chosenCard == {1: 3}
+    )),
+    failinfo=f':print:\n{inst.playerObjs}\n{inst.cardObjs}\n{inst.chosenPlayer}\n{inst.chosenCard}'
+)
+########PWars.genCalcInstance end
 game.advance()
 res = game.currentGameStates()
 pwer = game.players[res[1].info].power
@@ -759,7 +775,7 @@ if not res3:
     game.action(pw.PlayerAction(res[2].info, pw.PlayerActionType.DEBUGACT))
 game.advance()
 res = game.currentGameStates()
-assert res[2].info == 1, ':('
+assert res[2].info == 1, '=('
 cards =    [pw.Card(blank=True,
                     tag=pw.CardTag.PAPER,
                     powerCost=10,
@@ -805,6 +821,5 @@ res2 = game.action(pw.PlayerAction(
 ))
 game.advance()
 res = game.currentGameStates()
-#print(res)
 
 summary()
