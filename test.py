@@ -780,6 +780,21 @@ res = game.calcFunction('[symbolPoint]', (('card', '1'),), inst)
 test('PWars.calcFunction 12 [symbolPoint]', res[0] == ('number', '0'), res[0])
 res = game.calcFunction('[powerCost]', (('card', '1'),), inst)
 test('PWars.calcFunction 13 [powerCost]', res[0] == ('number', '0'), res[0])
+
+res = game.calcFunction('[NUMBER]', (('number', '1'),), inst)
+test('PWars.calcFunction 14 [NUMBER]', res[0] == ('truth', 'tT'), res[0])
+res = game.calcFunction('[NUMBER]', (('player', '1'),), inst)
+test('PWars.calcFunction 15 [NUMBER]', res[0] == ('truth', 'tF'), res[0])
+
+res = game.calcFunction('[PLAYER]', (('player', '1'),), inst)
+test('PWars.calcFunction 16 [PLAYER]', res[0] == ('truth', 'tT'), res[0])
+res = game.calcFunction('[PLAYER]', (('card', '1'),), inst)
+test('PWars.calcFunction 17 [PLAYER]', res[0] == ('truth', 'tF'), res[0])
+
+res = game.calcFunction('[CARD]', (('card', '1'),), inst)
+test('PWars.calcFunction 18 [CARD]', res[0] == ('truth', 'tT'), res[0])
+res = game.calcFunction('[CARD]', (('number', '1'),), inst)
+test('PWars.calcFunction 19 [CARD]', res[0] == ('truth', 'tF'), res[0])
 ################calcInstance end
 game.advance()
 res = game.currentGameStates()
