@@ -476,26 +476,26 @@ class PWars:
                     num = int(args[0][1])
                     return Statement((('player', str(next(player for player, cards in cI.cardsOfPlayers.items() if cI.chosenCard[num] in cards))),))
             case '[health]':
-                if args[0][0] == 'number':
+                if args[0][0] == 'player':
                     num = int(args[0][1])
                     return Statement((('number', str(cI.playerObjs[num].health)),))
             case '[power]':
-                if args[0][0] == 'number':
+                if args[0][0] == 'player':
                     num = int(args[0][1])
                     return Statement((('number', str(cI.playerObjs[num].power)),))
             case '[potency]':
-                if args[0][0] == 'number':
+                if args[0][0] == 'player':
                     num = int(args[0][1])
                     return Statement((('number', str(cI.playerObjs[num].potency)),))
             case '[symbolPoint]':
-                if args[0][0] == 'number':
+                if args[0][0] == 'card':
                     num = int(args[0][1])
-                    if cI.cardObjs[num].effect is None: return 0
+                    if cI.cardObjs[num].effect is None: return Statement((('number', '0'),))
                     else: return Statement((('number', str(cI.cardObjs[num].effect.symbolPoint())),))
             case '[powerCost]':
-                if args[0][0] == 'number':
+                if args[0][0] == 'card':
                     num = int(args[0][1])
-                    if cI.cardObjs[num].effect is None: return 0
+                    if cI.cardObjs[num].effect is None: return Statement((('number', '0'),))
                     else: return Statement((('number', str(cI.cardObjs[num].powerCost)),))
             case '[NUMBER]':
                 if args[0][0] == 'number':

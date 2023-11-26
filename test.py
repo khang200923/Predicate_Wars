@@ -733,12 +733,12 @@ game.action(pw.PlayerAction(
 res2 = game.remaining
 test('PWars.currentGameState 8 UNREMAIN', res2 == [i != res[2].info for i in range(game.INITPLAYER)], res2)
 ################calcInstance start
-inst = game.genCalcInstance({0: 2, 13: 0}, {1: 3, 3: 2})
+inst = game.genCalcInstance({0: 2, 13: 0}, {0: 0, 1: 3, 3: 2})
 conditions = (
     inst.playerObjs == game.players,
     inst.cardObjs == game.players[0].cards + game.players[1].cards + game.players[2].cards,
     inst.chosenPlayer == {0: 2, 13: 0},
-    inst.chosenCard == {1: 3, 3: 2}
+    inst.chosenCard == {0: 0, 1: 3, 3: 2}
 )
 test(
     'PWars.genCalcInstance',
@@ -763,12 +763,23 @@ res = game.calcFunction('[chosenPlayer]', (('number', '0'),), inst)
 test('PWars.calcFunction 6 [chosenPlayer]', res[0] == ('player', '2'), res[0])
 
 res = game.calcFunction('[chosenCard]', (('number', '1'),), inst)
-test('PWars.calcFunction 5 [chosenCard]', res[0] == ('card', '3'), res[0])
+test('PWars.calcFunction 7 [chosenCard]', res[0] == ('card', '3'), res[0])
 res = game.calcFunction('[chosenCard]', (('number', '3'),), inst)
-test('PWars.calcFunction 6 [chosenCard]', res[0] == ('card', '2'), res[0])
+test('PWars.calcFunction 8 [chosenCard]', res[0] == ('card', '2'), res[0])
 
-res = game.calcFunction('[playerOfChosenCard]', (('number', '3'),), inst)
+res = game.calcFunction('[playerOfChosenCard]', (('number', '0'),), inst)
 test('PWars.calcFunction 6 [playerOfChosenCard]', res[0] == ('player', '0'), res[0])
+
+res = game.calcFunction('[health]', (('player', '0'),), inst)
+test('PWars.calcFunction 9 [health]', res[0] == ('number', str(game.players[0].health)), res[0])
+res = game.calcFunction('[power]', (('player', '1'),), inst)
+test('PWars.calcFunction 10 [power]', res[0] == ('number', str(game.players[1].power)), res[0])
+res = game.calcFunction('[potency]', (('player', '2'),), inst)
+test('PWars.calcFunction 11 [potency]', res[0] == ('number', str(game.players[2].potency)), res[0])
+res = game.calcFunction('[symbolPoint]', (('card', '1'),), inst)
+test('PWars.calcFunction 12 [symbolPoint]', res[0] == ('number', '0'), res[0])
+res = game.calcFunction('[powerCost]', (('card', '1'),), inst)
+test('PWars.calcFunction 13 [powerCost]', res[0] == ('number', '0'), res[0])
 ################calcInstance end
 game.advance()
 res = game.currentGameStates()
