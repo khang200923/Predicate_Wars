@@ -68,7 +68,7 @@ Game functions are fixed, meaning they have a predetermined value. Action functi
 - \[randCard\](i): Returns a random card. Reference different random cards by using different number i. Returns 0 otherwise.
 - \[chosenPlayer\](i): Returns a player chosen by the player, including themselves. Reference many chosen players by using different number i. Returns 0 otherwise.
 - \[chosenCard\](i): Returns a card chosen by the player owned by any player, excluding the deck and the pile. Reference many chosen cards by using different number i.
-- \[playerOfChosenCard\](i): Returns a player owning the ith chosen card.
+- \[playerOfCard\](x): Returns a player owning the card x. Returns 0 otherwise.
 - \[health\](x): Returns health of player x. Returns 0 otherwise.
 - \[power\](x): Returns power of player x. Returns 0 otherwise.
 - \[potency\](x): Returns proving potency of player x. Returns 0 otherwise.
@@ -112,7 +112,7 @@ A *statement* is an ordered list of *symbols*, which consists of:
 - Distinct predicates (pure predicate): ('P_0', 'P_1', ..., 'Q_0', 'Q_1', ...) (symbol point each: 2)
 - Functions (variable, cannot be function name): lowercase character or distinct variable or \[gameFunctionName...\] + '(' + optional( + variable + repeated(',' + variables)) + ')'
 - Predicate functions (predicate): uppercase character or distinct predicate or \[PREDICATEGAMEFUNCTIONNAME...\] + '(' + optional( variable + repeated(',' + variables)) + ')'
-- Game function names: '\[randPlayer\]', '\[randCard\]', '\[chosenPlayer\]', '\[chosenCard\]', '\[playerOfChosenCard\]', '\[health\]', '\[power\]', '\[potency\]', '\[symbolPoint\]', '\[powerCost\]' (symbol point each: 4)
+- Game function names: '\[randPlayer\]', '\[randCard\]', '\[chosenPlayer\]', '\[chosenCard\]', '\[playerOfCard\]', '\[health\]', '\[power\]', '\[potency\]', '\[symbolPoint\]', '\[powerCost\]' (symbol point each: 4)
 - Predicate game function names: '\[NUMBER\]', '\[PLAYER\]', '\[CARD\]' (symbol point each: 4)
 - Predicate action function names: '\[CLAIM\]', '\[ATK\]', '\[HEAL\]', '\[ADDPOWER\]', '\[SUBPOWER\]' (symbol point each: 4)
 ### *Proof*

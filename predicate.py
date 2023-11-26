@@ -112,7 +112,7 @@ def _doOperator(a: str, b: str, oper: str) -> str | None:
 
 
 #Export constants and functions
-gameFuncNames = ['[randPlayer]', '[randCard]', '[chosenPlayer]', '[chosenCard]', '[playerOfChosenCard]', '[health]', '[power]', '[potency]', '[symbolPoint]', '[powerCost]']
+gameFuncNames = ['[randPlayer]', '[randCard]', '[chosenPlayer]', '[chosenCard]', '[playerOfCard]', '[health]', '[power]', '[potency]', '[symbolPoint]', '[powerCost]']
 predGFuncNames = ['[NUMBER]', '[PLAYER]', '[CARD]']
 predAFuncNames = ['[CLAIM]', '[ATK]', '[HEAL]', '[ADDPOWER]', '[SUBPOWER]']
 truths = ['tT', 'tF']

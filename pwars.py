@@ -471,10 +471,10 @@ class PWars:
                 if args[0][0] == 'number':
                     num = int(args[0][1])
                     return Statement((('card', str(cI.chosenCard[num])),))
-            case '[playerOfChosenCard]':
-                if args[0][0] == 'number':
+            case '[playerOfCard]':
+                if args[0][0] == 'card':
                     num = int(args[0][1])
-                    return Statement((('player', str(next(player for player, cards in cI.cardsOfPlayers.items() if cI.chosenCard[num] in cards))),))
+                    return Statement((('player', str(next(player for player, cards in cI.cardsOfPlayers.items() if num in cards))),))
             case '[health]':
                 if args[0][0] == 'player':
                     num = int(args[0][1])

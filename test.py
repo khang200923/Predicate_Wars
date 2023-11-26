@@ -767,8 +767,12 @@ test('PWars.calcFunction 7 [chosenCard]', res[0] == ('card', '3'), res[0])
 res = game.calcFunction('[chosenCard]', (('number', '3'),), inst)
 test('PWars.calcFunction 8 [chosenCard]', res[0] == ('card', '2'), res[0])
 
-res = game.calcFunction('[playerOfChosenCard]', (('number', '0'),), inst)
-test('PWars.calcFunction 6 [playerOfChosenCard]', res[0] == ('player', '0'), res[0])
+res = game.calcFunction('[playerOfCard]', (('card', '0'),), inst)
+test(
+    'PWars.calcFunction 6 [playerOfCard]',
+    res[0] == ('player', '0'),
+    res[0]
+)
 
 res = game.calcFunction('[health]', (('player', '0'),), inst)
 test('PWars.calcFunction 9 [health]', res[0] == ('number', str(game.players[0].health)), res[0])
