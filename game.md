@@ -64,16 +64,16 @@ When a player edits a card, they add/change tag, power cost (smaller or equal to
 - Proofs can only apply their effect if the player creating the proof has enough proving power (larger than the symbol point of the proof), then subtract the proving power by the symbol point of the proof.
 ### Game function rules:
 Game functions are fixed, meaning they have a predetermined value. Action functions are not.
-- \[randPlayer\](i): Returns a random player. Reference different random players by using different number i. Returns 0 otherwise.
-- \[randCard\](i): Returns a random card. Reference different random cards by using different number i. Returns 0 otherwise.
-- \[chosenPlayer\](i): Returns a player chosen by the player, including themselves. Reference many chosen players by using different number i. Returns 0 otherwise.
+- \[randPlayer\](i): Returns a random player. Reference different random players by using different number i. Undefined otherwise.
+- \[randCard\](i): Returns a random card. Reference different random cards by using different number i. Undefined otherwise.
+- \[chosenPlayer\](i): Returns a player chosen by the player, including themselves. Reference many chosen players by using different number i. Undefined otherwise.
 - \[chosenCard\](i): Returns a card chosen by the player owned by any player, excluding the deck and the pile. Reference many chosen cards by using different number i.
-- \[playerOfCard\](x): Returns a player owning the card x. Returns 0 otherwise.
-- \[health\](x): Returns health of player x. Returns 0 otherwise.
-- \[power\](x): Returns power of player x. Returns 0 otherwise.
-- \[potency\](x): Returns proving potency of player x. Returns 0 otherwise.
-- \[symbolPoint\](x): Returns symbol point of card x. Returns 0 otherwise.
-- \[powerCost\](x): Returns power cost of card x. Returns 0 otherwise.
+- \[playerOfCard\](x): Returns a player owning the card x. Undefined otherwise.
+- \[health\](x): Returns health of player x. Undefined otherwise.
+- \[power\](x): Returns power of player x. Undefined otherwise.
+- \[potency\](x): Returns proving potency of player x. Undefined otherwise.
+- \[symbolPoint\](x): Returns symbol point of card x. Undefined otherwise.
+- \[powerCost\](x): Returns power cost of card x. Undefined otherwise.
 - \[NUMBER\](x): Returns tT if x is a number. Returns tF otherwise.
 - \[PLAYER\](x): Returns tT if x is a player. Returns tF otherwise.
 - \[CARD\](x): Returns tT if x is a card owned by any player. Returns tF otherwise.

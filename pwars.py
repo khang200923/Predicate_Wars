@@ -440,18 +440,18 @@ class PWars:
         res = state.functionArgs()
         if res is not None:
             return PWars.calcFunction(
-                state[0][1], tuple(state[0] for state in res), calcInstance
+                state[0][1], tuple(state[0] for state in res), calcInstance, state
             )
 
     @staticmethod
     def calcFunction(
         name: str, args: Tuple[Tuple, ...],
         calcInstance: CalcInstance = CalcInstance(),
+        originalState: Statement = Statement(())
     ) -> Statement:
         """
         Calculates simple function based on name and arguments.
         """
-        #TODO: Test this method
         cI = calcInstance #Reduces pain
 
         match name:
@@ -459,44 +459,64 @@ class PWars:
                 if args[0][0] == 'number':
                     num = int(args[0][1])
                     return Statement((('player', str(cI.randomPlayer[num])),))
+                else:
+                    return originalState
             case '[randCard]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
                     return Statement((('card', str(cI.randomCard[num])),))
+                else:
+                    return originalState
             case '[chosenPlayer]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
                     return Statement((('player', str(cI.chosenPlayer[num])),))
+                else:
+                    return originalState
             case '[chosenCard]':
                 if args[0][0] == 'number':
                     num = int(args[0][1])
                     return Statement((('card', str(cI.chosenCard[num])),))
+                else:
+                    return originalState
             case '[playerOfCard]':
                 if args[0][0] == 'card':
                     num = int(args[0][1])
                     return Statement((('player', str(next(player for player, cards in cI.cardsOfPlayers.items() if num in cards))),))
+                else:
+                    return originalState
             case '[health]':
                 if args[0][0] == 'player':
                     num = int(args[0][1])
                     return Statement((('number', str(cI.playerObjs[num].health)),))
+                else:
+                    return originalState
             case '[power]':
                 if args[0][0] == 'player':
                     num = int(args[0][1])
                     return Statement((('number', str(cI.playerObjs[num].power)),))
+                else:
+                    return originalState
             case '[potency]':
                 if args[0][0] == 'player':
                     num = int(args[0][1])
                     return Statement((('number', str(cI.playerObjs[num].potency)),))
+                else:
+                    return originalState
             case '[symbolPoint]':
                 if args[0][0] == 'card':
                     num = int(args[0][1])
                     if cI.cardObjs[num].effect is None: return Statement((('number', '0'),))
                     else: return Statement((('number', str(cI.cardObjs[num].effect.symbolPoint())),))
+                else:
+                    return originalState
             case '[powerCost]':
                 if args[0][0] == 'card':
                     num = int(args[0][1])
                     if cI.cardObjs[num].effect is None: return Statement((('number', '0'),))
                     else: return Statement((('number', str(cI.cardObjs[num].powerCost)),))
+                else:
+                    return originalState
             case '[NUMBER]':
                 if args[0][0] == 'number':
                     return Statement.lex('tT')
@@ -513,7 +533,7 @@ class PWars:
                 else:
                     return Statement.lex('tF')
             case _:
-                raise ValueError('???') #TODO: Implement this special case
+                return originalState #Keep your input, bro
 
     @staticmethod
     def convert(state, calcInstance: CalcInstance = CalcInstance(), convert: bool = True) -> 'Statement':
