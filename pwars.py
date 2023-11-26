@@ -423,25 +423,26 @@ class PWars:
         Throw error if not WFF/WFO.
         Return None if not simple or is an action function.
         """
-        #TODO: Test this method
         if obj is None:
             if not (state.wellformedobj() or state.wellformed()): raise ValueError('Not a well-formed object/formula')
         else:
             if obj and not state.wellformedobj(): raise ValueError('Not a well-formed object')
             if (not obj) and not state.wellformed(): raise ValueError('Not a well-formed formula')
 
-        if (not state.simple()) or state[0][0] == 'predAFuncName':
+        if (not state.simple(obj=obj)) or state[0][0] == 'predAFuncName':
             return None
 
         res = state.operatorArgs()
         if res is not None:
-            num1, num2, oper = res[0][0][1], res[1][0][1], state.operatorSymbol()
+            num1, num2, oper = res[0][0][1], res[1][0][1], state.operatorSymbol()[1]
             return Statement((('number', _doOperator(num1, num2, oper)),))
         res = state.functionArgs()
         if res is not None:
             return PWars.calcFunction(
                 state[0][1], tuple(state[0] for state in res), calcInstance, state
             )
+
+        return state #Keep your input, bro
 
     @staticmethod
     def calcFunction(

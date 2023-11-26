@@ -153,7 +153,7 @@ predSymbols = ('distPred', 'truth', 'pred', 'predGFuncName', 'predAFuncName')
 varFuncSymbols = ('distVar', 'var', 'number', 'gameFuncName', 'player', 'card')
 predFuncSymbols = ('distPred', 'pred', 'predGFuncName', 'predAFuncName')
 unPureVar = ('number', 'player', 'card')
-unPurePred = ('truth')
+unPurePred = ('truth',)
 specialSymbols = ('player', 'card')
 
 #Special symbol types: 'player', 'card'
@@ -861,7 +861,9 @@ class Statement:
         """
         if not (self.wellformed() or self.wellformedobj()):
             return None
-        if not (len(self) >= 3 and self[0][0] in ['distVar', 'distPred', 'var', 'pred'] and self[1] == ('bracket', '(')):
+        if not (len(self) >= 3 and self[0][0] in \
+                 (x for x in varSymbols + predSymbols if x not in (unPureVar + unPurePred)) \
+                 and self[1] == ('bracket', '(')):
             return None
         paramsLeft = self[2:-1]
         params = []

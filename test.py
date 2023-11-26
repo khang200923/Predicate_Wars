@@ -732,7 +732,7 @@ game.action(pw.PlayerAction(
 ))
 res2 = game.remaining
 test('PWars.currentGameState 8 UNREMAIN', res2 == [i != res[2].info for i in range(game.INITPLAYER)], res2)
-################calcInstance start
+################################################################calcInstance start
 inst = game.genCalcInstance({0: 2, 13: 0}, {0: 0, 1: 3, 3: 2})
 conditions = (
     inst.playerObjs == game.players,
@@ -799,7 +799,16 @@ res = game.calcFunction('[CARD]', (('card', '1'),), inst)
 test('PWars.calcFunction 18 [CARD]', res[0] == ('truth', 'tT'), res[0])
 res = game.calcFunction('[CARD]', (('number', '1'),), inst)
 test('PWars.calcFunction 19 [CARD]', res[0] == ('truth', 'tF'), res[0])
-################calcInstance end
+
+res = game.calcSimple(pd.Statement.lex('((1 + 2) / 3)'), obj=True, calcInstance=inst)
+test('PWars.calcSimple 1', res is None, res)
+res = game.calcSimple(pd.Statement.lex('[ATK](20)'), obj=False, calcInstance=inst)
+test('PWars.calcSimple 2', res is None, res)
+res = game.calcSimple(pd.Statement.lex('(5 * 8)'), obj=True, calcInstance=inst)
+test('PWars.calcSimple 3', res == pd.Statement.lex("40"), res)
+res = game.calcSimple(pd.Statement.lex('[potency]($player:0$)', special=True), obj=True, calcInstance=inst)
+test('PWars.calcSimple 4', res == pd.Statement.lex(str(game.players[0].potency)), res)
+################################################################calcInstance end
 game.advance()
 res = game.currentGameStates()
 pwer = game.players[res[1].info].power
