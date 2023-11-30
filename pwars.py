@@ -384,39 +384,47 @@ class PWars:
 
         if state[0][0] == 'predAFuncName': return None
 
-        if state.simple(obj):
-            return PWars.convert(PWars.calcSimple(state, obj, calcInstance), calcInstance, conversion)
+        if state.simple(obj=obj):
+            return PWars.convert(
+                PWars.calcSimple(state, obj, calcInstance, conversion=False),
+                calcInstance, conversion
+            )
         else:
             res = state.functionArgs()
             if res is not None:
                 return PWars.convert(
-                    Statement(Statement(state[0]) + Statement.lex('(') + \
+                    Statement(Statement(state[0:1]) + Statement.lex('(') + \
                     Statement(
-                        _mergeItersWithDelimiter(
+                        tuple(_mergeItersWithDelimiter(
                             (PWars.calcStatement(
                                 arg, obj,
                                 calcInstance,
                                 conversion=False
                             ) for arg in res),
                             Statement.lex(',')
-                        )
+                        ))
                     ) + \
                     Statement.lex(')')), calcInstance, conversion)
             res = state.operatorArgs()
             if res is not None:
-                return PWars.convert(Statement(
+                res = PWars.calcSimple(
                     Statement.lex('(') + \
-                    PWars.calcStatement(res[0], obj, calcInstance, conversion=False) + \
-                    state.operatorSymbol() + \
-                    PWars.calcStatement(res[1], obj, calcInstance, conversion=False) + \
-                    Statement.lex(')')), calcInstance, conversion)
+                    PWars.calcStatement(res[0], obj=None, calcInstance=calcInstance, conversion=False) + \
+                    Statement((state.operatorSymbol(), )) + \
+                    PWars.calcStatement(res[1], obj=None, calcInstance=calcInstance, conversion=False) + \
+                    Statement.lex(')'),
+                    obj=obj,
+                    calcInstance=calcInstance,
+                    conversion=conversion
+                )
+                return res
             raise ValueError('Impossible error.')
 
     @staticmethod
     def calcSimple(
         state: Statement, obj: bool | None = False,
         calcInstance: CalcInstance = CalcInstance(),
-        conversion: bool = True,
+        conversion: bool = False,
     ):
         """
         Calculate simple WFF/WFO.
@@ -432,6 +440,23 @@ class PWars:
         if (not state.simple(obj=obj)) or state[0][0] == 'predAFuncName':
             return None
 
+        mapper = {True: 'tT', False: 'tF'}
+
+        try: res = state.formulasInForm(
+            (
+                ('bracket', '('),
+            ), (
+                ('bracket', ')'),
+            ), (
+                ('equal',),
+            ),
+            opt1obj=True,
+            opt2obj=True,
+        )[0]
+        except TypeError: pass
+        else:
+            if res is not None:
+                return Statement((('truth', mapper[tuple(res[0]) == tuple(res[1])],),))
         res = state.operatorArgs()
         if res is not None:
             num1, num2, oper = res[0][0][1], res[1][0][1], state.operatorSymbol()[1]
@@ -545,11 +570,7 @@ class PWars:
         #TODO: Test this method
         res = deepcopy(state)
 
-        i = 0
-        while i < len(res):
-            sym = res[i]
-#           match sym[0]:
-#               ...
+        ...
 
         return res
 
