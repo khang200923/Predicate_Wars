@@ -446,9 +446,9 @@ class Statement:
         if startingMaps == None: startingMaps = {}
         if not isinstance(statement, Statement): return (False, None)
         maps = deepcopy(startingMaps)
+        if len(self) != len(statement):
+            return (False, maps)
         for sym1, sym2 in zip(self, statement):
-            if len(sym1) != len(sym2):
-                return (False, maps)
             if (sym1[0] in varSymbols and sym2[0] in varSymbols) or \
             (sym1[0] in predSymbols and sym2[0] in predSymbols):
                 if sym1 in maps:

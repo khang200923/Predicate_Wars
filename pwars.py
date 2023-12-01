@@ -577,25 +577,24 @@ class PWars:
                 if symbol[0] == 'player':
                     if int(symbol[1]) in calcInstance.chosenPlayer.values():
                         res[i:i+1] = \
-                            f'[chosenPlayer]({next(k for k, v in calcInstance.chosenPlayer.items() if v == int(symbol[1]))})'
-                        res[i:i+1] = Statement.lex(res[i:i+1])
-                    if int(symbol[1]) in calcInstance.randomPlayer.values():
+                            Statement.lex(f'[chosenPlayer]({next(k for k, v in calcInstance.chosenPlayer.items() if v == int(symbol[1]))})').statement
+                    elif int(symbol[1]) in calcInstance.randomPlayer.values():
                         res[i:i+1] = \
-                            f'[randomPlayer]({next(k for k, v in calcInstance.randomPlayer.items() if v == int(symbol[1]))})'
-                        res[i:i+1] = Statement.lex(res[i:i+1])
-                    raise ValueError('Cannot convert "player" symbol inside statement')
-                if symbol[0] == 'card':
+                            Statement.lex(f'[randomPlayer]({next(k for k, v in calcInstance.randomPlayer.items() if v == int(symbol[1]))})').statement
+                    else: raise ValueError('Cannot convert "player" symbol inside statement')
+                elif symbol[0] == 'card':
                     if int(symbol[1]) in calcInstance.chosenCard.values():
                         res[i:i+1] = \
-                            f'[chosenCard]({next(k for k, v in calcInstance.chosenCard.items() if v == int(symbol[1]))})'
-                        res[i:i+1] = Statement.lex(res[i:i+1])
-                    if int(symbol[1]) in calcInstance.randomCard.values():
+                            Statement.lex(f'[chosenCard]({next(k for k, v in calcInstance.chosenCard.items() if v == int(symbol[1]))})').statement
+                    elif int(symbol[1]) in calcInstance.randomCard.values():
                         res[i:i+1] = \
-                            f'[randomCard]({next(k for k, v in calcInstance.randomCard.items() if v == int(symbol[1]))})'
-                        res[i:i+1] = Statement.lex(res[i:i+1])
-                    raise ValueError('Cannot convert "card" symbol inside statement')
-                if symbol[0] in (sym[0] for sym in symbolsType):
+                            Statement.lex(f'[randomCard]({next(k for k, v in calcInstance.randomCard.items() if v == int(symbol[1]))})').statement
+                    else: raise ValueError('Cannot convert "card" symbol inside statement')
+                elif not symbol[0] in (sym[0] for sym in symbolsType):
+                    print(i)
+                    print(symbol)
                     raise ValueError('Cannot convert invalid symbol inside statement')
+                i += 1
 
             return res
         return state
