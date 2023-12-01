@@ -9,7 +9,7 @@ import random
 import types
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple
 
-from predicate import Proof, ProofBase, StateTag, Statement, baseRules, _doOperator, gameFuncNames, predGFuncNames
+from predicate import Proof, ProofBase, StateTag, Statement, baseRules, _doOperator, symbolsType
 from utilclasses import LazyDict
 
 #REMINDER: Add features in order, in separate commits, one by one...
@@ -562,17 +562,43 @@ class PWars:
                 return originalState #Keep your input, bro
 
     @staticmethod
-    def convert(state, calcInstance: CalcInstance = CalcInstance(), convert: bool = True) -> 'Statement':
+    def convert(state: Statement, calcInstance: CalcInstance = CalcInstance(), conversion: bool = True) -> 'Statement':
         """
         Expand special symbols of the statement to normal ones.
         """
         #TODO: Implement this method
         #TODO: Test this method
-        res = deepcopy(state)
+        if conversion:
+            res = list(state.statement)
 
-        ...
+            i = 0
+            while i < len(res):
+                symbol = res[i]
+                if symbol[0] == 'player':
+                    if int(symbol[1]) in calcInstance.chosenPlayer.values():
+                        res[i:i+1] = \
+                            f'[chosenPlayer]({next(k for k, v in calcInstance.chosenPlayer.items() if v == int(symbol[1]))})'
+                        res[i:i+1] = Statement.lex(res[i:i+1])
+                    if int(symbol[1]) in calcInstance.randomPlayer.values():
+                        res[i:i+1] = \
+                            f'[randomPlayer]({next(k for k, v in calcInstance.randomPlayer.items() if v == int(symbol[1]))})'
+                        res[i:i+1] = Statement.lex(res[i:i+1])
+                    raise ValueError('Cannot convert "player" symbol inside statement')
+                if symbol[0] == 'card':
+                    if int(symbol[1]) in calcInstance.chosenCard.values():
+                        res[i:i+1] = \
+                            f'[chosenCard]({next(k for k, v in calcInstance.chosenCard.items() if v == int(symbol[1]))})'
+                        res[i:i+1] = Statement.lex(res[i:i+1])
+                    if int(symbol[1]) in calcInstance.randomCard.values():
+                        res[i:i+1] = \
+                            f'[randomCard]({next(k for k, v in calcInstance.randomCard.items() if v == int(symbol[1]))})'
+                        res[i:i+1] = Statement.lex(res[i:i+1])
+                    raise ValueError('Cannot convert "card" symbol inside statement')
+                if symbol[0] in (sym[0] for sym in symbolsType):
+                    raise ValueError('Cannot convert invalid symbol inside statement')
 
-        return res
+            return res
+        return state
 
     def genCalcInstance(
         self,
