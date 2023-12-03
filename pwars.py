@@ -296,61 +296,32 @@ class PWars:
         res += tuple(self.rules.values()) + baseRules
         return res
 
-    def formatActionFunctionParam(self, state: Statement) -> Tuple:
-        """
-        Format statement as if it is a param of the action function.
-        Return None if not deterministic.
-        """
-        #TODO: Implement this method
-        #TODO: Test this method
-        if not state.deterministic(): return None
-        if not state.simple():
-            return self.formatActionFunctionParam(self.calcStatement(state))
-
-        if len(state) == 1 and state[0][0] == 'number':
-            return ('number', state[0][1])
-        if len(state) == 4:
-            if state[0][0] == '[randPlayer]' and state[2][0] == 'number':
-                return ('randPlayer', state[2][1])
-            if state[0][0] == '[randCard]' and state[2][0] == 'number':
-                return ('randCard', state[2][1])
-            if state[0][0] == '[chosenPlayer]' and state[2][0] == 'number':
-                return ('chosenPlayer', state[2][1])
-            if state[0][0] == '[chosenCard]' and state[2][0] == 'number':
-                return ('chosenCard', state[2][1])
-
     def applyEffect(
             self,
             statement: Statement,
-            chosenPlayer: dict[int, int],
-            chosenCard: dict[int, Tuple[int, int]]
+            calcInstance: CalcInstance
         ) -> 'PWars':
         """
         Apply game effects, then return self.
         """
         #TODO: Implement this method
         #TODO: Test this method
-        if statement[0][0] == 'gameFuncName':
-            params = statement.functionArgs()
-            paramFormatted = tuple(
-                self.formatActionFunctionParam(param)
-                for param in params
-            )
-            self.applySpecificEffect(paramFormatted, chosenPlayer, chosenCard)
+
+        if not statement.deterministic():
+            raise GameException('Not a deterministic statement')
+
+        if statement[0][0] == 'predAFuncName':
+            params = self.calcStatement(statement, obj=False, calcInstance=calcInstance).functionArgs()
+            self.applySpecificEffect(params, calcInstance)
         else:
-            if statement.deterministic(): ...  #TODO: W.I.P
-            else:
-                raise GameException(
+            raise GameException(
                     'Invalid statement for game effect'
                 )
 
     def applySpecificEffect(
             self,
             params: Tuple[Tuple],
-            chosenPlayer: dict[int, int] = dict(),
-            chosenCard: dict[int, Tuple[int, int]] = dict(),
-            randomPlayer: dict[int, int] = dict(),
-            randomCard: dict[int, Tuple[int, int]] = dict()
+            inst: CalcInstance
         ) -> 'PWars':
         """
         Apply a game effect to a specific player/card, then return self.
@@ -566,8 +537,6 @@ class PWars:
         """
         Expand special symbols of the statement to normal ones.
         """
-        #TODO: Implement this method
-        #TODO: Test this method
         if conversion:
             res = list(state.statement)
 
