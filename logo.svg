@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="320">
+  	<defs>
+    	<linearGradient id="gradient_blue" gradientTransform="rotate(45)">
+      		<stop offset="65%" stop-color="blue" />
+      		<stop offset="80%" stop-color="darkblue" />
+    	</linearGradient>
+    	<linearGradient id="gradient_green" gradientTransform="rotate(45)">
+      		<stop offset="65%" stop-color="lightgreen" />
+      		<stop offset="80%" stop-color="green" />
+    	</linearGradient>
+  	</defs>
+
+	<rect x="25" y="20" rx="17" ry="17" width="150" height="250" fill="white" stroke="url(#gradient_blue)" stroke-width="8" opacity="0.9" />
+    <text x="100" y="165" text-anchor="middle" dominant-baseline="middle" fill="black" font-size="200">∀</text>
+  	<rect x="140" y="-70" rx="17" ry="17" width="150" height="250" fill="white" stroke="url(#gradient_green)" stroke-width="8" opacity="0.9" transform="rotate(35)" />
+	<text x="220" y="70" text-anchor="middle" dominant-baseline="middle" fill="black" font-size="220" transform="rotate(35)">∃</text>
+</svg>
