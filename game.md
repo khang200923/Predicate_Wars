@@ -45,7 +45,7 @@ Go in cycles of remained players, moving clockwise, starting from the latest pla
     - Raise a card's power cost by 2 and discard it into the discard pile, or
     - Claim a card from the deck for twice the power cost (if affordable), or
     - Choose not to remain
-- If chose playing, the player can then [prove](#proving-rules) a predicate game function applied to a player is true or false in the scope of two played cards by the [proving system](#predicate-logic-and-the-proving-system), only if they have enough proving power to do it, then the proving power is subtracted by the number of lines used in the proof.
+- If chose playing, the player can then [prove](#proving-rules) a predicate game function applied to a player is true in the scope of two played cards by the [proving system](#predicate-logic-and-the-proving-system), only if they have enough proving power to do it, then the proving power is subtracted by the number of lines used in the proof.
 - If a player loses all health (<= 0), they lose the game and cannot participate in the game in any way.
 #### Phase V: Finalization
 - If there is only one player left, the player in the game wins.
@@ -58,7 +58,7 @@ Go in cycles of remained players, moving clockwise, starting from the latest pla
 ### Card editing rules:
 When a player edits a card, they add/change tag, power cost (smaller or equal to their current power) and effect (written in [predicate logic](#predicate-logic-and-the-proving-system) syntax). They must add/change their identifier onto the card.
 ### Proving rules:
-- When a player proves a predicate game function applied to a player is true or false in the scope of two paired cards, they start with a *proof* containing all of the statements in the cards as \[Axiom\] and *subproofs* the player has, then infer the *proof* repeatedly. If (\[PREDICATEACTIONFUNCTIONNAME...\](...)) is derived, then the other players can optionally prove the *proof* is contradictory. If the players do not or cannot prove, then the game effect is applied.
+- When a player proves a predicate game function applied to a player is true or false in the scope of two paired cards, they start with a *proof* containing all of the statements in the cards as \[Axiom\] and *subproofs* the player has, then infer the *proof* repeatedly. If (\[PREDICATEACTIONFUNCTIONNAME...\](...)) is derived, then the other players can optionally prove the *proof* is contradictory. If the players do not or cannot prove, then the game effect is applied. <!--TODO: What does 'applied' mean?-->
 - When a player proves a *proof* is contradictory, they start with a *proof* containing all of the statements in the *proof*, all *rules* as \[Axiom\] and *subproofs* used in the proof with ones that the player has, then infer the *proof* repeatedly. If **A** and (¬**A**) are both derived, or tF is derived, then the game effect is not applied.
 - When a player proves a potential *rule* is contradictory, they start with a *proof* containing all of the statements, all the *rules* and the potential *rule* as \[Axiom\] and *subproofs* used in the proof with ones that the player has, then infer the *proof* repeatedly. If **A** and (¬**A**) are both derived, or tF is derived, then the rule is not added.
 - Proofs can only apply their effect if the player creating the proof has enough proving power (larger than the symbol point of the proof), then subtract the proving power by the symbol point of the proof.

@@ -311,8 +311,8 @@ class PWars:
             raise GameException('Not a deterministic statement')
 
         if statement[0][0] == 'predAFuncName':
-            params = self.calcStatement(statement, obj=False, calcInstance=calcInstance).functionArgs()
-            self.applySpecificEffect(params, calcInstance)
+            params = self.calcStatement(statement, obj=False, calcInstance=calcInstance, conversion=False).functionArgs()
+            return self.applySpecificEffect(statement[0][1], params, calcInstance)
         else:
             raise GameException(
                     'Invalid statement for game effect'
@@ -320,6 +320,7 @@ class PWars:
 
     def applySpecificEffect(
             self,
+            name: str,
             params: Tuple[Tuple],
             inst: CalcInstance
         ) -> 'PWars':
@@ -328,7 +329,38 @@ class PWars:
         """
         #TODO: Implement this method
         #TODO: Test this method
-        ...
+        if name == '[ATK]':
+            if len(params) != 2:
+                return self
+            player, num = params[0], params[1]
+            if not player[0] == 'player' and num[0] == 'number':
+                return self
+            if int(num[1]) < 20: self.players[player[1]].health -= int(num[1])
+            else: self.players[player[1]].health -= 20
+        if name == '[HEAL]':
+            if len(params) != 2:
+                return self
+            player, num = params[0], params[1]
+            if not player[0] == 'player' and num[0] == 'number':
+                return self
+            if int(num[1]) < 15: self.players[player[1]].health += int(num[1])
+            else: self.players[player[1]].health += 15
+        if name == '[ADDPOWER]':
+            if len(params) != 2:
+                return self
+            player, num = params[0], params[1]
+            if not player[0] == 'player' and num[0] == 'number':
+                return self
+            if int(num[1]) < 10: self.players[player[1]].power += int(num[1])
+            else: self.players[player[1]].power += 10
+        if name == '[SUBPOWER]':
+            if len(params) != 2:
+                return self
+            player, num = params[0], params[1]
+            if not player[0] == 'player' and num[0] == 'number':
+                return self
+            if int(num[1]) < 8: self.players[player[1]].power -= int(num[1])
+            else: self.players[player[1]].power -= 8
 
         return self
 
