@@ -902,4 +902,19 @@ res2 = game.action(pw.PlayerAction(
 game.advance()
 res = game.currentGameStates()
 
+
+game = pw.PWars(INITPLAYER=2)
+game.players[0].health = 100
+game.applyEffect(pd.Statement.lex('[ATK]($player:0$, 2)', special=True), pw.CalcInstance())
+test('PWars.applyEffect 1 ATK', game.players[0].health == 98, game.players[0].health)
+game.applyEffect(pd.Statement.lex('[HEAL]($player:0$, 6)', special=True), pw.CalcInstance())
+test('PWars.applyEffect 2 HEAL', game.players[0].health == 104, game.players[0].health)
+game.players[0].power = 100
+game.applyEffect(pd.Statement.lex('[ADDPOWER]($player:0$, 15)', special=True), pw.CalcInstance())
+test('PWars.applyEffect 3 ADDPOWER', game.players[0].power == 110, game.players[0].power)
+game.applyEffect(pd.Statement.lex('[SUBPOWER]($player:0$, 0)', special=True), pw.CalcInstance())
+test('PWars.applyEffect 4 SUBPOWER', game.players[0].power == 110, game.players[0].power)
+game.applyEffect(pd.Statement.lex('[ATK]([chosenPlayer](1), ((5*4)+2))'), pw.CalcInstance(chosenPlayer={1: 0}))
+test('PWars.applyEffect 5', game.players[0].health == 84, game.players[0].health)
+
 summary()

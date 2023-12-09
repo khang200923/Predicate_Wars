@@ -304,14 +304,16 @@ class PWars:
         """
         Apply game effects, then return self.
         """
-        #TODO: Test this method
 
         if not statement.deterministic():
             raise GameException('Not a deterministic statement')
 
         if statement[0][0] == 'predAFuncName':
-            params = self.calcStatement(statement, obj=False, calcInstance=calcInstance, conversion=False).functionArgs()
-            return self.applySpecificEffect(statement[0][1], params, calcInstance)
+            params = tuple(self.calcStatement(argument, obj=True, calcInstance=calcInstance, conversion=False)
+                      for argument in statement.functionArgs())
+            assert all(len(argument) == 1 for argument in params), 'Invalid calcStatement results'
+            params = tuple(argument[0] for argument in params)
+            return self.applySpecificEffect(statement[0][1], params)
         else:
             raise GameException(
                     'Invalid statement for game effect'
@@ -321,44 +323,29 @@ class PWars:
             self,
             name: str,
             params: Tuple[Tuple],
-            inst: CalcInstance
         ) -> 'PWars':
         """
         Apply a game effect to a specific player/card, then return self.
         """
-        #TODO: Test this method
+        if name in ('[ATK]', '[HEAL]', '[ADDPOWER]', '[SUBPOWER]'):
+            if len(params) != 2:
+                return self
+            player, num = params[0], params[1]
+            if not player[0] == 'player' and num[0] == 'number':
+                return self
+            playerNum, numNum = int(player[1]), int(num[1])
         if name == '[ATK]':
-            if len(params) != 2:
-                return self
-            player, num = params[0], params[1]
-            if not player[0] == 'player' and num[0] == 'number':
-                return self
-            if int(num[1]) < 20: self.players[player[1]].health -= int(num[1])
-            else: self.players[player[1]].health -= 20
+            if numNum < 20: self.players[playerNum].health -= numNum
+            else: self.players[playerNum].health -= 20
         if name == '[HEAL]':
-            if len(params) != 2:
-                return self
-            player, num = params[0], params[1]
-            if not player[0] == 'player' and num[0] == 'number':
-                return self
-            if int(num[1]) < 15: self.players[player[1]].health += int(num[1])
-            else: self.players[player[1]].health += 15
+            if numNum < 15: self.players[playerNum].health += numNum
+            else: self.players[playerNum].health += 15
         if name == '[ADDPOWER]':
-            if len(params) != 2:
-                return self
-            player, num = params[0], params[1]
-            if not player[0] == 'player' and num[0] == 'number':
-                return self
-            if int(num[1]) < 10: self.players[player[1]].power += int(num[1])
-            else: self.players[player[1]].power += 10
+            if numNum < 10: self.players[playerNum].power += numNum
+            else: self.players[playerNum].power += 10
         if name == '[SUBPOWER]':
-            if len(params) != 2:
-                return self
-            player, num = params[0], params[1]
-            if not player[0] == 'player' and num[0] == 'number':
-                return self
-            if int(num[1]) < 8: self.players[player[1]].power -= int(num[1])
-            else: self.players[player[1]].power -= 8
+            if numNum < 8: self.players[playerNum].power -= numNum
+            else: self.players[playerNum].power -= 8
 
         return self
 
