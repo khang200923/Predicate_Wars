@@ -304,7 +304,6 @@ class PWars:
         """
         Apply game effects, then return self.
         """
-        #TODO: Implement this method
         #TODO: Test this method
 
         if not statement.deterministic():
@@ -327,7 +326,6 @@ class PWars:
         """
         Apply a game effect to a specific player/card, then return self.
         """
-        #TODO: Implement this method
         #TODO: Test this method
         if name == '[ATK]':
             if len(params) != 2:

@@ -58,7 +58,7 @@ Go in cycles of remained players, moving clockwise, starting from the latest pla
 ### Card editing rules:
 When a player edits a card, they add/change tag, power cost (smaller or equal to their current power) and effect (written in [predicate logic](#predicate-logic-and-the-proving-system) syntax). They must add/change their identifier onto the card.
 ### Proving rules:
-- When a player proves a predicate game function applied to a player is true or false in the scope of two paired cards, they start with a *proof* containing all of the statements in the cards as \[Axiom\] and *subproofs* the player has, then infer the *proof* repeatedly. If (\[PREDICATEACTIONFUNCTIONNAME...\](...)) is derived, then the other players can optionally prove the *proof* is contradictory. If the players do not or cannot prove, then the game effect is applied. <!--TODO: What does 'applied' mean?-->
+- When a player proves a predicate game function applied to a player is true or false in the scope of two paired cards, they start with a *proof* containing all of the statements in the cards as \[Axiom\] and *subproofs* the player has, then infer the *proof* repeatedly. If (\[PREDICATEACTIONFUNCTIONNAME...\](...)) is derived, then the other players can optionally prove the *proof* is contradictory. If the players do not or cannot prove, then the game effect is applied.
 - When a player proves a *proof* is contradictory, they start with a *proof* containing all of the statements in the *proof*, all *rules* as \[Axiom\] and *subproofs* used in the proof with ones that the player has, then infer the *proof* repeatedly. If **A** and (¬**A**) are both derived, or tF is derived, then the game effect is not applied.
 - When a player proves a potential *rule* is contradictory, they start with a *proof* containing all of the statements, all the *rules* and the potential *rule* as \[Axiom\] and *subproofs* used in the proof with ones that the player has, then infer the *proof* repeatedly. If **A** and (¬**A**) are both derived, or tF is derived, then the rule is not added.
 - Proofs can only apply their effect if the player creating the proof has enough proving power (larger than the symbol point of the proof), then subtract the proving power by the symbol point of the proof.
@@ -78,7 +78,7 @@ Game functions are fixed, meaning they have a predetermined value. Action functi
 - \[PLAYER\](x): Returns tT if x is a player. Returns tF otherwise.
 - \[CARD\](x): Returns tT if x is a card owned by any player. Returns tF otherwise.
 #### Action function rules:
-If one of these action function is proven to be true, then the effect is applied:
+If one of these action function (with *deterministic* arguments) is proven to be true, then the arguments are *calculated* and the effect is applied:
 - \[CLAIM\](x, i) for all i, x: Claim a chosen card of any player for twice its power cost
 - \[ATK\](x, i) for all i, x: Subtract health of the player x by max number i (max: 20)
 - \[HEAL\](x, i) for all i, x: Add health of the player x by max number i (max: 15)
@@ -189,3 +189,5 @@ A *WFF* can be *simple* if:
 - It is a predicate game/action function with only variables that are not *pure* as its parameters
 - It is a comparator/equality with only variables that are not *pure* as its parameters
 - It is a connective with only predicate that are not *pure* as its parameters
+### *Calculating*
+(W.I.P)
