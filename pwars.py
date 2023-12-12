@@ -360,7 +360,6 @@ class PWars:
         Throw error if not WFF/WFO.
         Return None if not deterministic or is an action function.
         """
-        #TODO: Test this method
         if obj is None:
             if not (state.wellformedobj() or state.wellformed()): raise ValueError('Not a well-formed object/formula')
         else:
@@ -593,8 +592,6 @@ class PWars:
         """
         Generate calcInstance based on PWars object, including current game state.
         """
-        #TODO: Implement this method
-        #TODO: Test this method
         res = CalcInstance()
         res.playerObjs = self.players
         res.cardObjs = list(itertools.chain(*(player.cards for player in self.players)))
@@ -602,9 +599,9 @@ class PWars:
         res.chosenCard = chosenCard
 
         res.randomPlayer = \
-            LazyDict(generation=lambda k: randomClass.choice(tuple(i for i, _ in enumerate(res.playerObjs))))
+            LazyDict(generation=lambda _: randomClass.choice(tuple(i for i, _ in enumerate(res.playerObjs))))
         res.randomCard = \
-            LazyDict(generation=lambda k: randomClass.choice(tuple(i for i, _ in enumerate(res.cardObjs))))
+            LazyDict(generation=lambda _: randomClass.choice(tuple(i for i, _ in enumerate(res.cardObjs))))
 
         res.cardsOfPlayers = {}
         cardStartI, cardEndI = 0, 0
@@ -698,7 +695,14 @@ class PWars:
                 self.discardPile = []
                 for player in self.players: player.playInit()
             if len(newGameStates) == 4 and newGameStates[3].type == GameStateType.PROVE:
-                ... #TODO: Implement game effects here
+                #TODO: Implement game effects here
+                inst = self.genCalcInstance({}, {}) #TODO: Implement this
+                if any(isinstance(playerAct.info[0], int) for playerAct in playerActs):
+                    return self
+                for playerAct in playerActs:
+                    proof: Proof = playerAct.info[1]
+                    self.applyEffect(proof.statements[playerAct.info[2]], inst)
+
 
         return self
 
@@ -844,16 +848,17 @@ class PWars:
             playerAct.valid(PlayerActionType.PROVE):
                 proof: Proof = playerAct.info[1]
 
+                #If disproving:
                 if isinstance(playerAct.info[0], int):
                     #No reference to nonexistent/contradicting opposing proofs or to itself
-                    if playerAct.info[0] > len(playerActs) and \
+                    if playerAct.info[0] > len(playerActs) or \
                     isinstance(playerActs[playerAct.info[0]].info[0], int):
                         return False
                     #Must be contradictory in itself
                     if not proof.contradictory():
                         return False
 
-                #Must have subproofs equal to player
+                #Must have subproofs equal to player's
                 if playerAct.info[1].subproofs != player.subproofs:
                     return False
 
