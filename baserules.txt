@@ -1,0 +1,113 @@
+>Exclusivity
+~(forall(x)(forall(y)(
+    [NUMBER](x) imply (not ([PLAYER](x) or [CARD](x)))
+)))~
+~(forall(x)(forall(y)(
+    [PLAYER](x) imply (not ([NUMBER](x) or [CARD](x)))
+)))~
+~(forall(x)(forall(y)(
+    [CARD](x) imply (not ([PLAYER](x) or [NUMBER](x)))
+)))~
+
+>>Operator on numbers
+>Addition
+~(forall(x)(forall(y)(
+    (
+        ([NUMBER](x) and [NUMBER](y))
+        imply
+        [NUMBER]((x + y))
+    )
+)))~
+~(forall(x)(forall(y)(
+    ((x + y) = (y + x))
+)))~
+~(forall(x)(forall(y)(
+    ((x + (y + z)) = ((x + y) + z))
+)))~
+~(forall(x)(
+    [NUMBER](x)
+    imply
+    (x = (x + 0))
+))~
+
+>Subtraction
+~(forall(x)(forall(y)(
+    (
+        ([NUMBER](x) and [NUMBER](y))
+        imply
+        [NUMBER]((x - y))
+    )
+)))~
+~(forall(x)(forall(y)(
+    (
+        ([NUMBER](x) and [NUMBER](y))
+        imply
+        (((x + y) - y) = x)
+    )
+)))~
+
+>Multiplication
+~(forall(x)(forall(y)(
+    (
+        ([NUMBER](x) and [NUMBER](y))
+        imply
+        [NUMBER]((x * y))
+    )
+)))~
+~(forall(x)(forall(y)(
+    ((x * y) = (y * x))
+)))~
+~(forall(x)(forall(y)(
+    ((x * (y * z)) = ((x * y) * z))
+)))~
+~(forall(x)(
+    [NUMBER](x)
+    imply
+    (x = (x * 1))
+))~
+~(forall(x)(forall(y)(forall(z)(
+    (
+        ([NUMBER](x) and ([NUMBER](y) and [NUMBER](z)))
+        imply
+        ((x * (y + z)) = ((x * y) + (x * z)))
+    )
+))))~
+
+>Division
+~(forall(x)(forall(y)(
+    (
+        ([NUMBER](x) and [NUMBER](y))
+        imply
+        [NUMBER]((x / y))
+    )
+)))~
+~(forall(x)(forall(y)(
+    (
+        ([NUMBER](x) and [NUMBER](y))
+        imply
+        [NUMBER]((x f/ y))
+    )
+)))~
+~(forall(x)(forall(y)(
+    (
+        ([NUMBER](x) and [NUMBER](y))
+        imply
+        [NUMBER]((x c/ y))
+    )
+)))~
+
+>Modulo
+~(forall(x)(forall(y)(
+    (
+        ([NUMBER](x) and [NUMBER](y))
+        imply
+        [NUMBER]((x % y))
+    )
+)))~
+~(forall(x)(forall(y)(
+    (
+        ([NUMBER](x) and [NUMBER](y))
+        imply
+        ((x % y) = (x - (x f/ y) * y))
+    )
+)))~
