@@ -21,16 +21,17 @@ def parse(text: str) -> List[BRulesParseResult]:
     rules = []
     remaining = text
     while remaining:
-        stateSearch = re.search(r'~.*?~', remaining, re.MULTILINE | re.DOTALL)
+        stateSearch = re.search(r'~(.*?)~', remaining, re.MULTILINE | re.DOTALL)
         titleSearch = re.search(r'>+.*', remaining, re.MULTILINE)
-        if titleSearch and (titleSearch.start() < stateSearch.start()):
+        if titleSearch and (not stateSearch or (titleSearch.start() < stateSearch.start())):
             ... #Just in case when we need titles
-            remaining = remaining[:titleSearch.end()]
+            remaining = remaining[titleSearch.end():]
         elif stateSearch:
-            statement = Statement.lex(stateSearch.group())
+            statement = Statement.lex(stateSearch.group(1))
             rules.append(BRulesParseResult(statement, []))
-            remaining = remaining[:stateSearch.end()]
-        break
+            remaining = remaining[stateSearch.end():]
+        else:
+            break
     return rules
 
 def getBaseRules():
