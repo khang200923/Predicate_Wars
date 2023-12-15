@@ -150,6 +150,7 @@ class PlayerActionType(Enum):
     CLAIMPLAY = 5
     UNREMAIN = 6
     PROVE = 7
+    EFFECTCHOOSE = 12
 
     SUBPROOF = 8
     ADDRULE = 9
@@ -195,6 +196,14 @@ class PlayerAction:
                 isinstance(self.info[0], (int, types.NoneType)) and \
                 isinstance(self.info[1], Proof) and \
                 isinstance(self.info[2], int)
+        elif self.type == PlayerActionType.EFFECTCHOOSE:
+            return isinstance(self.info, tuple) and len(self.info) == 2 and \
+                all(
+                    isinstance(part, dict) and
+                    all(isinstance(key, int) and isinstance(value, int)
+                        for key, value in part.items())
+                    for part in self.info
+                )
 
         elif self.type == PlayerActionType.DEBUGACT: return True
         else: raise ValueError('Invalid type')
@@ -209,6 +218,7 @@ PActInfoType = {
     PlayerActionType.CLAIMPLAY: List[Tuple[int, int]], #[playerID, cardID]
     PlayerActionType.UNREMAIN: None,
     PlayerActionType.PROVE: Tuple[int | None, Proof, int], #(opposingProofIndex, proof, deriveIndex)
+    PlayerActionType.EFFECTCHOOSE: Tuple[dict[int, int], dict[int, int]], #(chosenPlayer, chosenCard)
 
     PlayerActionType.DEBUGACT: Any
 }
@@ -245,6 +255,7 @@ class PWars:
     dropPile: List[Card] = field(default_factory=list)
     recentPlay: Optional[Tuple[Card, Card]] = None
     rules: Dict[int, Statement] = field(default_factory=dict)
+    inst: CalcInstance | None = None
 
     def __post_init__(self):
         self.players = [Player(
@@ -664,7 +675,7 @@ class PWars:
             elif len(gameStates) == 4:
                 if gameStates[3].type == GameStateType.PROVE:
                     return [GameState(3, GameStateType.EFFECT)]
-                elif gameStates[3].type == GameStateType.EFFECT:
+                elif gameStates[3].type == GameStateType.EFFECT and len(playerActs) == 1:
                     return [GameState.nextTurn(self, gameStates[2])]
         raise GameException('Conditions not applied')
 
@@ -695,14 +706,15 @@ class PWars:
                 self.discardPile = []
                 for player in self.players: player.playInit()
             if len(newGameStates) == 4 and newGameStates[3].type == GameStateType.PROVE:
-                #TODO: Implement game effects here
-                inst = self.genCalcInstance({}, {}) #TODO: Implement this
+                choice: Tuple[Dict[int, int], Dict[int, int]] = playerActs[0].info
+                self.inst = self.genCalcInstance(*playerActs[0].info)
+            if len(newGameStates) == 4 and newGameStates[3].type == GameStateType.EFFECT:
                 if any(isinstance(playerAct.info[0], int) for playerAct in playerActs):
                     return self
                 for playerAct in playerActs:
                     proof: Proof = playerAct.info[1]
-                    self.applyEffect(proof.statements[playerAct.info[2]], inst)
-
+                    self.applyEffect(proof.statements[playerAct.info[2]], self.inst)
+                ...
 
         return self
 
@@ -868,5 +880,10 @@ class PWars:
                     zip(proof.statements, proof.stateTags) if tag == StateTag.AXIOM
                 )
                 return axioms == proofAxioms
+
+            #Effect game state
+            if len(gameStates) == 4 and gameStates[3].type == GameStateType.PROVE and \
+            playerAct.valid(PlayerActionType.EFFECTCHOOSE):
+                return len(playerActs) == 0
         ...
         return False
