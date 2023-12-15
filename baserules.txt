@@ -1,4 +1,4 @@
->Exclusivity
+>Entity exclusivity
 ~(forall(x)(
     [NUMBER](x) imply (not ([PLAYER](x) or [CARD](x)))
 ))~
@@ -80,21 +80,21 @@
         imply
         [NUMBER]((x / y))
     )
-)))~
+)))~ (rounded division)
 ~(forall(x)(forall(y)(
     (
         ([NUMBER](x) and [NUMBER](y))
         imply
         [NUMBER]((x f/ y))
     )
-)))~
+)))~ (floor division)
 ~(forall(x)(forall(y)(
     (
         ([NUMBER](x) and [NUMBER](y))
         imply
         [NUMBER]((x c/ y))
     )
-)))~
+)))~ (ceil division)
 
 >Modulo
 ~(forall(x)(forall(y)(
@@ -110,4 +110,37 @@
         imply
         ((x % y) = (x - (x f/ y) * y))
     )
+)))~
+
+>>Comparator on numbers
+>Exclusivity
+~(forall(x)(forall(y)(
+    (
+        ([NUMBER](x) and [NUMBER](y))
+        imply
+        (
+            (x > y)
+            imply
+            (not ((x = y) or (x < y)))
+        )
+)))~
+~(forall(x)(forall(y)(
+    (
+        ([NUMBER](x) and [NUMBER](y))
+        imply
+        (
+            (x = y)
+            imply
+            (not ((x > y) or (x < y)))
+        )
+)))~
+~(forall(x)(forall(y)(
+    (
+        ([NUMBER](x) and [NUMBER](y))
+        imply
+        (
+            (x < y)
+            imply
+            (not ((x = y) or (x > y)))
+        )
 )))~
