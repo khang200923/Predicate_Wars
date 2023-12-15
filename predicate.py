@@ -10,6 +10,8 @@ import random
 import re
 from typing import Any, Callable, List, Optional, Sequence, Set, Tuple
 
+from baserules import getBaseRules
+
 def _mappableDict(dct: dict) -> bool:
     """
     Returns if dict values don't overlap.
@@ -157,148 +159,6 @@ unPurePred = ('truth',)
 specialSymbols = ('player', 'card')
 
 #Special symbol types: 'player', 'card'
-
-baseRulesWritten = (
-    '''
-    (forall(x)(forall(y)(
-        [NUMBER](x) imply (not ([PLAYER](x) or [CARD](x)))
-    )))
-    ''',
-    '''
-    (forall(x)(forall(y)(
-        [PLAYER](x) imply (not ([NUMBER](x) or [CARD](x)))
-    )))
-    ''',
-    '''
-    (forall(x)(forall(y)(
-        [CARD](x) imply (not ([PLAYER](x) or [NUMBER](x)))
-    )))
-    ''',
-    '''
-    (forall(x)(forall(y)(
-        (
-            ([NUMBER](x) and [NUMBER](y))
-            imply
-            [NUMBER]((x + y))
-        )
-    )))
-    ''',
-    '''
-    (forall(x)(forall(y)(
-        ((x + y) = (y + x))
-    )))
-    ''',
-    '''
-    (forall(x)(forall(y)(
-        ((x + (y + z)) = ((x + y) + z))
-    )))
-    ''',
-    '''
-    (forall(x)(
-        [NUMBER](x)
-        imply
-        (x = (x + 0))
-    ))
-    ''',
-    '''
-    (forall(x)(forall(y)(
-        (
-            ([NUMBER](x) and [NUMBER](y))
-            imply
-            [NUMBER]((x - y))
-        )
-    )))
-    ''',
-    '''
-    (forall(x)(forall(y)(
-        (
-            ([NUMBER](x) and [NUMBER](y))
-            imply
-            (((x + y) - y) = x)
-        )
-    )))
-    ''',
-    '''
-    (forall(x)(forall(y)(
-        (
-            ([NUMBER](x) and [NUMBER](y))
-            imply
-            [NUMBER]((x * y))
-        )
-    )))
-    ''',
-    '''
-    (forall(x)(forall(y)(
-        ((x * y) = (y * x))
-    )))
-    ''',
-    '''
-    (forall(x)(forall(y)(
-        ((x * (y * z)) = ((x * y) * z))
-    )))
-    ''',
-    '''
-    (forall(x)(
-        [NUMBER](x)
-        imply
-        (x = (x * 1))
-    ))
-    ''',
-    '''
-    (forall(x)(forall(y)(forall(z)(
-        (
-            ([NUMBER](x) and ([NUMBER](y) and [NUMBER](z)))
-            imply
-            ((x * (y + z)) = ((x * y) + (x * z)))
-        )
-    ))))
-    ''',
-    '''
-    (forall(x)(forall(y)(
-        (
-            ([NUMBER](x) and [NUMBER](y))
-            imply
-            [NUMBER]((x / y))
-        )
-    )))
-    ''',
-    '''
-    (forall(x)(forall(y)(
-        (
-            ([NUMBER](x) and [NUMBER](y))
-            imply
-            [NUMBER]((x f/ y))
-        )
-    )))
-    ''',
-    '''
-    (forall(x)(forall(y)(
-        (
-            ([NUMBER](x) and [NUMBER](y))
-            imply
-            [NUMBER]((x c/ y))
-        )
-    )))
-    ''',
-    '''
-    (forall(x)(forall(y)(
-        (
-            ([NUMBER](x) and [NUMBER](y))
-            imply
-            [NUMBER]((x % y))
-        )
-    )))
-    ''',
-    '''
-    (forall(x)(forall(y)(
-        (
-            ([NUMBER](x) and [NUMBER](y))
-            imply
-            ((x % y) = (x - (x f/ y) * y))
-        )
-    )))
-    ''',
-)
 
 def symbolTypeCalc(symbol: str) -> str | None:
     return next(
@@ -1091,7 +951,7 @@ class Statement:
             opt2obj=True): return ('compare', com)
         return None
 
-baseRules = tuple(Statement.lex(rule) for rule in baseRulesWritten)
+baseRules = tuple(Statement.lex(rule.statement) for rule in getBaseRules())
 
 class StateTag(Enum):
     AXIOM = 0

@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from typing import List
 import re
-from predicate import Statement
 
 def _countRepeatedChars(text: str, target: str) -> int:
     count = 0
@@ -14,7 +13,7 @@ def _countRepeatedChars(text: str, target: str) -> int:
 
 @dataclass
 class BRulesParseResult:
-    statement: Statement
+    statement: str
     titles: List[str] #Empty for now
 
 def parse(text: str) -> List[BRulesParseResult]:
@@ -27,7 +26,7 @@ def parse(text: str) -> List[BRulesParseResult]:
             ... #Just in case when we need titles
             remaining = remaining[titleSearch.end():]
         elif stateSearch:
-            statement = Statement.lex(stateSearch.group(1))
+            statement = stateSearch.group(1)
             rules.append(BRulesParseResult(statement, []))
             remaining = remaining[stateSearch.end():]
         else:

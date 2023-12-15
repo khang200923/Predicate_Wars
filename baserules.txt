@@ -1,13 +1,13 @@
 >Exclusivity
-~(forall(x)(forall(y)(
+~(forall(x)(
     [NUMBER](x) imply (not ([PLAYER](x) or [CARD](x)))
-)))~
-~(forall(x)(forall(y)(
+))~
+~(forall(x)(
     [PLAYER](x) imply (not ([NUMBER](x) or [CARD](x)))
-)))~
-~(forall(x)(forall(y)(
+))~
+~(forall(x)(
     [CARD](x) imply (not ([PLAYER](x) or [NUMBER](x)))
-)))~
+))~
 
 >>Operator on numbers
 >Addition
