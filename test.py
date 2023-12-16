@@ -867,7 +867,7 @@ cards =    [pw.Card(blank=True,
                     tag=pw.CardTag.PAPER,
                     powerCost=7,
                     effect=pd.Statement.lex("""
-                                            tT
+                                            [ATK]([chosenPlayer](0))
                                             """)
                     )
             ]
@@ -897,7 +897,7 @@ proof = pd.Proof(game.startAxioms(None))
 res2 = game.action(pw.PlayerAction(
     1,
     pw.PlayerActionType.PROVE,
-    (None, proof, 1)
+    (None, proof, 0)
 ))
 game.advance()
 res = game.currentGameStates()

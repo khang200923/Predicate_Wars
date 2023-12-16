@@ -705,10 +705,10 @@ class PWars:
                 self.remaining = [True for _ in self.players]
                 self.discardPile = []
                 for player in self.players: player.playInit()
-            if len(newGameStates) == 4 and newGameStates[3].type == GameStateType.PROVE:
+            if len(oldGameStates) == 4 and oldGameStates[3].type == GameStateType.PROVE:
                 choice: Tuple[Dict[int, int], Dict[int, int]] = playerActs[0].info
-                self.inst = self.genCalcInstance(*playerActs[0].info)
-            if len(newGameStates) == 4 and newGameStates[3].type == GameStateType.EFFECT:
+                self.inst = self.genCalcInstance(*choice)
+            if len(oldGameStates) == 4 and oldGameStates[3].type == GameStateType.EFFECT:
                 if any(isinstance(playerAct.info[0], int) for playerAct in playerActs):
                     return self
                 for playerAct in playerActs:
