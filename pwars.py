@@ -1,7 +1,6 @@
 """
 Provides essential classes and methods for the game itself.
 """
-from copy import deepcopy
 from dataclasses import dataclass, field
 from enum import Enum
 import itertools
@@ -9,7 +8,9 @@ import random
 import types
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple
 
-from predicate import Proof, ProofBase, StateTag, Statement, baseRules, _doOperator, symbolsType
+from predicate.statement import baseRules, symbolsType
+from predicate.proof import Proof, ProofBase, StateTag, Statement
+from predicate.utils import doOperator
 from utilclasses import LazyDict
 
 #REMINDER: Add features in order, in separate commits, one by one...
@@ -458,7 +459,7 @@ class PWars:
         res = state.operatorArgs()
         if res is not None:
             num1, num2, oper = res[0][0][1], res[1][0][1], state.operatorSymbol()[1]
-            return Statement((('number', _doOperator(num1, num2, oper)),))
+            return Statement((('number', doOperator(num1, num2, oper)),))
         res = state.functionArgs()
         if res is not None:
             return PWars.calcFunction(

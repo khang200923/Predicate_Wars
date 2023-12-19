@@ -48,32 +48,32 @@ def summary():
     else:
         print(f'\n{sucTest}/1 successful test')
 
-test('_checkSubSeq true 1', pd._checkSubSeq((1, 2, 5, 6), (2, 3, 1, 2, 5, 6, 'e')), False)
+test('checkSubSeq true 1', pd.checkSubSeq((1, 2, 5, 6), (2, 3, 1, 2, 5, 6, 'e')), False)
 
-test('_checkSubSeq true 2', pd._checkSubSeq((), (2, 3, 1, 2, 5, 6, 'e')), False)
+test('checkSubSeq true 2', pd.checkSubSeq((), (2, 3, 1, 2, 5, 6, 'e')), False)
 
-test('_checkSubSeq false', not pd._checkSubSeq((1, 2, 5, 7), (2, 3, 1, 2, 5, 'ye', 7)), True)
+test('checkSubSeq false', not pd.checkSubSeq((1, 2, 5, 7), (2, 3, 1, 2, 5, 'ye', 7)), True)
 
-res = pd._subSeqIndexes((1, 2, 5, 6), (2, 3, 1, 2, 5, 6, 'e'))
-test('_subSeqIndexes 1', res == (2,), res)
+res = pd.subSeqIndexes((1, 2, 5, 6), (2, 3, 1, 2, 5, 6, 'e'))
+test('subSeqIndexes 1', res == (2,), res)
 
-res = pd._subSeqIndexes((1, 2, 5, 7), (2, 3, 1, 2, 5, 'ye', 7))
-test('_subSeqIndexes 2', res == (), res)
+res = pd.subSeqIndexes((1, 2, 5, 7), (2, 3, 1, 2, 5, 'ye', 7))
+test('subSeqIndexes 2', res == (), res)
 
-test('_checkSeqForm 1', pd._checkSeqForm((4,7,4,2,7,'er',4,3,9,9,9), (4,7,4), (9,9,9)), False)
+test('checkSeqForm 1', pd.checkSeqForm((4,7,4,2,7,'er',4,3,9,9,9), (4,7,4), (9,9,9)), False)
 
-test('_checkSeqForm 2', pd._checkSeqForm((4,7,4,2,7,'er',4,3,9,9,9), (4,7,4), (9,9,9), (7,'er')), False)
+test('checkSeqForm 2', pd.checkSeqForm((4,7,4,2,7,'er',4,3,9,9,9), (4,7,4), (9,9,9), (7,'er')), False)
 
-test('_checkSeqForm 3', not pd._checkSeqForm((4,7,4,2,7,4,'er',3,9,9,9), (4,7,4), (9,9,9), (7,'er')), True)
+test('checkSeqForm 3', not pd.checkSeqForm((4,7,4,2,7,4,'er',3,9,9,9), (4,7,4), (9,9,9), (7,'er')), True)
 
-res = pd._seqFormOptionalsIndexes((4,7,4,2,7,'er',4,3,9,9,9), (4,7,4), (9,9,9))
-test('_seqFormOptionalsIndexes 1', res == ((3, 8),), res)
+res = pd.seqFormOptionalsIndexes((4,7,4,2,7,'er',4,3,9,9,9), (4,7,4), (9,9,9))
+test('seqFormOptionalsIndexes 1', res == ((3, 8),), res)
 
-res = pd._seqFormOptionalsIndexes((4,7,4,2,7,'er',4,3,9,9,9), (4,7,4), (9,9,9), (7,'er'))
-test('_seqFormOptionalsIndexes 2', res == ((3, 8), ((4, 6),)), res)
+res = pd.seqFormOptionalsIndexes((4,7,4,2,7,'er',4,3,9,9,9), (4,7,4), (9,9,9), (7,'er'))
+test('seqFormOptionalsIndexes 2', res == ((3, 8), ((4, 6),)), res)
 
-res = pd._seqFormOptionalsIndexes((4,7,4,2,7,4,'er',3,9,9,9), (4,7,4), (9,9,9), (7,'er'))
-test('_seqFormOptionalsIndexes 3', res is None, res)
+res = pd.seqFormOptionalsIndexes((4,7,4,2,7,4,'er',3,9,9,9), (4,7,4), (9,9,9), (7,'er'))
+test('seqFormOptionalsIndexes 3', res is None, res)
 
 statements = tuple(pd.Statement.lex(x) for x in (
     """
