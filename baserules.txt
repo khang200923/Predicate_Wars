@@ -74,27 +74,44 @@
 ))))~
 
 >Division
-~(forall(x)(forall(y)(
-    (
-        ([NUMBER](x) and [NUMBER](y))
-        imply
-        [NUMBER]((x / y))
-    )
-)))~ (rounded division)
+(floor division)
 ~(forall(x)(forall(y)(
     (
         ([NUMBER](x) and [NUMBER](y))
         imply
         [NUMBER]((x f/ y))
     )
-)))~ (floor division)
+)))~
+~(forall(x)(forall(y)(
+    (
+        ([NUMBER](x) and [NUMBER](y))
+        imply
+        ((x f/ y) = ((x - (x % y)) f/ y))
+    )
+)))~
+(ceil division)
 ~(forall(x)(forall(y)(
     (
         ([NUMBER](x) and [NUMBER](y))
         imply
         [NUMBER]((x c/ y))
     )
-)))~ (ceil division)
+)))~
+~(forall(x)(forall(y)(
+    (
+        ([NUMBER](x) and [NUMBER](y))
+        imply
+        ((x c/ y) = (((x - (x % y)) + (y - 1)) c/ y))
+    )
+)))~
+(rounded division)
+~(forall(x)(forall(y)(
+    (
+        ([NUMBER](x) and [NUMBER](y))
+        imply
+        [NUMBER]((x / y))
+    )
+)))~ (TODO: Add rounded division definition)
 
 >Modulo
 ~(forall(x)(forall(y)(
@@ -108,7 +125,7 @@
     (
         ([NUMBER](x) and [NUMBER](y))
         imply
-        ((x % y) = (x - (x f/ y) * y))
+        ((x % y) = ((x + y) % y)
     )
 )))~
 
