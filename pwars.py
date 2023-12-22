@@ -305,7 +305,8 @@ class PWars:
             else: res = tuple(playerActs[opposingProofIndex].info[1].statements)
         else:
             raise GameException("Not in proving game state")
-        res += tuple(self.rules.values()) + baseRules
+        # No initial base rules
+        # res += tuple(self.rules.values()) + baseRules
         return res
 
     def applyEffect(

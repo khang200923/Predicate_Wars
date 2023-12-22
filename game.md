@@ -59,8 +59,8 @@ Go in cycles of remained players, moving clockwise, starting from the latest pla
 When a player edits a card, they add/change tag, power cost (smaller or equal to their current power) and effect (written in [predicate logic](#predicate-logic-and-the-proving-system) syntax). They must add/change their identifier onto the card.
 ### Proving rules:
 - When a player proves a predicate game function applied to a player is true or false in the scope of two paired cards, they start with a *proof* containing all of the statements in the cards as \[Axiom\] and *subproofs* the player has, then infer the *proof* repeatedly. If (\[PREDICATEACTIONFUNCTIONNAME...\](...)) is derived, then the other players can optionally prove the *proof* is contradictory. If the players do not or cannot prove, then the game effect is applied.
-- When a player proves a *proof* is contradictory, they start with a *proof* containing all of the statements in the *proof*, all *rules* as \[Axiom\] and *subproofs* used in the proof with ones that the player has, then infer the *proof* repeatedly. If **A** and (¬**A**) are both derived, or tF is derived, then the game effect is not applied.
-- When a player proves a potential *rule* is contradictory, they start with a *proof* containing all of the statements, all the *rules* and the potential *rule* as \[Axiom\] and *subproofs* used in the proof with ones that the player has, then infer the *proof* repeatedly. If **A** and (¬**A**) are both derived, or tF is derived, then the rule is not added.
+- When a player proves a *proof* is contradictory, they start with a *proof* containing all of the statements in the *proof*, all *rules* except *base rules* as \[Axiom\] and *subproofs* used in the proof with ones that the player has, then infer the *proof* repeatedly. If **A** and (¬**A**) are both derived, or tF is derived, then the game effect is not applied.
+- When a player proves a potential *rule* is contradictory, they start with a *proof* containing all of the statements, all *rules* except *base rules*, the potential *rule* as \[Axiom\] and *subproofs* used in the proof with ones that the player has, then infer the *proof* repeatedly. If **A** and (¬**A**) are both derived, or tF is derived, then the rule is not added.
 - Proofs can only apply their effect if the player creating the proof has enough proving power (larger than the symbol point of the proof), then subtract the proving power by the symbol point of the proof.
 ### Game function rules:
 Game functions are fixed, meaning they have a predetermined value. Action functions are not.
@@ -149,6 +149,7 @@ A *proof* X is *inferred* from another *proof* Y having a *subproof* Z that has 
 - Falsehood: **c** is (¬tF)
 - Operator simplification: If **p1** has an occurence of (**x** **op** **y**), where **x** and **y** and numbers, and **op** is an operator, then **c** replaces the occurence with the result of the operation ('+' is addition, '-' is subtraction, '*' is multiplication, '/' is rounded division, 'f/' is floor division, 'c/' is ceil division, '%' is modulo)
 - Comparison: If **p1** is has an occurence of (**x** **com** **y**), where **x** and **y** are numbers, and **com** is an comparator, then **c** replaces the occurence with the result of the comparison (the result is 'tT' or 'tF')
+- Rule inclusion: **c** is a chosen rule or base rule, if the chosen rule is not present in the proof
 
 A *proof* has a symbol point of the total symbol points of the *symbols* of all the \[Lemma\]-tagged statements in the *proof* (excluding the *subproofs*)
 ### *WFF* (*Well-formed formula*)

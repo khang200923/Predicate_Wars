@@ -8,7 +8,7 @@ from itertools import combinations
 import random
 from typing import Any, List, Optional, Set, Tuple
 
-from predicate.statement import Statement
+from predicate.statement import Statement, baseRules
 from predicate.utils import doOperator, smallestMissingInteger
 
 class StateTag(Enum):
@@ -40,6 +40,7 @@ class InferType(Enum):
     SubsPropEq = 26
     OpSimplify = 21
     Comparison = 22
+    RuleInclusion = 25
 
     CondProof = 23
     IndProof = 24
@@ -713,6 +714,9 @@ class ProofBase:
                         res[start:end] = (('truth', mapper[int(num1) < int(num2)],),)
                         conclusions.append(Statement(tuple(res)))
                         continue
+            case InferType.RuleInclusion:
+                availableRules = filter(lambda rule: rule not in self.statements, baseRules)
+                conclusions.extend(availableRules)
             case _: raise InferenceError('Unsupported infer type: {}'.format(inferType))
 
         return tuple(conclusions)
