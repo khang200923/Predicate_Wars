@@ -77,14 +77,14 @@
 (floor division)
 ~(forall(x)(forall(y)(
     (
-        ([NUMBER](x) and [NUMBER](y))
+        (([NUMBER](x) and [NUMBER](y)) and (not (y = 0)))
         imply
         [NUMBER]((x f/ y))
     )
 )))~
 ~(forall(x)(forall(y)(
     (
-        ([NUMBER](x) and [NUMBER](y))
+        (([NUMBER](x) and [NUMBER](y)) and (not (y = 0)))
         imply
         ((x f/ y) = ((x - (x % y)) f/ y))
     )
@@ -92,14 +92,14 @@
 (ceil division)
 ~(forall(x)(forall(y)(
     (
-        ([NUMBER](x) and [NUMBER](y))
+        (([NUMBER](x) and [NUMBER](y)) and (not (y = 0)))
         imply
         [NUMBER]((x c/ y))
     )
 )))~
 ~(forall(x)(forall(y)(
     (
-        ([NUMBER](x) and [NUMBER](y))
+        (([NUMBER](x) and [NUMBER](y)) and (not (y = 0)))
         imply
         ((x c/ y) = (((x - (x % y)) + (y - 1)) c/ y))
     )
@@ -107,25 +107,53 @@
 (rounded division)
 ~(forall(x)(forall(y)(
     (
-        ([NUMBER](x) and [NUMBER](y))
+        (([NUMBER](x) and [NUMBER](y)) and (not (y = 0)))
         imply
         [NUMBER]((x / y))
-    )
-)))~ (TODO: Add rounded division definition)
-
->Modulo
-~(forall(x)(forall(y)(
-    (
-        ([NUMBER](x) and [NUMBER](y))
-        imply
-        [NUMBER]((x % y))
     )
 )))~
 ~(forall(x)(forall(y)(
     (
-        ([NUMBER](x) and [NUMBER](y))
+        (([NUMBER](x) and [NUMBER](y)) and (not (y = 0)))
         imply
-        ((x % y) = ((x + y) % y)
+        (
+            ((x % y) - (y f/ 2) >= 0)
+            imply
+            ((x / y) = (x c/ y))
+        )
+    )
+)))~
+~(forall(x)(forall(y)(
+    (
+        (([NUMBER](x) and [NUMBER](y)) and (not (y = 0)))
+        imply
+        (
+            ((x % y) - (y f/ 2) < 0)
+            imply
+            ((x / y) = (x f/ y))
+        )
+    )
+)))~
+>Modulo
+~(forall(x)(forall(y)(
+    (
+        (([NUMBER](x) and [NUMBER](y)) and (not (y = 0)))
+        imply
+        [NUMBER]((x % y))
+    )
+)))~
+~(forall(x)(
+    (
+        ([NUMBER](x) and (not (x = 0)))
+        imply
+        ((0 % x) = 0)
+    )
+))~
+~(forall(x)(forall(y)(
+    (
+        (([NUMBER](x) and [NUMBER](y)) and (not (y = 0)))
+        imply
+        ((x % y) = ((x + y) % y))
     )
 )))~
 

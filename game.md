@@ -107,11 +107,11 @@ A *statement* is an ordered list of *symbols*, which consists of:
 - Brackets: '(', ')' (symbol point each: 0)
 - Equality: '=' (symbol point each: 1)
 - Comma: ',' (symbol point each: 0)
-- Number (variable, cannot be function name): 0, 1, 2, 3, 4, ... (symbol point each: 1)
+- Number (variable): 0, 1, 2, 3, 4, ... (symbol point each: 1)
 - Distinct variables (pure variable): ('x_0', 'x_1', ..., 'y_0', 'y_1', ...) (symbol point each: 2)
 - Distinct predicates (pure predicate): ('P_0', 'P_1', ..., 'Q_0', 'Q_1', ...) (symbol point each: 2)
 - Functions (variable, cannot be function name): lowercase character or distinct variable or \[gameFunctionName...\] + '(' + optional( + variable + repeated(',' + variables)) + ')'
-- Predicate functions (predicate): uppercase character or distinct predicate or \[PREDICATEGAMEFUNCTIONNAME...\] + '(' + optional( variable + repeated(',' + variables)) + ')'
+- Predicate functions (predicate, cannot be function name): uppercase character or distinct predicate or \[PREDICATEGAMEFUNCTIONNAME...\] + '(' + optional( variable + repeated(',' + variables)) + ')'
 - Game function names: '\[randPlayer\]', '\[randCard\]', '\[chosenPlayer\]', '\[chosenCard\]', '\[playerOfCard\]', '\[health\]', '\[power\]', '\[potency\]', '\[symbolPoint\]', '\[powerCost\]' (symbol point each: 4)
 - Predicate game function names: '\[NUMBER\]', '\[PLAYER\]', '\[CARD\]' (symbol point each: 4)
 - Predicate action function names: '\[CLAIM\]', '\[ATK\]', '\[HEAL\]', '\[ADDPOWER\]', '\[SUBPOWER\]' (symbol point each: 4)
