@@ -189,3 +189,76 @@
             (not ((x = y) or (x > y)))
         )
 )))~
+
+>>Object game functions
+>Types
+~(forall(i)(
+    (
+        [NUMBER](i)
+        imply
+        [PLAYER]([randPlayer](i))
+    )
+))~
+~(forall(i)(
+    (
+        [NUMBER](i)
+        imply
+        [CARD]([randCard](i))
+    )
+))~
+~(forall(i)(
+    (
+        [NUMBER](i)
+        imply
+        [PLAYER]([chosenPlayer](i))
+    )
+))~
+~(forall(i)(
+    (
+        [NUMBER](i)
+        imply
+        [CARD]([chosenCard](i))
+    )
+))~
+~(forall(x)(
+    (
+        [CARD](x)
+        imply
+        [PLAYER]([playerOfCard](x))
+    )
+))~
+~(forall(x)(
+    (
+        [PLAYER](x)
+        imply
+        [NUMBER]([health](x))
+    )
+))~
+~(forall(x)(
+    (
+        [PLAYER](x)
+        imply
+        [NUMBER]([power](x))
+    )
+))~
+~(forall(x)(
+    (
+        [PLAYER](x)
+        imply
+        [NUMBER]([potency](x))
+    )
+))~
+~(forall(x)(
+    (
+        [CARD](x)
+        imply
+        [NUMBER]([symbolPoint](x))
+    )
+))~
+~(forall(x)(
+    (
+        [CARD](x)
+        imply
+        [NUMBER]([powerCost](x))
+    )
+))~
