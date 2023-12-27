@@ -31,8 +31,6 @@ class InferType(Enum):
     FalsyOR = 16
     UnivModPonens = 9
     ExistModPonens = 10
-    Truth = 13
-    Falsehood = 14
     SubsProp = 17
     Identity = 18
     SymmProp = 19
@@ -61,8 +59,6 @@ premiseUsesOfInferType = { #(p1, p2, x, z1, z2, z3)
     InferType.FalsyOR: (True, True, False, False, False, False),
     InferType.UnivModPonens: (True, True, False, False, False, False),
     InferType.ExistModPonens: (True, True, False, False, False, False),
-    InferType.Truth: (False, False, False, False, False, False),
-    InferType.Falsehood: (False, False, False, False, False, False),
     InferType.SubsProp: (True, False, True, False, False, False),
     InferType.Identity: (False, False, True, False, False, False),
     InferType.SymmProp: (True, False, False, False, False, False),
@@ -566,10 +562,6 @@ class ProofBase:
                                 By +
                                 Statement.lex(')')
                             )
-            case InferType.Truth:
-                conclusions.append(Statement.lex('tT'))
-            case InferType.Falsehood:
-                conclusions.append(Statement.lex('(not tF)'))
             case InferType.SubsProp:
                 try: A = premise1.formulasInForm((
                     ('bracket', '('),

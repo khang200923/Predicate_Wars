@@ -1,3 +1,7 @@
+>Tautology
+~tT~
+~(not tF)~
+
 >Entity exclusivity
 ~(forall(x)(
     [NUMBER](x) imply (not ([PLAYER](x) or [CARD](x)))
