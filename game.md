@@ -1,5 +1,7 @@
+<!-- Rulebook -->
+
 ## About:
-Predicate Wars is a competitive Python card game about using predicate logic, reasoning, and strategic planning to your advantage. It includes creating your own cards out of logical symbols, showcase your cards at the right time, utilize effective reasoning techniques, and so much more.
+Predicate Wars is a competitive card game about using predicate logic, reasoning, and strategic planning to your advantage. It includes creating your own cards out of logical symbols, showcase your cards at the right time, utilize effective reasoning techniques, and so much more.
 
 ## Requirements:
 - 2-16 **players**
