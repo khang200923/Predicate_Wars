@@ -150,8 +150,16 @@ A *proof* X is *inferred* from another *proof* Y having a *subproof* Z that has 
 - Operator simplification: If **p1** has an occurence of (**x** **op** **y**), where **x** and **y** and numbers, and **op** is an operator, then **c** replaces the occurence with the result of the operation ('+' is addition, '-' is subtraction, '*' is multiplication, '/' is rounded division, 'f/' is floor division, 'c/' is ceil division, '%' is modulo)
 - Comparison: If **p1** is has an occurence of (**x** **com** **y**), where **x** and **y** are numbers, and **com** is an comparator, then **c** replaces the occurence with the result of the comparison (the result is 'tT' or 'tF')
 - Rule inclusion: **c** is a chosen rule or base rule, if the chosen rule is not present in the proof
+### Symbol point
+A *proof*'s symbol point can be calculated following the steps below:
+1. Initially set the result variable to be the amount of \[Lemma\] tagged statements in the proof.
+2. For each \[Lemma\] tagged statement in the proof: <!-- TODO: Resolve ambiguity (for example: what does 'based' mean?, possibly ambiguous calculations in the pseudocode) -->
+    1. If this statement's inference is based on a free variable, increment the result variable by the variable's symbol point.
+    2. If this statement's inference is not based on any statements present in the proof, skip the incoming steps in this loop, and jump to the next statement in this loop if possible.
+    3. If this statement's inference is based on 2 statements present in the proof, increment the result variable by the smallest element in this list: abs(current statement's symbol point - first referred statement's symbol point), abs(current statement's symbol point - second referred statement's symbol point)
+    4. If this statement's inference is based on only 1 statement present in the proof, increment the result variable by abs(current statement's symbol point - referred statement's symbol point)
 
-A *proof* has a symbol point of the total symbol points of the *symbols* of all the \[Lemma\]-tagged statements in the *proof* (excluding the *subproofs*)
+The *proof*'s symbol point is the value of the result variable.
 ### *WFF* (*Well-formed formula*)
 A *statement* is a *WFF* if a statement is a predicate, a predicate function with its parameters being *WFO*s, or one of these ordered set of symbols:
 

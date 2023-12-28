@@ -38,7 +38,7 @@ class InferType(Enum):
     SubsPropEq = 26
     OpSimplify = 21
     Comparison = 22
-    RuleInclusion = 25
+    RuleInclusion = 27
 
     CondProof = 23
     IndProof = 24
@@ -66,6 +66,7 @@ premiseUsesOfInferType = { #(p1, p2, x, z1, z2, z3)
     InferType.SubsPropEq: (True, False, True, False, False, False),
     InferType.OpSimplify: (True, False, False, False, False, False),
     InferType.Comparison: (True, False, False, False, False, False),
+    InferType.RuleInclusion: (False, False, False, False, False, False),
 
     InferType.CondProof: (True, False, False, True, True, False),
     InferType.IndProof: (False, False, True, True, True, True),
@@ -783,11 +784,34 @@ class ProofBase:
         """
         Returns the symbol point of this ProofBase.
         """
-        return sum(
-            statement.symbolPoint()
-            if stateTag == StateTag.LEMMA else 0
-            for statement, stateTag in zip(self.statements, self.stateTags)
-        )
+        #TODO: Test this method
+        res = 0
+        for state, \
+            (
+                inferType,
+                premise1index, premise2index,
+                obj, conclusionIndex
+            ), tag in zip(self.statements, self.inferences, self.stateTags):
+            if tag == StateTag.AXIOM:
+                continue
+            res += 1
+            if premiseUsesOfInferType[inferType][2]:
+                res += obj.symbolPoint()
+            if premiseUsesOfInferType[inferType][:2] == (False, False):
+                continue
+            thisSymbolPoint = state.symbolPoint()
+            if premiseUsesOfInferType[inferType][:2] == (True, True):
+                res += min(
+                    abs(thisSymbolPoint - self.statements[premise1index].symbolPoint()),
+                    abs(thisSymbolPoint - self.statements[premise2index].symbolPoint()),
+                )
+            if premiseUsesOfInferType[inferType][0]:
+                res += abs(thisSymbolPoint - self.statements[premise1index].symbolPoint())
+            if premiseUsesOfInferType[inferType][1]:
+                res += abs(thisSymbolPoint - self.statements[premise2index].symbolPoint())
+        return res
+
+
     def contradictory(self) -> bool:
         """
         Returns whether this proof is contradictory by finding pair 'A' and 'not A'.
