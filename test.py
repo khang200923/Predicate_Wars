@@ -890,7 +890,7 @@ res = game.currentGameStates()
 test('PWars.action 7 PLAY', len(res) == 4 and res[3].type == pw.GameStateType.PROVE, res)
 res2 = game.startAxioms(None)
 test('PWars.startAxioms 1 PROVE',
-    all(elem in (cards[0].effect, cards[1].effect) + pd.baseRules for elem in res2),
+    all(elem in (cards[0].effect, cards[1].effect) for elem in res2),
     res2
 )
 proof = pd.Proof(game.startAxioms(None))
@@ -899,6 +899,10 @@ res2 = game.action(pw.PlayerAction(
     pw.PlayerActionType.PROVE,
     (None, proof, 0)
 ))
+test('PWars.startAxioms 1 PROVE activeDeductions',
+    game.activeDeductions == [(proof, 0)],
+    game.activeDeductions
+)
 game.advance()
 res = game.currentGameStates()
 

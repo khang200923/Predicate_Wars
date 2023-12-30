@@ -1,5 +1,5 @@
 """
-Provides essential classes and methods for the game itself.
+Provides essential classes and methods for the gameplay.
 """
 from dataclasses import dataclass, field
 from enum import Enum
@@ -257,7 +257,7 @@ class PWars:
     recentPlay: Optional[Tuple[Card, Card]] = None
     inst: CalcInstance | None = None
     rules: Dict[int, Statement] = field(default_factory=dict)
-    proofIndexes: List[int] | None = None
+    activeDeductions: List[int] | None = None
 
     def __post_init__(self):
         self.players = [Player(
@@ -708,6 +708,8 @@ class PWars:
                 self.remaining = [True for _ in self.players]
                 self.discardPile = []
                 for player in self.players: player.playInit()
+            if len(newGameStates) == 4 and newGameStates[3].type == GameStateType.PROVE:
+                self.activeDeductions = []
             if len(oldGameStates) == 4 and oldGameStates[3].type == GameStateType.PROVE:
                 choice: Tuple[Dict[int, int], Dict[int, int]] = playerActs[0].info
                 self.inst = self.genCalcInstance(*choice)
@@ -726,7 +728,7 @@ class PWars:
         Executes an action on this game instance, if it's valid.
         Returns whether the action is valid or not.
         """
-        #TODO: Test this method (particularly proofIndexes)
+        #TODO: Test this method (particularly activeDeductions, disproving case)
         valid = self.actionValid(playerAct)
         if valid:
             playerActs = self.recentPlayerActions()
@@ -761,12 +763,14 @@ class PWars:
                         #If disproving
                         if isinstance(playerAct.info[0], int):
                             try:
-                                self.proofIndexes.remove(playerAct.info[0])
+                                self.activeDeductions.remove([playerActs[playerAct.info[0]]])
                             except ValueError:
-                                #(assuming actionValid did it right,
+                                #(assuming actionValid worked as expected,
                                 # the disproved is not nonexistent and is instead already disproven
                                 # so we pass)
                                 pass
+                        else:
+                            self.activeDeductions.append(playerAct.info[1:])
                 #if PLAY, play the pair of cards
                 elif playerAct.type == PlayerActionType.PLAY:
                     self.dropPile += tuple(player.cards[x] for x in playerAct.info)
