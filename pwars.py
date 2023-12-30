@@ -255,8 +255,9 @@ class PWars:
     discardPile: List[Card] = field(default_factory=list)
     dropPile: List[Card] = field(default_factory=list)
     recentPlay: Optional[Tuple[Card, Card]] = None
-    rules: Dict[int, Statement] = field(default_factory=dict)
     inst: CalcInstance | None = None
+    rules: Dict[int, Statement] = field(default_factory=dict)
+    proofIndexes: List[int] | None = None
 
     def __post_init__(self):
         self.players = [Player(
@@ -725,6 +726,7 @@ class PWars:
         Executes an action on this game instance, if it's valid.
         Returns whether the action is valid or not.
         """
+        #TODO: Test this method (particularly proofIndexes)
         valid = self.actionValid(playerAct)
         if valid:
             playerActs = self.recentPlayerActions()
@@ -753,8 +755,20 @@ class PWars:
 
             #On main phase, ...
             if gameStates[0] == GameState(0, GameStateType.MAIN):
+                #when proving, ...
+                if len(gameStates) == 4 and gameStates[3].type == GameStateType.PROVE:
+                    if playerAct.type == PlayerActionType.PROVE:
+                        #If disproving
+                        if isinstance(playerAct.info[0], int):
+                            try:
+                                self.proofIndexes.remove(playerAct.info[0])
+                            except ValueError:
+                                #(assuming actionValid did it right,
+                                # the disproved is not nonexistent and is instead already disproven
+                                # so we pass)
+                                pass
                 #if PLAY, play the pair of cards
-                if playerAct.type == PlayerActionType.PLAY:
+                elif playerAct.type == PlayerActionType.PLAY:
                     self.dropPile += tuple(player.cards[x] for x in playerAct.info)
                     self.recentPlay = tuple(player.cards[x] for x in playerAct.info)
                     #Ensure deleting the right indexes
@@ -770,7 +784,7 @@ class PWars:
                 elif playerAct.type == PlayerActionType.UNREMAIN:
                     self.remaining[playerAct.player] = False
                 #if CLAIMPLAY, claim the card to player for twice the power cost
-                if playerAct.type == PlayerActionType.CLAIMPLAY:
+                elif playerAct.type == PlayerActionType.CLAIMPLAY:
                     powerSpent = sum(self.players[playerId].cards[cardId].powerCost
                                      for playerId, cardId in playerAct.info) * 2
                     if powerSpent <= player.power:
