@@ -643,6 +643,56 @@ proof = pd.Proof.convert(('(P and Q)', '(not (Q and R))'),)
 res = proof.contradictory()
 test('Proof.contradictory 2', not res, True)
 
+proof = pd.Proof.convert(
+    ("""
+        (forall(x)(
+            [PLAYER](x) imply
+            (P(x) imply [ATK](x, 10))
+        ))
+    """, #0
+    'P([chosenPlayer](0))'), #1
+)
+proof.infer(0, object="[chosenPlayer](0)", conclusionI="""
+    (
+        [PLAYER]([chosenPlayer](0)) imply
+        (P([chosenPlayer](0)) imply [ATK]([chosenPlayer](0), 10))
+    )
+""") #2
+proof.infer(conclusionI="""
+    (forall(i)(
+        (
+            [NUMBER](i)
+            imply
+            [PLAYER]([chosenPlayer](i))
+        )
+    ))
+""") #3
+proof.infer(3, object="0", conclusionI="""
+    (
+        [NUMBER](0)
+        imply
+        [PLAYER]([chosenPlayer](0))
+    )
+""") #4
+proof.infer(4, object="0", conclusionI="""
+    (
+        tT
+        imply
+        [PLAYER]([chosenPlayer](0))
+    )
+""") #5
+proof.infer(5, object="0", conclusionI="""
+    [PLAYER]([chosenPlayer](0))
+""") #6
+proof.infer(2, 6, object="[chosenPlayer](0)", conclusionI="""
+    (P([chosenPlayer](0)) imply [ATK]([chosenPlayer](0), 10))
+""") #7
+proof.infer(1, 7, object="[chosenPlayer](0)", conclusionI="""
+    [ATK]([chosenPlayer](0), 10)
+""") #8
+
+
+
 game = pw.PWars().advance()
 test('PWars.advance 1', game.history == [pw.GameState(0, pw.GameStateType.INITIAL, None)], game.history)
 test('PWars.currentGameStates 1', game.currentGameStates() == (pw.GameState(0, pw.GameStateType.INITIAL, None),), game.currentGameStates())

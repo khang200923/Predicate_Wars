@@ -202,3 +202,4 @@ A *WFF* can be *simple* if:
 - It is a connective with only predicate that are not *pure* as its parameters
 ### *Calculating*
 (W.I.P)
+<!-- Add this -->

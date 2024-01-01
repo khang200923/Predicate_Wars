@@ -746,20 +746,28 @@ class ProofBase:
         conclusion = ()
         for inferType in checkableInferTypes:
             for conclusionState in \
-            self.inferConclusions(inferType, premise1Index, premise2Index, object):
+            self.inferConclusions(
+                inferType=inferType,
+                premise1Index=premise1Index,
+                premise2Index=premise2Index,
+                object=object
+            ):
                 conclusion += ((conclusionState, inferType),)
         return conclusion
     def infer(
             self,
-            premise1Index: int,
-            premise2Index: int = None,
-            object: Statement = Statement(()),
-            conclusionI: int | Statement = 0
+            premise1Index: int | None = None,
+            premise2Index: int | None = None,
+            object: Statement | str = Statement(()),
+            conclusionI: int | Statement | str = 0
         ) -> 'ProofBase':
         """
         Infers the proof and returns the result.
         """
-
+        if isinstance(object, str):
+            object = Statement.lex(object)
+        if isinstance(conclusionI, str):
+            conclusionI = Statement.lex(conclusionI)
         res = deepcopy(self)
         state = 0
         conclusions = res.inferAllConclusions(premise1Index, premise2Index, object)
