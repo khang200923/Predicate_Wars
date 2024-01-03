@@ -16,17 +16,15 @@
 >>Operator on numbers
 >Addition
 ~(forall(x)(forall(y)(
-    (
-        ([NUMBER](x) and [NUMBER](y))
-        imply
-        [NUMBER]((x + y))
-    )
+    ([NUMBER](x) and [NUMBER](y))
+    imply
+    [NUMBER]((x + y))
 )))~
 ~(forall(x)(forall(y)(
-    ((x + y) = (y + x))
+    (x + y) = (y + x)
 )))~
 ~(forall(x)(forall(y)(
-    ((x + (y + z)) = ((x + y) + z))
+    (x + (y + z)) = ((x + y) + z)
 )))~
 ~(forall(x)(
     [NUMBER](x)
@@ -36,33 +34,27 @@
 
 >Subtraction
 ~(forall(x)(forall(y)(
-    (
-        ([NUMBER](x) and [NUMBER](y))
-        imply
-        [NUMBER]((x - y))
-    )
+    ([NUMBER](x) and [NUMBER](y))
+    imply
+    [NUMBER]((x - y))
 )))~
 ~(forall(x)(forall(y)(
-    (
-        ([NUMBER](x) and [NUMBER](y))
-        imply
-        (((x + y) - y) = x)
-    )
+    ([NUMBER](x) and [NUMBER](y))
+    imply
+    (((x + y) - y) = x)
 )))~
 
 >Multiplication
 ~(forall(x)(forall(y)(
-    (
-        ([NUMBER](x) and [NUMBER](y))
-        imply
-        [NUMBER]((x * y))
-    )
+    ([NUMBER](x) and [NUMBER](y))
+    imply
+    [NUMBER]((x * y))
 )))~
 ~(forall(x)(forall(y)(
-    ((x * y) = (y * x))
+    (x * y) = (y * x)
 )))~
 ~(forall(x)(forall(y)(
-    ((x * (y * z)) = ((x * y) * z))
+    (x * (y * z)) = ((x * y) * z)
 )))~
 ~(forall(x)(
     [NUMBER](x)
@@ -70,199 +62,154 @@
     (x = (x * 1))
 ))~
 ~(forall(x)(forall(y)(forall(z)(
-    (
-        ([NUMBER](x) and ([NUMBER](y) and [NUMBER](z)))
-        imply
-        ((x * (y + z)) = ((x * y) + (x * z)))
-    )
+    ([NUMBER](x) and ([NUMBER](y) and [NUMBER](z)))
+    imply
+    ((x * (y + z)) = ((x * y) + (x * z)))
 ))))~
 
 >Division
 (floor division)
 ~(forall(x)(forall(y)(
-    (
-        (([NUMBER](x) and [NUMBER](y)) and (not (y = 0)))
-        imply
-        [NUMBER]((x f/ y))
-    )
+    (([NUMBER](x) and [NUMBER](y)) and (not (y = 0)))
+    imply
+    [NUMBER]((x f/ y))
 )))~
 ~(forall(x)(forall(y)(
-    (
-        (([NUMBER](x) and [NUMBER](y)) and (not (y = 0)))
-        imply
-        ((x f/ y) = ((x - (x % y)) f/ y))
-    )
+    (([NUMBER](x) and [NUMBER](y)) and (not (y = 0)))
+    imply
+    ((x f/ y) = ((x - (x % y)) f/ y))
 )))~
 (ceil division)
 ~(forall(x)(forall(y)(
-    (
-        (([NUMBER](x) and [NUMBER](y)) and (not (y = 0)))
-        imply
-        [NUMBER]((x c/ y))
-    )
+    (([NUMBER](x) and [NUMBER](y)) and (not (y = 0)))
+    imply
+    [NUMBER]((x c/ y))
 )))~
 ~(forall(x)(forall(y)(
-    (
-        (([NUMBER](x) and [NUMBER](y)) and (not (y = 0)))
-        imply
-        ((x c/ y) = (((x - (x % y)) + (y - 1)) c/ y))
-    )
+    (([NUMBER](x) and [NUMBER](y)) and (not (y = 0)))
+    imply
+    ((x c/ y) = (((x - (x % y)) + (y - 1)) c/ y))
 )))~
 (rounded division)
 ~(forall(x)(forall(y)(
+    (([NUMBER](x) and [NUMBER](y)) and (not (y = 0)))
+    imply
+    [NUMBER]((x / y))
+)))~
+~(forall(x)(forall(y)(
+    (([NUMBER](x) and [NUMBER](y)) and (not (y = 0)))
+    imply
     (
-        (([NUMBER](x) and [NUMBER](y)) and (not (y = 0)))
+        (((x % y) - (y f/ 2)) > (0-1))
         imply
-        [NUMBER]((x / y))
+        ((x / y) = (x c/ y))
     )
 )))~
 ~(forall(x)(forall(y)(
+    (([NUMBER](x) and [NUMBER](y)) and (not (y = 0)))
+    imply
     (
-        (([NUMBER](x) and [NUMBER](y)) and (not (y = 0)))
+        (((x % y) - (y f/ 2)) < 0)
         imply
-        (
-            ((x % y) - (y f/ 2) >= 0)
-            imply
-            ((x / y) = (x c/ y))
-        )
-    )
-)))~
-~(forall(x)(forall(y)(
-    (
-        (([NUMBER](x) and [NUMBER](y)) and (not (y = 0)))
-        imply
-        (
-            ((x % y) - (y f/ 2) < 0)
-            imply
-            ((x / y) = (x f/ y))
-        )
+        ((x / y) = (x f/ y))
     )
 )))~
 >Modulo
 ~(forall(x)(forall(y)(
-    (
-        (([NUMBER](x) and [NUMBER](y)) and (not (y = 0)))
-        imply
-        [NUMBER]((x % y))
-    )
+    (([NUMBER](x) and [NUMBER](y)) and (not (y = 0)))
+    imply
+    [NUMBER]((x % y))
 )))~
 ~(forall(x)(
-    (
-        ([NUMBER](x) and (not (x = 0)))
-        imply
-        ((0 % x) = 0)
-    )
+    ([NUMBER](x) and (not (x = 0)))
+    imply
+    ((0 % x) = 0)
 ))~
 ~(forall(x)(forall(y)(
-    (
-        (([NUMBER](x) and [NUMBER](y)) and (not (y = 0)))
-        imply
-        ((x % y) = ((x + y) % y))
-    )
+    (([NUMBER](x) and [NUMBER](y)) and (not (y = 0)))
+    imply
+    ((x % y) = ((x + y) % y))
 )))~
 
 >>Comparator on numbers
 >Exclusivity
 ~(forall(x)(forall(y)(
+    ([NUMBER](x) and [NUMBER](y))
+    imply
     (
-        ([NUMBER](x) and [NUMBER](y))
+        (x > y)
         imply
-        (
-            (x > y)
-            imply
-            (not ((x = y) or (x < y)))
-        )
+        (not ((x = y) or (x < y)))
+    )
 )))~
 ~(forall(x)(forall(y)(
+    ([NUMBER](x) and [NUMBER](y))
+    imply
     (
-        ([NUMBER](x) and [NUMBER](y))
+        (x = y)
         imply
-        (
-            (x = y)
-            imply
-            (not ((x > y) or (x < y)))
-        )
+        (not ((x > y) or (x < y)))
+    )
 )))~
 ~(forall(x)(forall(y)(
+    ([NUMBER](x) and [NUMBER](y))
+    imply
     (
-        ([NUMBER](x) and [NUMBER](y))
+        (x < y)
         imply
-        (
-            (x < y)
-            imply
-            (not ((x = y) or (x > y)))
-        )
+        (not ((x = y) or (x > y)))
+    )
 )))~
 
 >>Object game functions
 >Types
 ~(forall(i)(
-    (
-        [NUMBER](i)
-        imply
-        [PLAYER]([randPlayer](i))
-    )
+    [NUMBER](i)
+    imply
+    [PLAYER]([randPlayer](i))
 ))~
 ~(forall(i)(
-    (
-        [NUMBER](i)
-        imply
-        [CARD]([randCard](i))
-    )
+    [NUMBER](i)
+    imply
+    [CARD]([randCard](i))
 ))~
 ~(forall(i)(
-    (
-        [NUMBER](i)
-        imply
-        [PLAYER]([chosenPlayer](i))
-    )
+    [NUMBER](i)
+    imply
+    [PLAYER]([chosenPlayer](i))
 ))~
 ~(forall(i)(
-    (
-        [NUMBER](i)
-        imply
-        [CARD]([chosenCard](i))
-    )
+    [NUMBER](i)
+    imply
+    [CARD]([chosenCard](i))
 ))~
 ~(forall(x)(
-    (
-        [CARD](x)
-        imply
-        [PLAYER]([playerOfCard](x))
-    )
+    [CARD](x)
+    imply
+    [PLAYER]([playerOfCard](x))
 ))~
 ~(forall(x)(
-    (
-        [PLAYER](x)
-        imply
-        [NUMBER]([health](x))
-    )
+    [PLAYER](x)
+    imply
+    [NUMBER]([health](x))
 ))~
 ~(forall(x)(
-    (
-        [PLAYER](x)
-        imply
-        [NUMBER]([power](x))
-    )
+    [PLAYER](x)
+    imply
+    [NUMBER]([power](x))
 ))~
 ~(forall(x)(
-    (
-        [PLAYER](x)
-        imply
-        [NUMBER]([potency](x))
-    )
+    [PLAYER](x)
+    imply
+    [NUMBER]([potency](x))
 ))~
 ~(forall(x)(
-    (
-        [CARD](x)
-        imply
-        [NUMBER]([symbolPoint](x))
-    )
+    [CARD](x)
+    imply
+    [NUMBER]([symbolPoint](x))
 ))~
 ~(forall(x)(
-    (
-        [CARD](x)
-        imply
-        [NUMBER]([powerCost](x))
-    )
+    [CARD](x)
+    imply
+    [NUMBER]([powerCost](x))
 ))~

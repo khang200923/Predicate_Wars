@@ -293,20 +293,11 @@ class ProofBase:
                 )[0][0]
                 except TypeError: pass
                 else:
-                    if len(object) == 1 and object[0][0] in ('var', 'distVar'):
-                        eq, maps = Statement( (
-                            ('bracket', '('),
-                            ('quanti', 'forall'),
-                            ('bracket', '('),
-                            ('var', '0'),
-                            ('bracket', ')'),
-                        ) ).eq(Statement(premise1[:5]))
-                        assert eq, 'brah'
-                        thatVar = maps[('var', '0')]
-                        conclusions.append(A.substitute({thatVar: object[0]}))
-                        conclusions.append(A.substitute({thatVar: self.unusedVarSuggester()}))
+                    if object.wellformedobj():
+                        thatVar = premise1[3]
+                        conclusions.append(A.complexSubstitute({thatVar: tuple(object)}))
                     else:
-                        raise InferenceError('Object must be a single-letter variable')
+                        raise InferenceError('Object must be well formed')
             case InferType.UniversalGenr:
                 if len(object) == 1 and \
                 object[0][0] in ('var', 'distVar') and \
@@ -715,8 +706,8 @@ class ProofBase:
         return tuple(conclusions)
     def inferAllConclusions(
             self,
-            premise1Index: int,
-            premise2Index: int = None,
+            premise1Index: int | None,
+            premise2Index: int | None= None,
             object: Statement = Statement(())
         ) -> Tuple[Tuple[Statement, InferType]]:
         """

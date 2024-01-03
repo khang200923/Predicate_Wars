@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Any, Tuple
+from typing import Any, Callable, Sequence, Tuple
 import sys
 import os
 import predicate as pd
@@ -14,6 +14,9 @@ totalTest = 0
 failedTests = []
 try: testIndex = int(sys.argv[1])
 except IndexError: testIndex = None
+
+def _formatSeq(sequence: Sequence, func: Callable = str, delimiter: str = '\n'):
+    return delimiter.join(func(x) for x in sequence)
 
 def testReturn(name: str, bl: bool, failinfo: Any, note: str = '') -> Tuple[bool, str]:
     if isinstance(failinfo, str) and failinfo.startswith(':print:'):
@@ -329,6 +332,9 @@ test('Statement.operatorSymbol 3', res == ('compare', '>'), res)
 res = pd.Statement.lex('(P imply (P and Q))').operatorSymbol()
 test('Statement.operatorSymbol 4', res == ('connect', 'imply'), res)
 
+res = [(i, state) for i, state in enumerate(pd.baseRules) if not state.wellformed()]
+test('baseRules', not res, ':print:\n' + '\n'.join(f'{i}: {x}' for i, x in res))
+
 proof = pd.ProofBase.convert(('P', '(Q(y) imply R(x))', '(A(y) and B(z))'))
 res = proof.syms()
 test('ProofBase.syms', set(res) == {('pred', '16'), ('pred', '17'), ('pred', '18'), ('pred', '1'), ('pred', '2'), ('var', '24'), ('var', '25'), ('var', '26')}, res)
@@ -398,21 +404,21 @@ test('ProofBase.inferConclusions ModPonens 3', res == (), tuple(str(ree) for ree
 
 proof = pd.ProofBase.convert(('(forall(x)(x = x))', 'Q(y)', 'P(z)'))
 res = proof.inferConclusions(pd.InferType.UniversalInst, 0, -1, pd.Statement.lex('y'))
-test('ProofBase.inferConclusions UniversalInst 1', set(tuple(state) for state in res[:-1]) ==
+test('ProofBase.inferConclusions UniversalInst 1', set(tuple(state) for state in res) ==
     {tuple(pd.Statement.lex('(y = y)'))},
     tuple(str(ree) for ree in res)
 )
 
 proof = pd.ProofBase.convert(('(forall(x)(x = a))', 'Q(y)', 'P(z)'))
 res = proof.inferConclusions(pd.InferType.UniversalInst, 0, -1, pd.Statement.lex('b'))
-test('ProofBase.inferConclusions UniversalInst 2', set(tuple(state) for state in res[:-1]) ==
+test('ProofBase.inferConclusions UniversalInst 2', set(tuple(state) for state in res) ==
     {tuple(pd.Statement.lex('(b = a)'))},
     tuple(str(ree) for ree in res)
 )
 
 proof = pd.ProofBase.convert(('(forall(x)P)',))
 res = proof.inferConclusions(pd.InferType.UniversalInst, 0, -1, pd.Statement.lex('c_33'))
-test('ProofBase.inferConclusions UniversalInst 3', set(tuple(state) for state in res[:-1]) ==
+test('ProofBase.inferConclusions UniversalInst 3', set(tuple(state) for state in res) ==
     {tuple(pd.Statement.lex('P'))},
     tuple(str(ree) for ree in res)
 )
@@ -652,42 +658,42 @@ proof = pd.Proof.convert(
     """, #0
     'P([chosenPlayer](0))'), #1
 )
-proof.infer(0, object="[chosenPlayer](0)", conclusionI="""
+proof = proof.infer(0, object="[chosenPlayer](0)", conclusionI="""
     (
         [PLAYER]([chosenPlayer](0)) imply
         (P([chosenPlayer](0)) imply [ATK]([chosenPlayer](0), 10))
     )
 """) #2
-proof.infer(conclusionI="""
+proof = proof.infer(conclusionI="""
     (forall(i)(
-        (
-            [NUMBER](i)
-            imply
-            [PLAYER]([chosenPlayer](i))
-        )
+        [NUMBER](i)
+        imply
+        [PLAYER]([chosenPlayer](i))
     ))
 """) #3
-proof.infer(3, object="0", conclusionI="""
+proof = proof.infer(3, object="0", conclusionI="""
     (
         [NUMBER](0)
         imply
         [PLAYER]([chosenPlayer](0))
     )
 """) #4
-proof.infer(4, object="0", conclusionI="""
+#print(_formatSeq(proof.inferAllConclusions(4, object=pd.Statement.lex("0")), lambda x: str(x[0])))
+#TODO: Fix this part
+proof = proof.infer(4, object="0", conclusionI="""
     (
         tT
         imply
         [PLAYER]([chosenPlayer](0))
     )
 """) #5
-proof.infer(5, object="0", conclusionI="""
+proof = proof.infer(5, object="0", conclusionI="""
     [PLAYER]([chosenPlayer](0))
 """) #6
-proof.infer(2, 6, object="[chosenPlayer](0)", conclusionI="""
+proof = proof.infer(2, 6, object="[chosenPlayer](0)", conclusionI="""
     (P([chosenPlayer](0)) imply [ATK]([chosenPlayer](0), 10))
 """) #7
-proof.infer(1, 7, object="[chosenPlayer](0)", conclusionI="""
+proof = proof.infer(1, 7, object="[chosenPlayer](0)", conclusionI="""
     [ATK]([chosenPlayer](0), 10)
 """) #8
 
