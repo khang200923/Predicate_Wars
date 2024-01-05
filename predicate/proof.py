@@ -8,7 +8,7 @@ from itertools import combinations
 import random
 from typing import Any, List, Optional, Set, Tuple
 
-from predicate.statement import Statement, baseRules
+from predicate.statement import Statement, baseRules, predFuncSymbols
 from predicate.utils import doOperator, smallestMissingInteger
 
 class StateTag(Enum):
@@ -38,6 +38,7 @@ class InferType(Enum):
     SubsPropEq = 26
     OpSimplify = 21
     Comparison = 22
+    FuncSimplify = 28
     RuleInclusion = 27
 
     CondProof = 23
@@ -66,6 +67,7 @@ premiseUsesOfInferType = { #(p1, p2, x, z1, z2, z3)
     InferType.SubsPropEq: (True, False, True, False, False, False),
     InferType.OpSimplify: (True, False, False, False, False, False),
     InferType.Comparison: (True, False, False, False, False, False),
+    InferType.FuncSimplify: (True, False, False, False, False, False),
     InferType.RuleInclusion: (False, False, False, False, False, False),
 
     InferType.CondProof: (True, False, False, True, True, False),
@@ -671,6 +673,24 @@ class ProofBase:
                         res[start:end] = (('number', resOp),)
                         conclusions.append(Statement(res))
                     else: raise InferenceError('Wrong operator; impossible.')
+            case InferType.FuncSimplify:
+                for start, end in premise1.matchingParentheses():
+                    if start == 0 or premise1[start - 1][0] not in predFuncSymbols:
+                        continue
+                    func = Statement(premise1[start - 1 : end + 1])
+                    args = func.functionArgs()
+                    assert args is not None, 'Impossible error.'
+                    if any(len(tuple(arg)) != 1 for arg in args):
+                        continue
+                    calc = Statement.calcFunction(
+                        func[0][1],
+                        tuple(arg[0] for arg in args)
+                    )
+                    if calc is None:
+                        continue
+                    res = deepcopy(premise1)
+                    res[start - 1 : end + 1] = calc
+                    conclusions.append(res)
             case InferType.Comparison: #Holy complexity
                 occurences = \
                     (

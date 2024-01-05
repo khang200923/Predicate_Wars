@@ -173,6 +173,19 @@ res = state.formulasInForm(
 )
 test('Statement.formulasInForm 3', res == ((pd.Statement.lex('f(x)'),),), False)
 
+state = pd.Statement.lex('(f(x) = x)')
+res = state.matchingParentheses()
+test('Statement.matchingParentheses 1', set(res) == {(0, 7), (2, 4)}, res)
+state = pd.Statement.lex('(s = ((2*6)+(2+55*(5+1)+(43))))')
+res = state.matchingParentheses()
+test('Statement.matchingParentheses 2',
+     set(res) == {(4, 8), (15, 19), (21, 23), (10, 24), (3, 25), (0, 26)},
+     res
+)
+state = pd.Statement.lex('(s = ((2*6)+(2+55*(5+1)+(43)))')
+res = state.matchingParentheses()
+test('Statement.matchingParentheses 3', res == None, res)
+
 res = statements[0].substitute({
     ('var', '24'): ('var', '25'),
     ('var', '25'): ('var', '24'),
@@ -678,24 +691,26 @@ proof = proof.infer(3, object="0", conclusionI="""
         [PLAYER]([chosenPlayer](0))
     )
 """) #4
-#print(_formatSeq(proof.inferAllConclusions(4, object=pd.Statement.lex("0")), lambda x: str(x[0])))
-#TODO: Fix this part
-proof = proof.infer(4, object="0", conclusionI="""
+proof = proof.infer(4, conclusionI="""
     (
         tT
         imply
         [PLAYER]([chosenPlayer](0))
     )
 """) #5
-proof = proof.infer(5, object="0", conclusionI="""
-    [PLAYER]([chosenPlayer](0))
+proof = proof.infer(conclusionI="""
+    tT
 """) #6
-proof = proof.infer(2, 6, object="[chosenPlayer](0)", conclusionI="""
-    (P([chosenPlayer](0)) imply [ATK]([chosenPlayer](0), 10))
+proof = proof.infer(5, 6, conclusionI="""
+    [PLAYER]([chosenPlayer](0))
 """) #7
-proof = proof.infer(1, 7, object="[chosenPlayer](0)", conclusionI="""
-    [ATK]([chosenPlayer](0), 10)
+proof = proof.infer(2, 7, conclusionI="""
+    (P([chosenPlayer](0)) imply [ATK]([chosenPlayer](0),10))
 """) #8
+proof = proof.infer(8, 1, conclusionI="""
+    [ATK]([chosenPlayer](0), 10)
+""") #9
+test('ProofBase proving test', True, 'Easter egg???')
 
 
 
