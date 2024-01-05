@@ -4,7 +4,7 @@ Provides essential classes and methods for creating predicate logic statements.
 from copy import deepcopy
 from dataclasses import dataclass
 import re
-from typing import Set, Tuple
+from typing import List, Set, Tuple
 
 from baserules import getBaseRules
 from predicate.utils import checkSeqForm, mappableDict, seqFormOptionalsIndexes
@@ -610,6 +610,7 @@ class Statement:
             return True
 
         return False
+
     def functionArgs(self) -> Tuple['Statement', ...] | None:
         """
         Returns all arguments of a well-formed function.
@@ -637,6 +638,26 @@ class Statement:
             params.append(paramsLeft[:paramEndIndex])
             paramsLeft = paramsLeft[paramEndIndex+1:]
         return tuple((Statement(param) for param in params))
+
+    def matchingParentheses(self) -> List[Tuple[int, int]]:
+        """
+        Finds pairs of matching parenthesis and returns starting and ending index of each pair.
+        If detects mismatches, return None
+        """
+        queue = []
+        res = []
+        for i, (symbolType, *symbol) in enumerate(self):
+            if not symbolType == 'bracket':
+                continue
+            if symbol == ['(',]:
+                queue.append(i)
+            if symbol == [')',]:
+                if len(queue) == 0:
+                    return None
+                res.append((queue.pop(), i))
+        if len(queue) > 0:
+            return None
+        return res
 
     def substitute(
             self,
@@ -846,5 +867,33 @@ class Statement:
             opt1obj=True,
             opt2obj=True): return ('compare', com)
         return None
+
+    @staticmethod
+    def calcFunction(
+        name: str, args: Tuple[Tuple, ...],
+        originalState: 'Statement | None' = None
+    ) -> 'Statement | None':
+        """
+        Calculates simple function based on name and arguments.
+        (not based on instance)
+        """
+        match name:
+            case '[NUMBER]':
+                if args[0][0] == 'number':
+                    return Statement.lex('tT')
+                else:
+                    return Statement.lex('tF')
+            case '[PLAYER]':
+                if args[0][0] == 'player':
+                    return Statement.lex('tT')
+                else:
+                    return Statement.lex('tF')
+            case '[CARD]':
+                if args[0][0] == 'card':
+                    return Statement.lex('tT')
+                else:
+                    return Statement.lex('tF')
+            case _:
+                return originalState #Keep your input, bro
 
 baseRules = tuple(Statement.lex(rule.statement) for rule in getBaseRules())

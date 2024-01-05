@@ -8,7 +8,7 @@ from itertools import combinations
 import random
 from typing import Any, List, Optional, Set, Tuple
 
-from predicate.statement import Statement, baseRules
+from predicate.statement import Statement, baseRules, predFuncSymbols
 from predicate.utils import doOperator, smallestMissingInteger
 
 class StateTag(Enum):
@@ -38,6 +38,7 @@ class InferType(Enum):
     SubsPropEq = 26
     OpSimplify = 21
     Comparison = 22
+    FuncSimplify = 28
     RuleInclusion = 27
 
     CondProof = 23
@@ -66,6 +67,7 @@ premiseUsesOfInferType = { #(p1, p2, x, z1, z2, z3)
     InferType.SubsPropEq: (True, False, True, False, False, False),
     InferType.OpSimplify: (True, False, False, False, False, False),
     InferType.Comparison: (True, False, False, False, False, False),
+    InferType.FuncSimplify: (True, False, False, False, False, False),
     InferType.RuleInclusion: (False, False, False, False, False, False),
 
     InferType.CondProof: (True, False, False, True, True, False),
@@ -293,20 +295,11 @@ class ProofBase:
                 )[0][0]
                 except TypeError: pass
                 else:
-                    if len(object) == 1 and object[0][0] in ('var', 'distVar'):
-                        eq, maps = Statement( (
-                            ('bracket', '('),
-                            ('quanti', 'forall'),
-                            ('bracket', '('),
-                            ('var', '0'),
-                            ('bracket', ')'),
-                        ) ).eq(Statement(premise1[:5]))
-                        assert eq, 'brah'
-                        thatVar = maps[('var', '0')]
-                        conclusions.append(A.substitute({thatVar: object[0]}))
-                        conclusions.append(A.substitute({thatVar: self.unusedVarSuggester()}))
+                    if object.wellformedobj():
+                        thatVar = premise1[3]
+                        conclusions.append(A.complexSubstitute({thatVar: tuple(object)}))
                     else:
-                        raise InferenceError('Object must be a single-letter variable')
+                        raise InferenceError('Object must be well formed')
             case InferType.UniversalGenr:
                 if len(object) == 1 and \
                 object[0][0] in ('var', 'distVar') and \
@@ -680,6 +673,24 @@ class ProofBase:
                         res[start:end] = (('number', resOp),)
                         conclusions.append(Statement(res))
                     else: raise InferenceError('Wrong operator; impossible.')
+            case InferType.FuncSimplify:
+                for start, end in premise1.matchingParentheses():
+                    if start == 0 or premise1[start - 1][0] not in predFuncSymbols:
+                        continue
+                    func = Statement(premise1[start - 1 : end + 1])
+                    args = func.functionArgs()
+                    assert args is not None, 'Impossible error.'
+                    if any(len(tuple(arg)) != 1 for arg in args):
+                        continue
+                    calc = Statement.calcFunction(
+                        func[0][1],
+                        tuple(arg[0] for arg in args)
+                    )
+                    if calc is None:
+                        continue
+                    res = deepcopy(premise1)
+                    res[start - 1 : end + 1] = calc
+                    conclusions.append(res)
             case InferType.Comparison: #Holy complexity
                 occurences = \
                     (
@@ -715,8 +726,8 @@ class ProofBase:
         return tuple(conclusions)
     def inferAllConclusions(
             self,
-            premise1Index: int,
-            premise2Index: int = None,
+            premise1Index: int | None,
+            premise2Index: int | None= None,
             object: Statement = Statement(())
         ) -> Tuple[Tuple[Statement, InferType]]:
         """
@@ -746,20 +757,28 @@ class ProofBase:
         conclusion = ()
         for inferType in checkableInferTypes:
             for conclusionState in \
-            self.inferConclusions(inferType, premise1Index, premise2Index, object):
+            self.inferConclusions(
+                inferType=inferType,
+                premise1Index=premise1Index,
+                premise2Index=premise2Index,
+                object=object
+            ):
                 conclusion += ((conclusionState, inferType),)
         return conclusion
     def infer(
             self,
-            premise1Index: int,
-            premise2Index: int = None,
-            object: Statement = Statement(()),
-            conclusionI: int | Statement = 0
+            premise1Index: int | None = None,
+            premise2Index: int | None = None,
+            object: Statement | str = Statement(()),
+            conclusionI: int | Statement | str = 0
         ) -> 'ProofBase':
         """
         Infers the proof and returns the result.
         """
-
+        if isinstance(object, str):
+            object = Statement.lex(object)
+        if isinstance(conclusionI, str):
+            conclusionI = Statement.lex(conclusionI)
         res = deepcopy(self)
         state = 0
         conclusions = res.inferAllConclusions(premise1Index, premise2Index, object)
