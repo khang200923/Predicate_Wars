@@ -805,17 +805,20 @@ class ProofBase:
         """
         #TODO: Test this method
         res = 0
-        for state, \
+        for state, inference, tag in zip(self.statements, self.inferences, self.stateTags):
+            #print('next')
+            if tag == StateTag.AXIOM:
+                continue
             (
                 inferType,
                 premise1index, premise2index,
                 obj, conclusionIndex
-            ), tag in zip(self.statements, self.inferences, self.stateTags):
-            if tag == StateTag.AXIOM:
-                continue
+            ) = inference
             res += 1
+            #print(f'a 1')
             if premiseUsesOfInferType[inferType][2]:
                 res += obj.symbolPoint()
+                #print(f'b {obj.symbolPoint()}')
             if premiseUsesOfInferType[inferType][:2] == (False, False):
                 continue
             thisSymbolPoint = state.symbolPoint()
@@ -824,10 +827,14 @@ class ProofBase:
                     abs(thisSymbolPoint - self.statements[premise1index].symbolPoint()),
                     abs(thisSymbolPoint - self.statements[premise2index].symbolPoint()),
                 )
-            if premiseUsesOfInferType[inferType][0]:
+                #print(f'c {min(abs(thisSymbolPoint - self.statements[premise1index].symbolPoint()), abs(thisSymbolPoint - self.statements[premise2index].symbolPoint()),)}')
+            elif premiseUsesOfInferType[inferType][0]:
                 res += abs(thisSymbolPoint - self.statements[premise1index].symbolPoint())
-            if premiseUsesOfInferType[inferType][1]:
+                #print(f'd {abs(thisSymbolPoint - self.statements[premise1index].symbolPoint())}')
+            elif premiseUsesOfInferType[inferType][1]:
                 res += abs(thisSymbolPoint - self.statements[premise2index].symbolPoint())
+                #print(f'e {abs(thisSymbolPoint - self.statements[premise2index].symbolPoint())}')
+        #print(f'res {res}')
         return res
 
 
