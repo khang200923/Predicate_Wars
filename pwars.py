@@ -40,6 +40,9 @@ def _mergeItersWithDelimiter(iters: Iterable[Iterable], delimiter: Any):
         for elem in itera:
             yield elem
 
+#Temporary name?
+FAIR_NUMBER = 8
+
 class CardTag(Enum):
     ROCK = 0
     PAPER = 1
@@ -171,9 +174,16 @@ class PlayerAction:
             if not self.type in typeReq: return False
         #Specific checks
         if self.type == PlayerActionType.EDIT:
-            return self.info[1] != Card()
+            return isinstance(self.info, Tuple) and \
+            all(
+                isinstance(editing, Tuple) and \
+                isinstance(editing[0], int) and \
+                isinstance(editing[1], Card) and \
+                editing[1] != Card()
+                for editing in self.info
+            )
         elif self.type == PlayerActionType.TAKEBLANK:
-            return isinstance(self.info, int) and self.info >= 0 and self.info <= 8
+            return isinstance(self.info, int) and self.info >= 0 and self.info <= FAIR_NUMBER
         elif self.type == PlayerActionType.CLAIM:
             return isinstance(self.info, list) and \
             all(isinstance(claim, tuple) and len(claim) == 2 and \
@@ -210,7 +220,7 @@ class PlayerAction:
         else: raise ValueError('Invalid type')
 
 PActInfoType = {
-    PlayerActionType.EDIT: Tuple[int, Card],
+    PlayerActionType.EDIT: Tuple[Tuple[int, Card]],
     PlayerActionType.TAKEBLANK: int,
     PlayerActionType.CLAIM: List[Tuple[int, int]], #[playerID, cardID]
 
@@ -726,11 +736,13 @@ class PWars:
 
             #On initial gameplay, edit a card based on the player action
             if gameStates == (GameState(0, GameStateType.INITIAL),):
-                player.editCard(playerAct.info[0], playerAct.info[1])
+                for editing in playerAct.info:
+                    player.editCard(editing[0], editing[1])
 
             #On editing phase, edit a card based on the player action
             if gameStates == (GameState(0, GameStateType.EDITING, None),):
-                player.editCard(playerAct.info[0], playerAct.info[1])
+                for editing in playerAct.info:
+                    player.editCard(editing[0], editing[1])
 
             #On claiming phase, claim any card (not blank) from any player hand and buy it
             if gameStates[0] == GameState(0, GameStateType.CLAIMING, None):
@@ -823,7 +835,7 @@ class PWars:
         all(playerAct.valid(PlayerActionType.CLAIM)
             for playerAct in playerActs + (playerAct,)) and \
         len(playerActs) == 0 and playerAct.player == gameStates[2].info and \
-        len(playerAct.info) <= 8 and not \
+        len(playerAct.info) <= FAIR_NUMBER and not \
         any(self.players[playerId].cards[cardId] == Card() for playerId, cardId in playerAct.info):
             return True
 
@@ -858,7 +870,7 @@ class PWars:
                     return True
                 #Claim action in main phase
                 if playerAct.type == PlayerActionType.CLAIMPLAY:
-                    return len(playerAct.info) <= 8 and \
+                    return len(playerAct.info) <= FAIR_NUMBER and \
                     not any(
                         self.players[playerId].cards[cardId] == Card()
                         for playerId, cardId in playerAct.info

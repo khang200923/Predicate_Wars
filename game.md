@@ -29,10 +29,10 @@ Predicate Wars is a competitive card game about using predicate logic, reasoning
 - If the amount of blank cards on the deck is larger than to equal to the number of the blank cards requested, then each of the players take the number of blank cards they requested.
 - If the amount of blank cards on the deck is smaller than the number of players that chooses to take the blank cards, then no player takes a blank card.
 #### Phase II: Editing
-<!--TODO: Reflect rulebook edits from here-->
 - Each player [edits](#card-editing-rules) at most 8 blank cards, if desired.
-- If the player does not edit any blank card, if desired, they edit at most 4 already edited cards, which costs twice the power cost of the overriden card plus the power cost of the resulting card.
+- If the player does not edit any blank card, if desired, they edit at most 8 already edited cards, which costs twice the power cost of the overriden card plus the power cost of the resulting card.
 #### Phase III: Claiming
+<!--TODO: Reflect rulebook edits from here-->
 Each player in a cycle of players, moving clockwise, starting from a random player:
 - Chooses to take a specific card (that has a power cost lower or equal to the claiming player) from another player or not.
 - If yes, then the claiming player's power is removed by the card's power cost; then claim cards again, if desired, up to a maximum of 8 times.

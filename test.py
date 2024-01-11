@@ -726,7 +726,7 @@ game = pw.PWars(INITPLAYER=3).advance()
 game.action(pw.PlayerAction(
     0,
     pw.PlayerActionType.EDIT,
-    (0, pw.Card(blank=False, powerCost=5)),
+    ((0, pw.Card(blank=False, powerCost=5)),),
 ))
 game.advance()
 test('PWars.currentGameStates 2 EDIT', game.currentGameStates() == (pw.GameState(layer=0, type=pw.GameStateType.CREATION, info=None),), game.currentGameStates())
@@ -743,7 +743,7 @@ game = pw.PWars(INITPLAYER=3, INITCARDDECK=32).advance()
 game.action(pw.PlayerAction(
     0,
     pw.PlayerActionType.EDIT,
-    (0, pw.Card(blank=False, powerCost=5)),
+    ((0, pw.Card(blank=False, powerCost=5)),),
 ))
 game.advance()
 game.action(pw.PlayerAction(
@@ -768,16 +768,16 @@ test('PWars.recentPlayerActions 3 TAKEBLANK', game.recentPlayerActions() == (
 game.advance()
 test('PWars.nextGameStates 1 advance', game.history[-1] == pw.GameState(layer=0, type=pw.GameStateType.EDITING, info=None)
      , game.history[-1])
-game.action(pw.PlayerAction(
+print('yeet1', game.action(pw.PlayerAction(
     1,
     pw.PlayerActionType.EDIT,
-    (0, pw.Card(blank=False, powerCost=5)),
-))
-game.action(pw.PlayerAction(
+    ((0, pw.Card(blank=False, powerCost=5)),),
+)))
+print('yeet2', game.action(pw.PlayerAction(
     2,
     pw.PlayerActionType.EDIT,
-    (0, pw.Card(blank=False, powerCost=5)),
-))
+    ((0, pw.Card(blank=False, powerCost=5)),),
+)))
 res = game.currentGameStates()
 test('PWars.currentGameState 4 EDIT', res == (pw.GameState(layer=0, type=pw.GameStateType.EDITING, info=None),), res)
 game.advance()
@@ -785,6 +785,7 @@ res = game.currentGameStates()
 test('PWars.currentGameState 5 CLAIMING', res[0] == pw.GameState(layer=0, type=pw.GameStateType.CLAIMING, info=None) and res[1].type == pw.GameStateType.RANDPLAYER, res)
 game.advance()
 res = game.currentGameStates()
+print(res)
 game.action(pw.PlayerAction(
     res[2].info,
     pw.PlayerActionType.CLAIM,
