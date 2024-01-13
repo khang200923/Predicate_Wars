@@ -711,6 +711,10 @@ proof = proof.infer(8, 1, conclusionI="""
     [ATK]([chosenPlayer](0), 10)
 """) #9
 test('ProofBase proving test', True, 'Easter egg???')
+#print(list(statement.symbolPoint() for statement in proof.statements))
+res = proof.symbolPoint()
+#print(res)
+test('ProofBase.symbolPoint', res == 49, res)
 
 
 
@@ -722,7 +726,7 @@ game = pw.PWars(INITPLAYER=3).advance()
 game.action(pw.PlayerAction(
     0,
     pw.PlayerActionType.EDIT,
-    (0, pw.Card(blank=False, powerCost=5)),
+    ((0, pw.Card(blank=False, powerCost=5)),),
 ))
 game.advance()
 test('PWars.currentGameStates 2 EDIT', game.currentGameStates() == (pw.GameState(layer=0, type=pw.GameStateType.CREATION, info=None),), game.currentGameStates())
@@ -735,44 +739,44 @@ test('PWars.recentPlayerActions 2 TAKEBLANK', game.recentPlayerActions() == (pw.
 game.advance()
 test('PWars.currentGameStates 3 TAKEBLANK', game.currentGameStates() == (pw.GameState(layer=0, type=pw.GameStateType.EDITING, info=None),), game.currentGameStates())
 
-game = pw.PWars(INITPLAYER=3, INITCARDDECK=2).advance()
+game = pw.PWars(INITPLAYER=3, INITCARDDECK=32).advance()
 game.action(pw.PlayerAction(
     0,
     pw.PlayerActionType.EDIT,
-    (0, pw.Card(blank=False, powerCost=5)),
+    ((0, pw.Card(blank=False, powerCost=5)),),
 ))
 game.advance()
 game.action(pw.PlayerAction(
     0,
     pw.PlayerActionType.TAKEBLANK,
-    True,
+    2,
 ))
 game.action(pw.PlayerAction(
     1,
     pw.PlayerActionType.TAKEBLANK,
-    True,
+    3,
 ))
 game.action(pw.PlayerAction(
     2,
     pw.PlayerActionType.TAKEBLANK,
-    True,
+    5,
 ))
 test('PWars.recentPlayerActions 3 TAKEBLANK', game.recentPlayerActions() == (
-    pw.PlayerAction(player=0, type=pw.PlayerActionType.TAKEBLANK, info=True),
-    pw.PlayerAction(player=1, type=pw.PlayerActionType.TAKEBLANK, info=True),
-    pw.PlayerAction(player=2, type=pw.PlayerActionType.TAKEBLANK, info=True),), game.recentPlayerActions())
+    pw.PlayerAction(player=0, type=pw.PlayerActionType.TAKEBLANK, info=2),
+    pw.PlayerAction(player=1, type=pw.PlayerActionType.TAKEBLANK, info=3),
+    pw.PlayerAction(player=2, type=pw.PlayerActionType.TAKEBLANK, info=5),), game.recentPlayerActions())
 game.advance()
-test('PWars.nextGameStates 1 advance', game.history[-1] == pw.GameState(layer=0, type=pw.GameStateType.EDITING, info=None) and \
-    game.history[-2].type == pw.GameStateType.RANDPLAYER, game.history[-2:])
+test('PWars.nextGameStates 1 advance', game.history[-1] == pw.GameState(layer=0, type=pw.GameStateType.EDITING, info=None)
+     , game.history[-1])
 game.action(pw.PlayerAction(
     1,
     pw.PlayerActionType.EDIT,
-    (0, pw.Card(blank=False, powerCost=5)),
+    ((0, pw.Card(blank=False, powerCost=5)),),
 ))
 game.action(pw.PlayerAction(
     2,
     pw.PlayerActionType.EDIT,
-    (0, pw.Card(blank=False, powerCost=5)),
+    ((0, pw.Card(blank=False, powerCost=5)),),
 ))
 res = game.currentGameStates()
 test('PWars.currentGameState 4 EDIT', res == (pw.GameState(layer=0, type=pw.GameStateType.EDITING, info=None),), res)
@@ -786,7 +790,7 @@ game.action(pw.PlayerAction(
     pw.PlayerActionType.CLAIM,
     [(1, 0)],
 ))
-test('PWars.action 1 CLAIM', game.players[res[2].info].power == 95, game.players[res[2].info].power)
+test('PWars.action 1 CLAIM', game.players[res[2].info].power == 90, game.players[res[2].info].power)
 game.advance()
 res = game.currentGameStates()
 test('PWars.currentGameState 6 CLAIM', res[0] == pw.GameState(layer=0, type=pw.GameStateType.CLAIMING, info=None) and res[1].type == pw.GameStateType.RANDPLAYER and res[2].type == pw.GameStateType.TURN and \

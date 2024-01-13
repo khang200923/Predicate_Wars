@@ -4,7 +4,7 @@
 Predicate Wars is a competitive card game about using predicate logic, reasoning, and strategic planning to your advantage. It includes creating your own cards out of logical symbols, showcase your cards at the right time, utilize effective reasoning techniques, and so much more.
 
 ## Requirements:
-- 2-16 **players**
+- > 2 **players** (range 3-16 is ideal)
 - **Deck** with 128 **blank cards** (by default) that when [edited](#card-editing-rules) should have:
     - Rock-paper-scissors **tag** (public)
     - **Power cost** number (public)
@@ -15,30 +15,30 @@ Predicate Wars is a competitive card game about using predicate logic, reasoning
     - **Health** (default: total players * 50) (public)
     - **Power** (default: 100) (public)
     - **Owned cards** (default: 2 blank cards) (only game function type symbol count used in the effect and RPS tag is public)
-    - **Proving potency** (default: 128) (public)
+    - **Proving potency** (default: 256) (public)
 
 ## Rules:
 ### Initial gameplay:
 - Players sit in a circle.
-- Each player is dealt eight blank cards from the deck.
+- Each player is dealt 16 blank cards from the deck.
 - Players [edit](#card-editing-rules) their cards if they want to, each one subtracts the players' power by twice the edited card's symbol costs.
 ### Gameplay phases each round:
 #### Phase I: Creation
-- Each player chooses to take a blank card from the deck or not, during this other players decisions are private.
+- Each player chooses to take at most 8 blank cards from the deck or not at all, during this other players decisions are private.
 - The cards in the deck goes visible to all players, then gets hidden again.
-- If the amount of blank cards on the deck is larger than to equal to the number of players that chooses to take the blank cards, then each of the players take one blank card.
-- If the amount of blank cards on the deck is smaller than the number of players that chooses to take the blank cards, then a random player takes one blank card.
-- If no one takes any card, this phase ends. If not, continue.
+- If the amount of blank cards on the deck is larger than to equal to the number of the blank cards requested, then each of the players take the number of blank cards they requested.
+- If the amount of blank cards on the deck is smaller than the number of players that chooses to take the blank cards, then no player takes a blank card.
 #### Phase II: Editing
-- Each player [edits](#card-editing-rules) only 1 blank card, if desired.
-- If the player does not edit a blank card, if desired, they edit an already edited card, taking twice the power cost of the overriden card.
+- Each player chooses 8 cards to [edits](#card-editing-rules). For each created card:
+    - If it is a blank card, then it costs the creator the power cost of the card.
+    - Otherwise, it costs twice the power cost of the overriden card plus the power cost of the resulting card.
 #### Phase III: Claiming
+<!--TODO: Reflect rulebook edits from here-->
 Each player in a cycle of players, moving clockwise, starting from a random player:
 - Chooses to take a specific card (that has a power cost lower or equal to the claiming player) from another player or not.
 - If yes, then the claiming player's power is removed by the card's power cost; then claim cards again, if desired, up to a maximum of 8 times.
-After that, each player that has [edited](#card-editing-rules) a card this round and the created card is still in their hand, takes half of the card's power cost, ceil-wise.
 #### Phase IV: Playing (main phase)
-Each player has proving power (public) which can only be used for this round, determined by their proving potency
+Each player has proving power (public) which can only be used for this round, determined by their proving potency.
 
 Go in cycles of remained players, moving clockwise, starting from the latest player, ends when there is only 1 remaining:
 - The player remains if they still have cards left, or not choosing to not remain
@@ -52,7 +52,7 @@ Go in cycles of remained players, moving clockwise, starting from the latest pla
 #### Phase V: Finalization
 - If there is only one player left, the player in the game wins.
 - Insert the discard pile and the drop pile to the deck again.
-- Top [half of the number of players, floor-wise] remaining players receive 4 more proving potency. Except the last remaining player, who receives 8 more proving potency.
+- For each player, if they are the ith remaining player, they receive floor(64 * (i / n)) proving potency, where n is the amount of non-losing players.
 - Each player, if desired, buys a *proper subproof* to use in their *proofs*, which costs twice the symbol point of the *proof* to the proving potency.
 - Each player in a cycle of players, moving clockwise, if desired, buys a *well-formed rule* to use in all *proofs*, which costs thrice the symbol point of the *rule* to the proving potency, or a cost higher than that chosen by the player (i.e. the potency cost of the *rule*), iff there are less than 32 *rules*.
 - Each player in a cycle of players, moving clockwise, if desired, removes a chosen *well-formed rule*, which costs the potency cost of the *rule*.

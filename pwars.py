@@ -40,6 +40,9 @@ def _mergeItersWithDelimiter(iters: Iterable[Iterable], delimiter: Any):
         for elem in itera:
             yield elem
 
+#Temporary name?
+FAIR_NUMBER = 8
+
 class CardTag(Enum):
     ROCK = 0
     PAPER = 1
@@ -72,15 +75,18 @@ class Player:
     health: int
     power: int = 100
     cards: List[Card] = field(default_factory=list)
-    potency: int = 25
+    potency: int = 256
     pPower: int = 0
     subproofs: List[ProofBase] = field(default_factory=list)
-    def editCard(self, cardID: int, toCard: Card) -> bool:
+    def editCard(self, cardID: int, toCard: Card, blankCost: bool = False) -> bool:
         if self.cards[cardID] == Card():
-            self.cards[cardID] = toCard
+            if (not blankCost) or (blankCost and toCard.powerCost):
+                self.cards[cardID] = toCard
+                if blankCost:
+                    self.power -= toCard.powerCost
             return True
-        if self.power >= 2 * self.cards[cardID].powerCost:
-            self.power -= 2 * self.cards[cardID].powerCost
+        if self.power >= 2 * self.cards[cardID].powerCost + toCard.powerCost:
+            self.power -= 2 * self.cards[cardID].powerCost + toCard.powerCost
             self.cards[cardID] = toCard
             return True
         return False
@@ -171,9 +177,16 @@ class PlayerAction:
             if not self.type in typeReq: return False
         #Specific checks
         if self.type == PlayerActionType.EDIT:
-            return self.info[1] != Card()
+            return isinstance(self.info, Tuple) and \
+            all(
+                isinstance(editing, Tuple) and \
+                isinstance(editing[0], int) and \
+                isinstance(editing[1], Card) and \
+                editing[1] != Card()
+                for editing in self.info
+            )
         elif self.type == PlayerActionType.TAKEBLANK:
-            return isinstance(self.info, bool)
+            return isinstance(self.info, int) and self.info >= 0 and self.info <= FAIR_NUMBER
         elif self.type == PlayerActionType.CLAIM:
             return isinstance(self.info, list) and \
             all(isinstance(claim, tuple) and len(claim) == 2 and \
@@ -210,8 +223,8 @@ class PlayerAction:
         else: raise ValueError('Invalid type')
 
 PActInfoType = {
-    PlayerActionType.EDIT: Tuple[int, Card],
-    PlayerActionType.TAKEBLANK: bool,
+    PlayerActionType.EDIT: Tuple[Tuple[int, Card]],
+    PlayerActionType.TAKEBLANK: int,
     PlayerActionType.CLAIM: List[Tuple[int, int]], #[playerID, cardID]
 
     PlayerActionType.PLAY: Tuple[int, int], #(main, secondary)
@@ -245,7 +258,7 @@ class PWars:
     INITHEALTHMULT: int = 50
     INITCARDDECK: int = 128
     INITPOWER: int = 100
-    INITPOTENCY: int = 128
+    INITPOTENCY: int = 256
     INITPLAYER: int = 4
     INITCARDPLAYER: int = 2
     players: List[Player] = field(default_factory=list)
@@ -642,17 +655,7 @@ class PWars:
         if gameStates == (GameState(0, GameStateType.INITIAL),):
             return [GameState(0, GameStateType.CREATION)]
         elif gameStates == (GameState(0, GameStateType.CREATION),):
-            #On creation phase, handle player choices of taking blanks
-            votes = {
-                **{i: False for i in range(len(self.players))},
-                **{i: bl for i, bl in
-                   ((playerAct.player, playerAct.info) for playerAct in playerActs)
-                   }
-            }
-            count = len(tuple(0 for i in votes.values() if i))
-            if count > len(tuple(0 for card in self.deck if Card() == card)):
-                return [GameState.randPlayer(self, 1), GameState(0, GameStateType.EDITING)]
-            else: return [GameState(0, GameStateType.EDITING)]
+            return [GameState(0, GameStateType.EDITING)]
         elif gameStates[0] == GameState(0, GameStateType.EDITING):
             return [GameState(0, GameStateType.CLAIMING), GameState.randPlayer(self, 1)]
         elif gameStates[0] == GameState(0, GameStateType.CLAIMING) \
@@ -693,16 +696,14 @@ class PWars:
         newGameStates = self.currentGameStates()
 
         if oldGameStates == (GameState(0, GameStateType.CREATION),):
-            if nextGameStates[0].type == GameStateType.RANDPLAYER:
-                self.players[nextGameStates[0].info].cards.append(Card())
-                assert Card() in self.deck, 'Undesired error'
-                self.deck.remove(Card())
-            else:
-                votesInd = (i for i, bl in ((playerAct.player, playerAct.info)
-                                            for playerAct in playerActs) if bl)
-                for i in votesInd:
-                    self.players[i].cards.append(Card())
-                    self.deck.remove(Card())
+            votes = (
+                (i, count) for i, count in ((playerAct.player, playerAct.info)
+                for playerAct in playerActs)
+            )
+            total = sum(vote[1] for vote in votes)
+            if not total > self.deck.count(Card()):
+                for i, count in votes:
+                    self.players[i].cards.extend([Card()] * count)
         if newGameStates[0] == GameState(0, GameStateType.MAIN):
             if newGameStates[1].type == GameStateType.RANDPLAYER and len(newGameStates) == 2:
                 self.remaining = [True for _ in self.players]
@@ -738,11 +739,13 @@ class PWars:
 
             #On initial gameplay, edit a card based on the player action
             if gameStates == (GameState(0, GameStateType.INITIAL),):
-                player.editCard(playerAct.info[0], playerAct.info[1])
+                for editing in playerAct.info:
+                    player.editCard(editing[0], editing[1])
 
             #On editing phase, edit a card based on the player action
             if gameStates == (GameState(0, GameStateType.EDITING, None),):
-                player.editCard(playerAct.info[0], playerAct.info[1])
+                for editing in playerAct.info:
+                    player.editCard(editing[0], editing[1], blankCost=True)
 
             #On claiming phase, claim any card (not blank) from any player hand and buy it
             if gameStates[0] == GameState(0, GameStateType.CLAIMING, None):
@@ -835,7 +838,7 @@ class PWars:
         all(playerAct.valid(PlayerActionType.CLAIM)
             for playerAct in playerActs + (playerAct,)) and \
         len(playerActs) == 0 and playerAct.player == gameStates[2].info and \
-        len(playerAct.info) <= 8 and not \
+        len(playerAct.info) <= FAIR_NUMBER and not \
         any(self.players[playerId].cards[cardId] == Card() for playerId, cardId in playerAct.info):
             return True
 
@@ -870,7 +873,7 @@ class PWars:
                     return True
                 #Claim action in main phase
                 if playerAct.type == PlayerActionType.CLAIMPLAY:
-                    return len(playerAct.info) <= 8 and \
+                    return len(playerAct.info) <= FAIR_NUMBER and \
                     not any(
                         self.players[playerId].cards[cardId] == Card()
                         for playerId, cardId in playerAct.info
