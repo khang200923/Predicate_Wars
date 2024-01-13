@@ -768,16 +768,16 @@ test('PWars.recentPlayerActions 3 TAKEBLANK', game.recentPlayerActions() == (
 game.advance()
 test('PWars.nextGameStates 1 advance', game.history[-1] == pw.GameState(layer=0, type=pw.GameStateType.EDITING, info=None)
      , game.history[-1])
-print('yeet1', game.action(pw.PlayerAction(
+game.action(pw.PlayerAction(
     1,
     pw.PlayerActionType.EDIT,
     ((0, pw.Card(blank=False, powerCost=5)),),
-)))
-print('yeet2', game.action(pw.PlayerAction(
+))
+game.action(pw.PlayerAction(
     2,
     pw.PlayerActionType.EDIT,
     ((0, pw.Card(blank=False, powerCost=5)),),
-)))
+))
 res = game.currentGameStates()
 test('PWars.currentGameState 4 EDIT', res == (pw.GameState(layer=0, type=pw.GameStateType.EDITING, info=None),), res)
 game.advance()
@@ -785,13 +785,12 @@ res = game.currentGameStates()
 test('PWars.currentGameState 5 CLAIMING', res[0] == pw.GameState(layer=0, type=pw.GameStateType.CLAIMING, info=None) and res[1].type == pw.GameStateType.RANDPLAYER, res)
 game.advance()
 res = game.currentGameStates()
-print(res)
 game.action(pw.PlayerAction(
     res[2].info,
     pw.PlayerActionType.CLAIM,
     [(1, 0)],
 ))
-test('PWars.action 1 CLAIM', game.players[res[2].info].power == 95, game.players[res[2].info].power)
+test('PWars.action 1 CLAIM', game.players[res[2].info].power == 90, game.players[res[2].info].power)
 game.advance()
 res = game.currentGameStates()
 test('PWars.currentGameState 6 CLAIM', res[0] == pw.GameState(layer=0, type=pw.GameStateType.CLAIMING, info=None) and res[1].type == pw.GameStateType.RANDPLAYER and res[2].type == pw.GameStateType.TURN and \

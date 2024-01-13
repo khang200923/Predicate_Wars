@@ -78,12 +78,15 @@ class Player:
     potency: int = 256
     pPower: int = 0
     subproofs: List[ProofBase] = field(default_factory=list)
-    def editCard(self, cardID: int, toCard: Card) -> bool:
+    def editCard(self, cardID: int, toCard: Card, blankCost: bool = False) -> bool:
         if self.cards[cardID] == Card():
-            self.cards[cardID] = toCard
+            if (not blankCost) or (blankCost and toCard.powerCost):
+                self.cards[cardID] = toCard
+                if blankCost:
+                    self.power -= toCard.powerCost
             return True
-        if self.power >= 2 * self.cards[cardID].powerCost:
-            self.power -= 2 * self.cards[cardID].powerCost
+        if self.power >= 2 * self.cards[cardID].powerCost + toCard.powerCost:
+            self.power -= 2 * self.cards[cardID].powerCost + toCard.powerCost
             self.cards[cardID] = toCard
             return True
         return False
@@ -742,7 +745,7 @@ class PWars:
             #On editing phase, edit a card based on the player action
             if gameStates == (GameState(0, GameStateType.EDITING, None),):
                 for editing in playerAct.info:
-                    player.editCard(editing[0], editing[1])
+                    player.editCard(editing[0], editing[1], blankCost=True)
 
             #On claiming phase, claim any card (not blank) from any player hand and buy it
             if gameStates[0] == GameState(0, GameStateType.CLAIMING, None):
