@@ -232,7 +232,7 @@ PActInfoType = {
     PlayerActionType.CLAIMPLAY: List[Tuple[int, int]], #[playerID, cardID]
     PlayerActionType.UNREMAIN: None,
     PlayerActionType.PROVE: Tuple[int | None, Proof, int], #(opposingProofIndex, proof, deriveIndex)
-    PlayerActionType.EFFECTCHOOSE: Tuple[dict[int, int], dict[int, int]], #(chosenPlayer, chosenCard)
+    PlayerActionType.EFFECTCHOOSE: Tuple[int, dict[int, int], dict[int, int]], #(proofIndex, chosenPlayer, chosenCard)
 
     PlayerActionType.DEBUGACT: Any
 }
@@ -268,9 +268,8 @@ class PWars:
     discardPile: List[Card] = field(default_factory=list)
     dropPile: List[Card] = field(default_factory=list)
     recentPlay: Optional[Tuple[Card, Card]] = None
-    inst: CalcInstance | None = None
     rules: Dict[int, Statement] = field(default_factory=dict)
-    activeDeductions: List[int] | None = None
+    activeDeductions: List[Tuple[Proof, int]] | None = None
 
     def __post_init__(self):
         self.players = [Player(
@@ -689,6 +688,7 @@ class PWars:
         """
         Advances to a new game state and returns self.
         """
+        #TODO: Test this method
         oldGameStates = self.currentGameStates()
         playerActs = self.recentPlayerActions()
         nextGameStates = self.nextGameState()
@@ -711,16 +711,10 @@ class PWars:
                 for player in self.players: player.playInit()
             if len(newGameStates) == 4 and newGameStates[3].type == GameStateType.PROVE:
                 self.activeDeductions = []
-            if len(oldGameStates) == 4 and oldGameStates[3].type == GameStateType.PROVE:
-                choice: Tuple[Dict[int, int], Dict[int, int]] = playerActs[0].info
-                self.inst = self.genCalcInstance(*choice)
             if len(oldGameStates) == 4 and oldGameStates[3].type == GameStateType.EFFECT:
-                if any(isinstance(playerAct.info[0], int) for playerAct in playerActs):
-                    return self
                 for playerAct in playerActs:
-                    proof: Proof = playerAct.info[1]
-                    self.applyEffect(proof.statements[playerAct.info[2]], self.inst)
-                ...
+                    proof: Proof = self.activeDeductions[playerAct.info[0]]
+                    self.applyEffect(proof.statements[playerAct.info[1]])
 
         return self
 

@@ -785,12 +785,13 @@ res = game.currentGameStates()
 test('PWars.currentGameState 5 CLAIMING', res[0] == pw.GameState(layer=0, type=pw.GameStateType.CLAIMING, info=None) and res[1].type == pw.GameStateType.RANDPLAYER, res)
 game.advance()
 res = game.currentGameStates()
+res2 = game.players[res[2].info].power
 game.action(pw.PlayerAction(
     res[2].info,
     pw.PlayerActionType.CLAIM,
     [(1, 0)],
 ))
-test('PWars.action 1 CLAIM', game.players[res[2].info].power == 90, game.players[res[2].info].power)
+test('PWars.action 1 CLAIM', res2 - game.players[res[2].info].power == 5, game.players[res[2].info].power)
 game.advance()
 res = game.currentGameStates()
 test('PWars.currentGameState 6 CLAIM', res[0] == pw.GameState(layer=0, type=pw.GameStateType.CLAIMING, info=None) and res[1].type == pw.GameStateType.RANDPLAYER and res[2].type == pw.GameStateType.TURN and \
@@ -980,7 +981,6 @@ test('PWars.startAxioms 1 PROVE activeDeductions',
 )
 game.advance()
 res = game.currentGameStates()
-
 
 game = pw.PWars(INITPLAYER=2)
 game.players[0].health = 100
