@@ -211,12 +211,13 @@ class PlayerAction:
                 isinstance(self.info[1], Proof) and \
                 isinstance(self.info[2], int)
         elif self.type == PlayerActionType.EFFECTCHOOSE:
-            return isinstance(self.info, tuple) and len(self.info) == 2 and \
+            return isinstance(self.info, tuple) and len(self.info) == 3 and \
+                isinstance(self.info[0], int) and \
                 all(
                     isinstance(part, dict) and
                     all(isinstance(key, int) and isinstance(value, int)
                         for key, value in part.items())
-                    for part in self.info
+                    for part in self.info[1:]
                 )
 
         elif self.type == PlayerActionType.DEBUGACT: return True
@@ -269,7 +270,7 @@ class PWars:
     dropPile: List[Card] = field(default_factory=list)
     recentPlay: Optional[Tuple[Card, Card]] = None
     rules: Dict[int, Statement] = field(default_factory=dict)
-    activeDeductions: List[Tuple[Proof, int]] | None = None
+    activeDeductions: List[Tuple[Proof, int, int]] | None = None #(proof, deriveIndex, playerID)
 
     def __post_init__(self):
         self.players = [Player(
@@ -330,7 +331,6 @@ class PWars:
         """
         Apply game effects, then return self.
         """
-
         if not statement.deterministic():
             raise GameException('Not a deterministic statement')
 
@@ -602,8 +602,6 @@ class PWars:
                             Statement.lex(f'[randomCard]({next(k for k, v in calcInstance.randomCard.items() if v == int(symbol[1]))})').statement
                     else: raise ValueError('Cannot convert "card" symbol inside statement')
                 elif not symbol[0] in (sym[0] for sym in symbolsType):
-                    print(i)
-                    print(symbol)
                     raise ValueError('Cannot convert invalid symbol inside statement')
                 i += 1
 
@@ -713,8 +711,13 @@ class PWars:
                 self.activeDeductions = []
             if len(oldGameStates) == 4 and oldGameStates[3].type == GameStateType.EFFECT:
                 for playerAct in playerActs:
-                    proof: Proof = self.activeDeductions[playerAct.info[0]]
-                    self.applyEffect(proof.statements[playerAct.info[1]])
+                    proofIndex: int
+                    chosenPlayer: Dict[int, int]
+                    chosenCard: Dict[int, int]
+                    proofIndex, chosenPlayer, chosenCard = playerAct.info
+                    proof: Proof = self.activeDeductions[proofIndex][0]
+                    inst = self.genCalcInstance(chosenPlayer, chosenCard)
+                    self.applyEffect(proof.statements[self.activeDeductions[proofIndex][1]], inst)
 
         return self
 
@@ -723,6 +726,7 @@ class PWars:
         Executes an action on this game instance, if it's valid.
         Returns whether the action is valid or not.
         """
+        #TODO: Implement this method (particularly activeDeductions, disproving case)
         #TODO: Test this method (particularly activeDeductions, disproving case)
         valid = self.actionValid(playerAct)
         if valid:
@@ -760,14 +764,15 @@ class PWars:
                         #If disproving
                         if isinstance(playerAct.info[0], int):
                             try:
-                                self.activeDeductions.remove([playerActs[playerAct.info[0]]])
+                                #self.activeDeductions.remove([playerActs[playerAct.info[0]]])
+                                raise GameException('Unimplemented')
                             except ValueError:
                                 #(assuming actionValid worked as expected,
                                 # the disproved is not nonexistent and is instead already disproven
                                 # so we pass)
                                 pass
                         else:
-                            self.activeDeductions.append(playerAct.info[1:])
+                            self.activeDeductions.append(playerAct.info[1:] + (playerAct.player,))
                 #if PLAY, play the pair of cards
                 elif playerAct.type == PlayerActionType.PLAY:
                     self.dropPile += tuple(player.cards[x] for x in playerAct.info)
@@ -899,8 +904,8 @@ class PWars:
                 return axioms == proofAxioms
 
             #Effect game state
-            if len(gameStates) == 4 and gameStates[3].type == GameStateType.PROVE and \
-            playerAct.valid(PlayerActionType.EFFECTCHOOSE):
+            if len(gameStates) == 4 and gameStates[3].type == GameStateType.EFFECT and \
+            playerAct.valid(PlayerActionType.EFFECTCHOOSE) and self.activeDeductions[playerAct.info[0]][2] == playerAct.player:
                 return len(playerActs) == 0
         ...
         return False

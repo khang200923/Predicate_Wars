@@ -943,7 +943,7 @@ cards =    [pw.Card(blank=True,
                     tag=pw.CardTag.PAPER,
                     powerCost=7,
                     effect=pd.Statement.lex("""
-                                            [ATK]([chosenPlayer](0))
+                                            [ATK]([chosenPlayer](0), 10)
                                             """)
                     )
             ]
@@ -976,11 +976,19 @@ res2 = game.action(pw.PlayerAction(
     (None, proof, 0)
 ))
 test('PWars.startAxioms 1 PROVE activeDeductions',
-    game.activeDeductions == [(proof, 0)],
+    game.activeDeductions == [(proof, 0, 1)],
     game.activeDeductions
 )
 game.advance()
-res = game.currentGameStates()
+res = game.players[0].health
+game.action(pw.PlayerAction(
+    1,
+    pw.PlayerActionType.EFFECTCHOOSE,
+    (0, {0: 0}, dict())
+))
+game.advance()
+res -= game.players[0].health
+test('PWars.advance 2 EFFECT', res == 10, res)
 
 game = pw.PWars(INITPLAYER=2)
 game.players[0].health = 100
