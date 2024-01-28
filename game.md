@@ -50,7 +50,7 @@ Go in cycles of remained players, moving clockwise, starting from the latest pla
 - If chose playing, the player can then [prove](#proving-rules) a predicate game function applied to a player is true in the scope of two played cards by the [proving system](#predicate-logic-and-the-proving-system), only if they have enough proving power to do it, then the proving power is subtracted by the number of lines used in the proof.
 - If a player loses all health (<= 0), they lose the game and cannot participate in the game in any way.
 #### Phase V: Finalization
-- If there is only one player left, the player in the game wins.
+- If there is only one player left, the game ends with the player winning.
 - Insert the discard pile and the drop pile to the deck again.
 - For each player, if they are the ith remaining player, they receive floor(64 * (i / n)) proving potency, where n is the amount of non-losing players.
 - Each player, if desired, buys a *proper subproof* to use in their *proofs*, which costs twice the symbol point of the *proof* to the proving potency.
@@ -202,4 +202,4 @@ A *WFF* can be *simple* if:
 - It is a connective with only predicate that are not *pure* as its parameters
 ### *Calculating*
 (W.I.P)
-<!-- Add this -->
+<!-- TODO: Implement this -->

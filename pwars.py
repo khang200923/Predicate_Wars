@@ -139,12 +139,17 @@ class GameState:
         """
         return GameState(layer, GameStateType.RANDPLAYER, random.randint(0, len(self.players) - 1))
     @staticmethod
-    def nextTurn(self: 'PWars', turn: 'GameState') -> 'GameState':
+    def nextTurn(self: 'PWars', turn: 'GameState', main: bool = False) -> 'GameState':
         """
         Return next state of TURN game state
         """
+        assert not main or len(self.players) == len(self.remaining), 'Wrong size of `remaining`'
+
         if turn.type == GameStateType.TURN:
-            return GameState(turn.layer, GameStateType.TURN, (turn.info + 1) % len(self.players))
+            player = (turn.info + 1) % len(self.players)
+            while main and (not self.remaining[player]):
+                player = (player + 1) % len(self.players)
+            return GameState(turn.layer, GameStateType.TURN, player)
         else: raise ValueError("Not a Turn")
 
 class PlayerActionType(Enum):
@@ -360,6 +365,9 @@ class PWars:
             if not player[0] == 'player' and num[0] == 'number':
                 return self
             playerNum, numNum = int(player[1]), int(num[1])
+
+            if not self.remaining[playerNum]:
+                return self
         if name == '[ATK]':
             if numNum < 20: self.players[playerNum].health -= numNum
             else: self.players[playerNum].health -= 20
@@ -664,22 +672,25 @@ class PWars:
             if GameState.nextTurn(self, gameStates[2]) \
             != GameState(2, GameStateType.TURN, gameStates[1].info):
                 return [GameState.nextTurn(self, gameStates[2])]
-            else:
-                return [GameState(0, GameStateType.MAIN), GameState.randPlayer(self, 1)]
+            return [GameState(0, GameStateType.MAIN), GameState.randPlayer(self, 1)]
         elif gameStates[0] == GameState(0, GameStateType.MAIN) and \
         gameStates[1].type == GameStateType.RANDPLAYER:
+            def nextTurn():
+                if not any(self.remaining):
+                    return [GameState(0, GameStateType.FINAL)]
+                return [GameState.nextTurn(self, gameStates[2], True)]
             if len(gameStates) == 2:
                 return [GameState(2, GameStateType.TURN, gameStates[1].info)]
             elif len(gameStates) == 3 and len(playerActs) == 1:
                 if playerActs[0].type == PlayerActionType.PLAY:
                     return [GameState(3, GameStateType.PROVE)]
                 else:
-                    return [GameState.nextTurn(self, gameStates[2])]
+                    return nextTurn()
             elif len(gameStates) == 4:
                 if gameStates[3].type == GameStateType.PROVE:
                     return [GameState(3, GameStateType.EFFECT)]
                 elif gameStates[3].type == GameStateType.EFFECT and len(playerActs) == 1:
-                    return [GameState.nextTurn(self, gameStates[2])]
+                    return nextTurn()
         raise GameException('Conditions not applied')
 
     def advance(self):

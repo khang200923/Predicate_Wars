@@ -989,8 +989,26 @@ game.action(pw.PlayerAction(
 game.advance()
 res -= game.players[0].health
 test('PWars.advance 2 EFFECT', res == 10, res)
+game.action(pw.PlayerAction(
+    2,
+    pw.PlayerActionType.UNREMAIN
+))
+game.advance()
+game.action(pw.PlayerAction(
+    0,
+    pw.PlayerActionType.UNREMAIN
+))
+game.advance()
+game.action(pw.PlayerAction(
+    1,
+    pw.PlayerActionType.UNREMAIN
+))
+game.advance()
+res = game.currentGameStates()
+test('PWars.advance 3 FINAL', res == (pw.GameState(0, pw.GameStateType.FINAL),), res)
 
 game = pw.PWars(INITPLAYER=2)
+game.remaining = [True for _ in game.players]
 game.players[0].health = 100
 game.applyEffect(pd.Statement.lex('[ATK]($player:0$, 2)', special=True), pw.CalcInstance())
 test('PWars.applyEffect 1 ATK', game.players[0].health == 98, game.players[0].health)
