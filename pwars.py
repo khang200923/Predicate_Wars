@@ -147,8 +147,12 @@ class GameState:
 
         if turn.type == GameStateType.TURN:
             player = (turn.info + 1) % len(self.players)
-            while main and (not self.remaining[player]):
+            for _ in range(self.INITPLAYER):
+                if (not main) or (main and self.remaining[player]):
+                    break
                 player = (player + 1) % len(self.players)
+            else:
+                raise GameException('Impossible error.')
             return GameState(turn.layer, GameStateType.TURN, player)
         else: raise ValueError("Not a Turn")
 
@@ -884,8 +888,8 @@ class PWars:
                 #Claim action in main phase
                 if playerAct.type == PlayerActionType.CLAIMPLAY:
                     return len(playerAct.info) <= FAIR_NUMBER and \
-                    not any(
-                        self.players[playerId].cards[cardId] == Card()
+                    all(
+                        self.players[playerId].cards[cardId] != Card()
                         for playerId, cardId in playerAct.info
                     )
             #Proving game state
