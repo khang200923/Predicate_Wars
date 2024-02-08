@@ -913,10 +913,11 @@ game.action(pw.PlayerAction(
 res2 = sum(x - y == 10 for x, y in zip(res2, [player.power for player in game.players])) == 1
 test('PWars.action 2 CLAIMPLAY', res2, False)
 game.advance()
+game.remaining = [True, True, True]
+game.playRank = []
 while game.currentGameStates()[2].info != 0:
     game.action(pw.PlayerAction(res[2].info, pw.PlayerActionType.DEBUGACT))
     game.advance()
-game.remaining = [True, True, True]
 res = game.currentGameStates()
 res2 = tuple(game.players[res[2].info].cards)
 res3 = game.action(pw.PlayerAction(

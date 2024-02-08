@@ -280,6 +280,7 @@ class PWars:
     recentPlay: Optional[Tuple[Card, Card]] = None
     rules: Dict[int, Statement] = field(default_factory=dict)
     activeDeductions: List[Tuple[Proof, int, int]] | None = None #(proof, deriveIndex, playerID)
+    playRank: List[int] | None = None #List of players in order of ranking, 0 is worst
 
     def __post_init__(self):
         self.players = [Player(
@@ -721,6 +722,7 @@ class PWars:
             if newGameStates[1].type == GameStateType.RANDPLAYER and len(newGameStates) == 2:
                 self.remaining = [True for _ in self.players]
                 self.discardPile = []
+                self.playRank = []
                 for player in self.players: player.playInit()
             if len(newGameStates) == 4 and newGameStates[3].type == GameStateType.PROVE:
                 self.activeDeductions = []
@@ -733,6 +735,9 @@ class PWars:
                     proof: Proof = self.activeDeductions[proofIndex][0]
                     inst = self.genCalcInstance(chosenPlayer, chosenCard)
                     self.applyEffect(proof.statements[self.activeDeductions[proofIndex][1]], inst)
+            if len(newGameStates) == 1 and newGameStates[0].type == GameStateType.FINAL:
+                self.remaining = None
+                self.discardPile = None
 
         return self
 
@@ -804,6 +809,7 @@ class PWars:
                 #if UNREMAIN, leave the main phase
                 elif playerAct.type == PlayerActionType.UNREMAIN:
                     self.remaining[playerAct.player] = False
+                    self.playRank.append(playerAct.player)
                 #if CLAIMPLAY, claim the card to player for twice the power cost
                 elif playerAct.type == PlayerActionType.CLAIMPLAY:
                     powerSpent = sum(self.players[playerId].cards[cardId].powerCost
