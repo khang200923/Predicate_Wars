@@ -1004,9 +1004,12 @@ game.action(pw.PlayerAction(
     1,
     pw.PlayerActionType.UNREMAIN
 ))
+res = [game.players[player].potency for player in game.playRank]
 game.advance()
+res = [game.players[player].potency - res[i] for i, player in enumerate(game.playRank)]
+test('PWars.advance 3 FINAL', res[0] < res[1] and res[1] < res[2], res)
 res = game.currentGameStates()
-test('PWars.advance 3 FINAL', res == (pw.GameState(0, pw.GameStateType.FINAL),), res)
+test('PWars.advance 4 FINAL', res == (pw.GameState(0, pw.GameStateType.FINAL),), res)
 
 game = pw.PWars(INITPLAYER=2)
 game.remaining = [True for _ in game.players]

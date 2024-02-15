@@ -271,6 +271,7 @@ class PWars:
     INITPOTENCY: int = 256
     INITPLAYER: int = 4
     INITCARDPLAYER: int = 2
+    MAXPOTENCYREWARD: int = 64
     players: List[Player] = field(default_factory=list)
     deck: List[Card] = field(default_factory=list)
     history: List[Tuple[GameState | PlayerActionType]] = field(default_factory=list)
@@ -735,9 +736,11 @@ class PWars:
                     proof: Proof = self.activeDeductions[proofIndex][0]
                     inst = self.genCalcInstance(chosenPlayer, chosenCard)
                     self.applyEffect(proof.statements[self.activeDeductions[proofIndex][1]], inst)
-            if len(newGameStates) == 1 and newGameStates[0].type == GameStateType.FINAL:
-                self.remaining = None
-                self.discardPile = None
+        if len(newGameStates) == 1 and newGameStates[0].type == GameStateType.FINAL:
+            self.remaining = None
+            self.discardPile = None
+            for i, v in enumerate(self.playRank):
+                self.players[v].potency += i * self.MAXPOTENCYREWARD // self.INITPLAYER
 
         return self
 
