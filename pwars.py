@@ -120,6 +120,9 @@ GStateInfoType = {
     GameStateType.CLAIMING: None,
     GameStateType.MAIN: None,
 
+    GameStateType.FINAL: None,
+    GameStateType.SUBPROOF: None,
+
     GameStateType.TURN: int,
     GameStateType.PROVE: None,
     GameStateType.EFFECT: None,
@@ -228,6 +231,8 @@ class PlayerAction:
                         for key, value in part.items())
                     for part in self.info[1:]
                 )
+        elif self.type == PlayerActionType.SUBPROOF:
+            return isinstance(self.info, ProofBase)
 
         elif self.type == PlayerActionType.DEBUGACT: return True
         else: raise ValueError('Invalid type')
@@ -243,6 +248,8 @@ PActInfoType = {
     PlayerActionType.UNREMAIN: None,
     PlayerActionType.PROVE: Tuple[int | None, Proof, int], #(opposingProofIndex, proof, deriveIndex)
     PlayerActionType.EFFECTCHOOSE: Tuple[int, dict[int, int], dict[int, int]], #(proofIndex, chosenPlayer, chosenCard)
+
+    PlayerActionType.SUBPROOF: ProofBase,
 
     PlayerActionType.DEBUGACT: Any
 }
@@ -697,6 +704,9 @@ class PWars:
                     return [GameState(3, GameStateType.EFFECT)]
                 elif gameStates[3].type == GameStateType.EFFECT and len(playerActs) == 1:
                     return nextTurn()
+        elif gameStates[0] == GameStateType.FINAL:
+            if len(gameStates) == 1:
+                return GameState(1, GameStateType.SUBPROOF)
         raise GameException('Conditions not applied')
 
     def advance(self):
@@ -736,11 +746,12 @@ class PWars:
                     proof: Proof = self.activeDeductions[proofIndex][0]
                     inst = self.genCalcInstance(chosenPlayer, chosenCard)
                     self.applyEffect(proof.statements[self.activeDeductions[proofIndex][1]], inst)
-        if len(newGameStates) == 1 and newGameStates[0].type == GameStateType.FINAL:
-            self.remaining = None
-            self.discardPile = None
-            for i, v in enumerate(self.playRank):
-                self.players[v].potency += i * self.MAXPOTENCYREWARD // self.INITPLAYER
+        if newGameStates[0].type == GameStateType.FINAL:
+            if len(newGameStates) == 1:
+                self.remaining = None
+                self.discardPile = None
+                for i, v in enumerate(self.playRank):
+                    self.players[v].potency += i * self.MAXPOTENCYREWARD // self.INITPLAYER
 
         return self
 
@@ -931,5 +942,11 @@ class PWars:
             if len(gameStates) == 4 and gameStates[3].type == GameStateType.EFFECT and \
             playerAct.valid(PlayerActionType.EFFECTCHOOSE) and self.activeDeductions[playerAct.info[0]][2] == playerAct.player:
                 return len(playerActs) == 0
+
+        if gameStates[0] == GameState(0, GameStateType.FINAL) and len(gameStates) >= 2:
+            if gameStates[1].type == GameStateType.SUBPROOF and \
+            playerAct.valid(PlayerActionType.SUBPROOF):
+                return playerAct.info.contradictory()
+
         ...
         return False
