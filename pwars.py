@@ -704,9 +704,9 @@ class PWars:
                     return [GameState(3, GameStateType.EFFECT)]
                 elif gameStates[3].type == GameStateType.EFFECT and len(playerActs) == 1:
                     return nextTurn()
-        elif gameStates[0] == GameStateType.FINAL:
+        elif gameStates[0].type == GameStateType.FINAL:
             if len(gameStates) == 1:
-                return GameState(1, GameStateType.SUBPROOF)
+                return [GameState(1, GameStateType.SUBPROOF)]
         raise GameException('Conditions not applied')
 
     def advance(self):
@@ -835,6 +835,15 @@ class PWars:
                             del self.players[playerId].cards[cardId]
                         player.power -= powerSpent
 
+            #On final phase, ...
+            if gameStates[0] == GameState(0, GameStateType.FINAL):
+                #when subproof, ...
+                if gameStates[1].type == GameStateType.SUBPROOF:
+                    #if SUBPROOF, buy a subproof
+                    if playerAct.type == PlayerActionType.SUBPROOF:
+                        player.subproofs.append(playerAct.info)
+                        player.potency -= playerAct.info.symbolPoint() * 2
+
         return valid
 
     def actionValid(self, playerAct: PlayerAction) -> bool:
@@ -945,8 +954,9 @@ class PWars:
 
         if gameStates[0] == GameState(0, GameStateType.FINAL) and len(gameStates) >= 2:
             if gameStates[1].type == GameStateType.SUBPROOF and \
-            playerAct.valid(PlayerActionType.SUBPROOF):
-                return playerAct.info.contradictory()
+            playerAct.valid(PlayerActionType.SUBPROOF) and \
+            player.potency >= playerAct.info.symbolPoint():
+                return not playerAct.info.contradictory()
 
         ...
         return False

@@ -1010,6 +1010,18 @@ res = [game.players[player].potency - res[i] for i, player in enumerate(game.pla
 test('PWars.advance 3 FINAL', res[0] < res[1] and res[1] < res[2], res)
 res = game.currentGameStates()
 test('PWars.advance 4 FINAL', res == (pw.GameState(0, pw.GameStateType.FINAL),), res)
+game.advance()
+res2 = game.players[0].potency
+proof = pd.ProofBase.convert(('P',), [(pd.InferType.Addition, 0, None, '', 0)])
+game.action(pw.PlayerAction(
+    0,
+    pw.PlayerActionType.SUBPROOF,
+    proof
+))
+res = game.players[0].subproofs
+res2 = res2 - game.players[0].potency
+test('PWars.action 8 SUBPROOF', len(res) > 0 and res2 == proof.symbolPoint() * 2, res)
+
 
 game = pw.PWars(INITPLAYER=2)
 game.remaining = [True for _ in game.players]
