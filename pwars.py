@@ -136,6 +136,7 @@ GStateInfoType = {
 
     GameStateType.FINAL: None,
     GameStateType.SUBPROOF: None,
+    GameStateType.ADDRULE: None,
 
     GameStateType.TURN: int,
     GameStateType.PROVE: None,
@@ -247,6 +248,11 @@ class PlayerAction:
                 )
         elif self.type == PlayerActionType.SUBPROOF:
             return isinstance(self.info, ProofBase)
+        elif self.type == PlayerActionType.ADDRULE:
+            return isinstance(self.info, Tuple) and \
+            len(self) == 3 and \
+            isinstance(self.info[0], int) and isinstance(self.info[1], Statement) and \
+            isinstance(self.info[2], int)
 
         elif self.type == PlayerActionType.DEBUGACT: return True
         else: raise ValueError('Invalid type')
@@ -264,6 +270,7 @@ PActInfoType = {
     PlayerActionType.EFFECTCHOOSE: Tuple[int, dict[int, int], dict[int, int]], #(proofIndex, chosenPlayer, chosenCard)
 
     PlayerActionType.SUBPROOF: ProofBase,
+    PlayerActionType.ADDRULE: Tuple[int, Statement, int], #(index, statement, cost)
 
     PlayerActionType.DEBUGACT: Any
 }
@@ -721,6 +728,10 @@ class PWars:
         elif gameStates[0].type == GameStateType.FINAL:
             if len(gameStates) == 1:
                 return [GameState(1, GameStateType.SUBPROOF)]
+            if gameStates[1].type == GameStateType.SUBPROOF:
+                return [GameState(1, GameStateType.ADDRULE)]
+            if gameStates[1].type == GameStateType.ADDRULE and len(playerActs) == 1:
+                return [GameState(2, GameStateType.PROVE)]
         raise GameException('Conditions not applied')
 
     def advance(self):
@@ -857,6 +868,11 @@ class PWars:
                     if playerAct.type == PlayerActionType.SUBPROOF:
                         player.subproofs.append(playerAct.info)
                         player.potency -= playerAct.info.symbolPoint() * 2
+                    #if ADDRULE, add a valid rule
+                    if playerAct.type == PlayerActionType.ADDRULE:
+                        index, state, cost = playerAct
+                        self.rules[index] = state
+                        player.potency -= cost
 
         return valid
 
@@ -967,10 +983,19 @@ class PWars:
                 return len(playerActs) == 0
 
         if gameStates[0] == GameState(0, GameStateType.FINAL) and len(gameStates) >= 2:
+            #Subproof game state
             if gameStates[1].type == GameStateType.SUBPROOF and \
             playerAct.valid(PlayerActionType.SUBPROOF) and \
             player.potency >= playerAct.info.symbolPoint():
                 return not playerAct.info.contradictory()
+
+            #Rule adding game state
+            if gameStates[1].type == GameStateType.ADDRULE and \
+            playerAct.valid(PlayerActionType.ADDRULE) and \
+            len(playerActs) < 1:
+                index, state, cost = playerAct
+                return self.rules.get(index, -1) == -1 and \
+                player.potency >= cost
 
         ...
         return False
