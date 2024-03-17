@@ -777,6 +777,10 @@ class PWars:
                 self.discardPile = None
                 for i, v in enumerate(self.playRank):
                     self.players[v].potency += i * self.MAXPOTENCYREWARD // self.INITPLAYER
+            if len(newGameStates) >= 3 and \
+            newGameStates[1].type == GameStateType.ADDRULE and \
+            newGameStates[2].type == GameStateType.PROVE:
+                self.activeDeductions = []
 
         return self
 
@@ -990,12 +994,37 @@ class PWars:
                 return not playerAct.info.contradictory()
 
             #Rule adding game state
-            if gameStates[1].type == GameStateType.ADDRULE and \
-            playerAct.valid(PlayerActionType.ADDRULE) and \
-            len(playerActs) < 1:
-                index, state, cost = playerAct
-                return self.rules.get(index, -1) == -1 and \
-                player.potency >= cost
+            if gameStates[1].type == GameStateType.ADDRULE:
+                if len(gameStates) == 2 and \
+                playerAct.valid(PlayerActionType.ADDRULE) and \
+                len(playerActs) < 1:
+                    index, state, cost = playerAct
+                    return self.rules.get(index, -1) == -1 and \
+                    player.potency >= cost
+                elif gameStates[2].type == GameStateType.PROVE and \
+                playerAct.valid(PlayerActionType.PROVE):
+                    proof: Proof = playerAct.info[1]
+
+                    #If disproving:
+                    if isinstance(playerAct.info[0], int):
+                        #No reference to nonexistent/contradicting opposing proofs or to itself
+                        if playerAct.info[0] > len(playerActs) or \
+                        isinstance(playerActs[playerAct.info[0]].info[0], int):
+                            return False
+                        #Must be contradictory in itself
+                        if not proof.contradictory():
+                            return False
+
+                    #Must have subproofs equal to player's
+                    if playerAct.info[1].subproofs != player.subproofs:
+                        return False
+
+                    axioms = self.startAxioms(playerAct.info[0])
+                    proofAxioms = tuple(
+                        state for state, tag in
+                        zip(proof.statements, proof.stateTags) if tag == StateTag.AXIOM
+                    )
+                    return axioms == proofAxioms
 
         ...
         return False
