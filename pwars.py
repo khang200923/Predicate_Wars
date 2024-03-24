@@ -250,7 +250,7 @@ class PlayerAction:
             return isinstance(self.info, ProofBase)
         elif self.type == PlayerActionType.ADDRULE:
             return isinstance(self.info, Tuple) and \
-            len(self) == 3 and \
+            len(self.info) == 3 and \
             isinstance(self.info[0], int) and isinstance(self.info[1], Statement) and \
             isinstance(self.info[2], int)
 
@@ -872,11 +872,11 @@ class PWars:
                     if playerAct.type == PlayerActionType.SUBPROOF:
                         player.subproofs.append(playerAct.info)
                         player.potency -= playerAct.info.symbolPoint() * 2
-                    #if ADDRULE, add a valid rule
-                    if playerAct.type == PlayerActionType.ADDRULE:
-                        index, state, cost = playerAct
-                        self.rules[index] = state
-                        player.potency -= cost
+                #if ADDRULE, add a valid rule
+                if playerAct.type == PlayerActionType.ADDRULE:
+                    index, state, cost = playerAct.info
+                    self.rules[index] = state
+                    player.potency -= cost
 
         return valid
 
@@ -998,9 +998,11 @@ class PWars:
                 if len(gameStates) == 2 and \
                 playerAct.valid(PlayerActionType.ADDRULE) and \
                 len(playerActs) < 1:
-                    index, state, cost = playerAct
+                    index, state, cost = playerAct.info
                     return self.rules.get(index, -1) == -1 and \
-                    player.potency >= cost
+                    index in range(0, 64) and \
+                    player.potency >= cost and \
+                    cost >= 3 * state.symbolPoint()
                 elif gameStates[2].type == GameStateType.PROVE and \
                 playerAct.valid(PlayerActionType.PROVE):
                     proof: Proof = playerAct.info[1]

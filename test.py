@@ -1035,6 +1035,19 @@ game.action(pw.PlayerAction(
 res = game.players[0].subproofs
 res2 = res2 - game.players[0].potency
 test('PWars.action 8 SUBPROOF', len(res) > 0 and res2 == proof.symbolPoint() * 2, res)
+game.advance()
+res = game.action(pw.PlayerAction(
+    1,
+    pw.PlayerActionType.ADDRULE,
+    (0, pd.Statement.lex('C imply D'), 6)
+))
+test('PWars.action 1 ADDRULE', not res, res)
+res = game.action(pw.PlayerAction(
+    1,
+    pw.PlayerActionType.ADDRULE,
+    (0, pd.Statement.lex('C imply D'), 30)
+))
+test('PWars.action 2 ADDRULE', res and 0 in game.rules, (res, game.rules))
 
 
 game = pw.PWars(INITPLAYER=2)
