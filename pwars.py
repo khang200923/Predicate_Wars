@@ -738,6 +738,7 @@ class PWars:
         """
         Advances to a new game state and returns self.
         """
+        #TODO: Implement this method (particularly SUBPROOF/PROVE game state)
         #TODO: Test this method
         oldGameStates = self.currentGameStates()
         playerActs = self.recentPlayerActions()
@@ -763,6 +764,7 @@ class PWars:
             if len(newGameStates) == 4 and newGameStates[3].type == GameStateType.PROVE:
                 self.activeDeductions = []
             if len(oldGameStates) == 4 and oldGameStates[3].type == GameStateType.EFFECT:
+                #TODO: Check if proof was not disproven
                 for playerAct in playerActs:
                     proofIndex: int
                     chosenPlayer: Dict[int, int]
